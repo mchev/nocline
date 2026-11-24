@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import SetupLayout from '@/layouts/SetupLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { t } from '@/lib/i18n';
@@ -22,8 +23,9 @@ void createInertiaApp({
             case name === 'status/Show':
                 return null;
             case name.startsWith('auth/'):
-            case name.startsWith('setup/'):
                 return AuthLayout;
+            case name.startsWith('setup/'):
+                return SetupLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:

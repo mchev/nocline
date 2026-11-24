@@ -18,12 +18,15 @@ class SetupRequest extends FormRequest
      */
     public function rules(): array
     {
+        $dbConfigured = $this->boolean('use_configured_database');
+
         return [
-            'db.driver' => ['required', 'in:sqlite,mysql,pgsql'],
-            'db.database' => ['nullable', 'string', 'max:255', 'required_unless:db.driver,sqlite'],
-            'db.host' => ['nullable', 'string', 'max:255', 'required_unless:db.driver,sqlite'],
+            'use_configured_database' => ['sometimes', 'boolean'],
+            'db.driver' => [$dbConfigured ? 'nullable' : 'required', 'in:sqlite,mysql,pgsql'],
+            'db.database' => ['nullable', 'string', 'max:255', $dbConfigured ? 'nullable' : 'required_unless:db.driver,sqlite'],
+            'db.host' => ['nullable', 'string', 'max:255', $dbConfigured ? 'nullable' : 'required_unless:db.driver,sqlite'],
             'db.port' => ['nullable', 'integer', 'between:1,65535'],
-            'db.username' => ['nullable', 'string', 'max:255', 'required_unless:db.driver,sqlite'],
+            'db.username' => ['nullable', 'string', 'max:255', $dbConfigured ? 'nullable' : 'required_unless:db.driver,sqlite'],
             'db.password' => ['nullable', 'string', 'max:255'],
             'admin.name' => ['required', 'string', 'max:255'],
             'admin.email' => ['required', 'email', 'max:255'],

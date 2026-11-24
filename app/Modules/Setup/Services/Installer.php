@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
@@ -77,12 +78,103 @@ class Installer
      *
      * @param  array<string, mixed>  $data  validated wizard payload
      */
+    /**
+     * Wizard fields prefilled from the active Laravel DB connection (.env / Forge).
+     *
+     * @return array{driver: string, database: string, host: string, port: string, username: string, password: string}
+     */
+    public function dbFromApplicationConfig(): array
+    {
+        $driver = (string) config('database.default');
+        $connection = config("database.connections.{$driver}");
+
+        if (! is_array($connection)) {
+            return [
+                'driver' => 'sqlite',
+                'database' => database_path('database.sqlite'),
+                'host' => '',
+                'port' => '',
+                'username' => '',
+                'password' => '',
+            ];
+        }
+
+        return [
+            'driver' => $driver,
+            'database' => (string) ($connection['database'] ?? ''),
+            'host' => (string) ($connection['host'] ?? ''),
+            'port' => isset($connection['port']) && $connection['port'] !== null ? (string) $connection['port'] : '',
+            'username' => (string) ($connection['username'] ?? ''),
+            'password' => '',
+        ];
+    }
+
+    /**
+     * @return array{
+     *     connected: bool,
+     *     migrated: bool,
+     *     use_configured: bool,
+     *     summary: string|null,
+     *     prefill: array{driver: string, database: string, host: string, port: string, username: string, password: string}
+     * }
+     */
+    public function configuredDatabaseStatus(): array
+    {
+        $prefill = $this->dbFromApplicationConfig();
+        $status = [
+            'connected' => false,
+            'migrated' => false,
+            'use_configured' => false,
+            'summary' => null,
+            'prefill' => $prefill,
+        ];
+
+        try {
+            $connection = DB::connection();
+            $connection->getPdo();
+            $status['connected'] = true;
+
+            $migrated = Schema::connection($connection->getName())->hasTable('migrations')
+                && $connection->table('migrations')->exists()
+                && Schema::connection($connection->getName())->hasTable('users');
+
+            $status['migrated'] = $migrated;
+            $status['use_configured'] = $status['connected'] && $migrated && ! app()->environment('testing');
+            $status['summary'] = $this->connectionSummary($prefill, $status['migrated']);
+        } catch (Throwable) {
+            // Wizard stays on manual DB configuration.
+        }
+
+        return $status;
+    }
+
+    /**
+     * @param  array{driver: string, database: string, host: string, port: string, username: string, password: string}  $prefill
+     */
+    private function connectionSummary(array $prefill, bool $migrated): string
+    {
+        $label = match ($prefill['driver']) {
+            'sqlite' => $prefill['database'],
+            'mysql', 'pgsql' => $prefill['host'].' / '.$prefill['database'],
+            default => $prefill['driver'],
+        };
+
+        return $migrated
+            ? __(':engine — schema ready', ['engine' => strtoupper($prefill['driver']).' · '.$label])
+            : __(':engine — connected', ['engine' => strtoupper($prefill['driver']).' · '.$label]);
+    }
+
     public function install(array $data): User
     {
-        $config = $this->connectionConfig($data['db']);
+        $useConfigured = (bool) ($data['use_configured_database'] ?? false);
+        $config = $useConfigured
+            ? config('database.connections.'.config('database.default'))
+            : $this->connectionConfig($data['db']);
 
-        config(['database.connections.phare_setup' => $config, 'database.default' => 'phare_setup']);
-        DB::purge('phare_setup');
+        if (! $useConfigured) {
+            config(['database.connections.phare_setup' => $config, 'database.default' => 'phare_setup']);
+            DB::purge('phare_setup');
+        }
 
         Artisan::call('migrate', ['--force' => true]);
 
@@ -95,7 +187,7 @@ class Installer
             'email_verified_at' => now(),
         ])->save();
 
-        $this->env->write($this->envValues($data, $config));
+        $this->env->write($this->envValues($data, $config, $useConfigured));
         $this->state->markInstalled();
 
         return $user;
@@ -106,7 +198,7 @@ class Installer
      * @param  array<string, mixed>  $config
      * @return array<string, string|null>
      */
-    private function envValues(array $data, array $config): array
+    private function envValues(array $data, array $config, bool $keepDatabaseEnv = false): array
     {
         $values = [
             'APP_NAME' => $data['instance']['name'],
@@ -115,8 +207,11 @@ class Installer
             'APP_TIMEZONE' => $data['instance']['timezone'],
             'APP_ENV' => 'production',
             'APP_DEBUG' => 'false',
-            'DB_CONNECTION' => $config['driver'],
         ];
+
+        if (! $keepDatabaseEnv) {
+            $values['DB_CONNECTION'] = $config['driver'];
+        }
 
         if (! config('app.key')) {
             $values['APP_KEY'] = 'base64:'.base64_encode(random_bytes(32));
@@ -126,16 +221,18 @@ class Installer
             $values['VAULT_MASTER_KEY'] = base64_encode(random_bytes(32));
         }
 
-        if ($config['driver'] === 'sqlite') {
-            $values['DB_DATABASE'] = $config['database'];
-        } else {
-            $values += [
-                'DB_HOST' => $config['host'],
-                'DB_PORT' => (string) $config['port'],
-                'DB_DATABASE' => $config['database'],
-                'DB_USERNAME' => $config['username'],
-                'DB_PASSWORD' => $config['password'],
-            ];
+        if (! $keepDatabaseEnv) {
+            if ($config['driver'] === 'sqlite') {
+                $values['DB_DATABASE'] = $config['database'];
+            } else {
+                $values += [
+                    'DB_HOST' => $config['host'],
+                    'DB_PORT' => (string) $config['port'],
+                    'DB_DATABASE' => $config['database'],
+                    'DB_USERNAME' => $config['username'],
+                    'DB_PASSWORD' => $config['password'],
+                ];
+            }
         }
 
         $values += ['SESSION_DRIVER' => 'database', 'CACHE_STORE' => 'database', 'QUEUE_CONNECTION' => 'database'];

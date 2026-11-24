@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class SetupController extends Controller
 {
-    public function show(): Response
+    public function show(Installer $installer): Response
     {
         return Inertia::render('setup/Index', [
             'defaults' => [
@@ -24,6 +24,7 @@ class SetupController extends Controller
                 'timezone' => config('app.timezone'),
                 'sqlite_path' => database_path('database.sqlite'),
             ],
+            'database' => $installer->configuredDatabaseStatus(),
             'timezones' => DateTimeZone::listIdentifiers(),
             'locale' => app()->getLocale(),
         ]);
@@ -56,8 +57,15 @@ class SetupController extends Controller
     public function store(SetupRequest $request, Installer $installer): RedirectResponse|SymfonyResponse
     {
         $data = $request->validated();
+        $useConfigured = (bool) ($data['use_configured_database'] ?? false);
 
-        if ($error = $installer->testConnection($data['db'])) {
+        if ($useConfigured) {
+            if (! $installer->configuredDatabaseStatus()['use_configured']) {
+                return back()->withErrors(['db.driver' => __('The configured database is not ready.')])->withInput();
+            }
+
+            $data['db'] = $installer->dbFromApplicationConfig();
+        } elseif ($error = $installer->testConnection($data['db'])) {
             return back()->withErrors(['db.driver' => __('Could not connect to the database: :error', ['error' => $error])])->withInput();
         }
 

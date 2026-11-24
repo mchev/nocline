@@ -9,8 +9,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { t } from '@/lib/i18n';
 
+type StepId = 'locale' | 'database' | 'admin' | 'instance' | 'mail' | 'review';
+
+type DatabaseStatus = {
+    connected: boolean;
+    migrated: boolean;
+    use_configured: boolean;
+    summary: string | null;
+    prefill: {
+        driver: string;
+        database: string;
+        host: string;
+        port: string;
+        username: string;
+        password: string;
+    };
+};
+
 const props = defineProps<{
     defaults: { url: string; timezone: string; sqlite_path: string };
+    database: DatabaseStatus;
     timezones: string[];
     locale: string;
 }>();
@@ -27,15 +45,20 @@ const locales = computed(
     () => page.props.locales as unknown as Record<string, string>,
 );
 
+const prefillDb = () => ({
+    driver: props.database.prefill.driver || 'sqlite',
+    database:
+        props.database.prefill.database ||
+        (props.database.prefill.driver === 'sqlite' ? props.defaults.sqlite_path : ''),
+    host: props.database.prefill.host || '127.0.0.1',
+    port: props.database.prefill.port || '',
+    username: props.database.prefill.username || '',
+    password: '',
+});
+
 const form = useForm({
-    db: {
-        driver: 'sqlite',
-        database: props.defaults.sqlite_path,
-        host: '127.0.0.1',
-        port: '',
-        username: '',
-        password: '',
-    },
+    use_configured_database: props.database.use_configured,
+    db: prefillDb(),
     admin: { name: '', email: '', password: '', password_confirmation: '' },
     instance: {
         name: 'Phare',
@@ -46,15 +69,24 @@ const form = useForm({
     mail: { host: '', port: '587', from: '', username: '', password: '' },
 });
 
-const steps = computed(() => [
-    t('Language'),
-    t('Database'),
-    t('Administrator'),
-    t('Instance'),
-    t('Email'),
-    t('Review'),
-]);
+const stepOrder = computed<StepId[]>(() =>
+    props.database.use_configured
+        ? ['locale', 'admin', 'instance', 'mail', 'review']
+        : ['locale', 'database', 'admin', 'instance', 'mail', 'review'],
+);
+
+const stepLabels: Record<StepId, string> = {
+    locale: 'Language',
+    database: 'Database',
+    admin: 'Administrator',
+    instance: 'Instance',
+    mail: 'Email',
+    review: 'Review',
+};
+
+const steps = computed(() => stepOrder.value.map((id) => t(stepLabels[id])));
 const step = ref(0);
+const stepId = computed(() => stepOrder.value[step.value] ?? 'locale');
 const stepError = ref<string | null>(null);
 watch(form, () => (stepError.value = null), { deep: true });
 const select =
@@ -118,16 +150,16 @@ async function testConnection(): Promise<boolean> {
     return connection.value?.ok === true;
 }
 
-function validateStep(index: number): string | null {
+function validateStep(id: StepId): string | null {
     const { db, admin, instance } = form;
 
-    if (index === 1 && db.driver !== 'sqlite') {
+    if (id === 'database' && db.driver !== 'sqlite') {
         if (!db.host || !db.database || !db.username) {
             return t('Host, database name and username are required.');
         }
     }
 
-    if (index === 2) {
+    if (id === 'admin') {
         if (!admin.name || !admin.email) {
             return t('Name and email are required.');
         }
@@ -141,7 +173,7 @@ function validateStep(index: number): string | null {
         }
     }
 
-    if (index === 3 && (!instance.name || !/^https?:\/\//.test(instance.url))) {
+    if (id === 'instance' && (!instance.name || !/^https?:\/\//.test(instance.url))) {
         return t('An instance name and a valid http(s) URL are required.');
     }
 
@@ -149,13 +181,13 @@ function validateStep(index: number): string | null {
 }
 
 async function next() {
-    stepError.value = validateStep(step.value);
+    stepError.value = validateStep(stepId.value);
 
     if (stepError.value) {
         return;
     }
 
-    if (step.value === 1 && !(await testConnection())) {
+    if (stepId.value === 'database' && !(await testConnection())) {
         stepError.value = t('Fix the database connection before continuing.');
 
         return;
@@ -169,11 +201,11 @@ function back() {
     step.value = Math.max(0, step.value - 1);
 }
 
-const errorSteps: Record<string, number> = {
-    db: 1,
-    admin: 2,
-    instance: 3,
-    mail: 4,
+const errorSteps: Record<string, StepId> = {
+    db: 'database',
+    admin: 'admin',
+    instance: 'instance',
+    mail: 'mail',
 };
 
 function install() {
@@ -184,7 +216,12 @@ function install() {
     form.post(SetupController.store.url(), {
         onError: (errors) => {
             const first = Object.keys(errors)[0]?.split('.')[0];
-            step.value = errorSteps[first] ?? step.value;
+            const target = first ? errorSteps[first] : undefined;
+
+            if (target) {
+                const index = stepOrder.value.indexOf(target);
+                step.value = index >= 0 ? index : step.value;
+            }
         },
     });
 }
@@ -235,7 +272,16 @@ function err(key: string): string | undefined {
         </ol>
 
         <!-- 1. Language -->
-        <section v-if="step === 0" class="form-panel gap-4">
+        <p
+            v-if="database.use_configured && database.summary"
+            class="rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-foreground"
+            role="status"
+        >
+            {{ t('Database already connected (migrations found). The database step is skipped.') }}
+            <span class="mt-1 block font-medium">{{ database.summary }}</span>
+        </p>
+
+        <section v-if="stepId === 'locale'" class="form-panel gap-4">
             <h2 class="font-display text-lg font-semibold">
                 {{ t('Choose your language') }}
             </h2>
@@ -266,7 +312,7 @@ function err(key: string): string | undefined {
         </section>
 
         <!-- 2. Database -->
-        <section v-else-if="step === 1" class="form-panel gap-4">
+        <section v-else-if="stepId === 'database'" class="form-panel gap-4">
             <h2 class="font-display text-lg font-semibold">
                 {{ t('Database') }}
             </h2>
@@ -366,7 +412,7 @@ function err(key: string): string | undefined {
         </section>
 
         <!-- 3. Admin -->
-        <section v-else-if="step === 2" class="form-panel gap-4">
+        <section v-else-if="stepId === 'admin'" class="form-panel gap-4">
             <h2 class="font-display text-lg font-semibold">
                 {{ t('Administrator account') }}
             </h2>
@@ -426,7 +472,7 @@ function err(key: string): string | undefined {
         </section>
 
         <!-- 4. Instance -->
-        <section v-else-if="step === 3" class="form-panel gap-4">
+        <section v-else-if="stepId === 'instance'" class="form-panel gap-4">
             <h2 class="font-display text-lg font-semibold">
                 {{ t('Instance') }}
             </h2>
@@ -460,7 +506,7 @@ function err(key: string): string | undefined {
         </section>
 
         <!-- 5. Mail -->
-        <section v-else-if="step === 4" class="form-panel gap-4">
+        <section v-else-if="stepId === 'mail'" class="form-panel gap-4">
             <h2 class="font-display text-lg font-semibold">
                 {{ t('Email (optional)') }}
             </h2>
@@ -526,7 +572,13 @@ function err(key: string): string | undefined {
                 <dt class="text-muted-foreground">{{ t('Language') }}</dt>
                 <dd>{{ locales[form.instance.locale] }}</dd>
                 <dt class="text-muted-foreground">{{ t('Database') }}</dt>
-                <dd>{{ form.db.driver }}</dd>
+                <dd>
+                    {{
+                        database.use_configured && database.summary
+                            ? database.summary
+                            : form.db.driver
+                    }}
+                </dd>
                 <dt class="text-muted-foreground">{{ t('Administrator') }}</dt>
                 <dd>{{ form.admin.email }}</dd>
                 <dt class="text-muted-foreground">{{ t('Instance') }}</dt>
@@ -561,7 +613,7 @@ function err(key: string): string | undefined {
                 :disabled="testing"
                 @click="next"
             >
-                {{ step === 4 && !form.mail.host ? t('Skip') : t('Continue') }}
+                {{ stepId === 'mail' && !form.mail.host ? t('Skip') : t('Continue') }}
             </Button>
             <Button
                 v-else

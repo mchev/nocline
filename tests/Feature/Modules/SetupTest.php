@@ -43,6 +43,16 @@ it('redirects everything to the wizard until installed', function () {
     $this->get(route('setup.show'))->assertOk();
 });
 
+it('reports database connectivity on the wizard', function () {
+    $this->get(route('setup.show'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('setup/Index')
+            ->where('database.connected', true)
+            ->where('database.migrated', true)
+            ->where('database.use_configured', false));
+});
+
 it('locks the wizard once installed and sends visitors to the login', function () {
     config(['phare.force_installed' => true]);
 
