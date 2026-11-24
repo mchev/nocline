@@ -4,7 +4,7 @@ Les **groupes** (voir [Surveiller](surveiller.md#ranger-dans-des-groupes)) perme
 
 ## Enrôler un host
 
-1. Menu **Hosts** > nom (+ groupe) > _Ajouter_. Un jeton d'enrôlement est affiché **une seule fois** (valable 24 h, usage unique). Le bouton _Jeton_ en génère un nouveau.
+1. Menu **Hosts** > nom (+ groupe) > _Ajouter_. Un jeton d'enrôlement est affiché **une seule fois** (valable 24 h, usage unique). Le bouton _Jeton_ en génère un nouveau. Le binaire vient de la **release GitHub officielle** (même version que le hub) : le serveur surveillé doit pouvoir joindre `github.com` en HTTPS.
 2. Sur le serveur : `phare-agent enroll --hub https://votre-hub --token <jeton>`. Le jeton permanent est écrit dans `/etc/phare-agent/config.yaml` (mode 0600).
 3. Lancez `phare-agent` (service systemd recommandé). Le host passe « en ligne » dès le premier envoi ; il est « hors ligne » après 3 minutes sans nouvelle.
 

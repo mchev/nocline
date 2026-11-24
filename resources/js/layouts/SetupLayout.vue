@@ -11,7 +11,9 @@ const { title = '', description = '' } = defineProps<{
 </script>
 
 <template>
-    <div class="flex min-h-svh flex-col justify-center px-4 py-8 sm:px-6 md:px-10">
+    <div
+        class="flex min-h-svh flex-col justify-center px-4 py-8 sm:px-6 md:px-10"
+    >
         <div
             class="mx-auto w-full max-w-[min(80vw,40rem)] space-y-8 lg:max-w-[min(80vw,48rem)]"
         >
@@ -24,16 +26,23 @@ const { title = '', description = '' } = defineProps<{
                 >
                     <AppLogoIcon class="size-4" />
                 </span>
-                <span class="font-display text-lg font-semibold tracking-tight lowercase">
+                <span
+                    class="font-display text-lg font-semibold tracking-tight lowercase"
+                >
                     phare<span class="text-primary">.</span>
                 </span>
             </Link>
 
             <header v-if="title" class="space-y-1.5">
-                <h1 class="font-display text-2xl font-semibold tracking-tight text-balance md:text-3xl">
+                <h1
+                    class="font-display text-2xl font-semibold tracking-tight text-balance md:text-3xl"
+                >
                     {{ t(title) }}
                 </h1>
-                <p v-if="description" class="text-sm text-pretty text-muted-foreground">
+                <p
+                    v-if="description"
+                    class="text-sm text-pretty text-muted-foreground"
+                >
                     {{ t(description) }}
                 </p>
             </header>

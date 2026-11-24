@@ -74,11 +74,6 @@ class Installer
     }
 
     /**
-     * Run the whole first setup: DB, migrations, admin, .env, marker.
-     *
-     * @param  array<string, mixed>  $data  validated wizard payload
-     */
-    /**
      * Wizard fields prefilled from the active Laravel DB connection (.env / Forge).
      *
      * @return array{driver: string, database: string, host: string, port: string, username: string, password: string}
@@ -103,7 +98,7 @@ class Installer
             'driver' => $driver,
             'database' => (string) ($connection['database'] ?? ''),
             'host' => (string) ($connection['host'] ?? ''),
-            'port' => isset($connection['port']) && $connection['port'] !== null ? (string) $connection['port'] : '',
+            'port' => isset($connection['port']) ? (string) $connection['port'] : '',
             'username' => (string) ($connection['username'] ?? ''),
             'password' => '',
         ];
@@ -139,7 +134,7 @@ class Installer
                 && Schema::connection($connection->getName())->hasTable('users');
 
             $status['migrated'] = $migrated;
-            $status['use_configured'] = $status['connected'] && $migrated && ! app()->environment('testing');
+            $status['use_configured'] = $migrated && ! app()->environment('testing');
             $status['summary'] = $this->connectionSummary($prefill, $status['migrated']);
         } catch (Throwable) {
             // Wizard stays on manual DB configuration.
@@ -164,6 +159,11 @@ class Installer
             : __(':engine — connected', ['engine' => strtoupper($prefill['driver']).' · '.$label]);
     }
 
+    /**
+     * Run the whole first setup: DB, migrations, admin, .env, marker.
+     *
+     * @param  array<string, mixed>  $data  validated wizard payload
+     */
     public function install(array $data): User
     {
         $useConfigured = (bool) ($data['use_configured_database'] ?? false);

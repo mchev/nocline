@@ -3,6 +3,7 @@ set -eu
 
 HUB={!! $hub !!}
 TOKEN={!! $token !!}
+AGENT_URL_PREFIX={!! $agentDownloadPrefix !!}
 
 say() { printf '%s\n' "$*"; }
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -20,12 +21,13 @@ esac
 
 BIN=/usr/local/bin/phare-agent
 TMP="$(mktemp)"
+AGENT_URL="${AGENT_URL_PREFIX}${ARCH}"
 
 say "1/3 Downloading the agent..."
 if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$HUB/install/agent/linux-$ARCH" -o "$TMP" || fail "Download failed. Is the Phare hub reachable from this server?"
+    curl -fsSL "$AGENT_URL" -o "$TMP" || fail "Download failed. The official Phare release {{ $agentReleaseTag }} must be published on GitHub (this server needs outbound HTTPS)."
 elif command -v wget >/dev/null 2>&1; then
-    wget -q "$HUB/install/agent/linux-$ARCH" -O "$TMP" || fail "Download failed. Is the Phare hub reachable from this server?"
+    wget -q "$AGENT_URL" -O "$TMP" || fail "Download failed. The official Phare release {{ $agentReleaseTag }} must be published on GitHub (this server needs outbound HTTPS)."
 else
     fail "Neither curl nor wget is installed."
 fi

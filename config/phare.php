@@ -8,6 +8,12 @@ return [
     */
     'version' => trim((string) @file_get_contents(base_path('VERSION'))) ?: '0.0.0',
     'repository' => env('PHARE_REPOSITORY', 'mchev/phare'),
+
+    /*
+    | GitHub repository that publishes phare-agent binaries (releases). Independent from PHARE_REPOSITORY
+    | (which may be a fork for hub update checks). Agent install always downloads from here.
+    */
+    'official_repository' => env('PHARE_OFFICIAL_REPOSITORY', 'mchev/phare'),
     'update_check' => (bool) env('PHARE_UPDATE_CHECK', true),
     'backup_dir' => env('PHARE_BACKUP_DIR', storage_path('app/backups')),
 
@@ -38,11 +44,12 @@ return [
     'notification_adapters' => [],
 
     /*
-    | Where the hub serves the phare-agent binaries from (built by scripts/build-agent.sh), and an
-    | optional fallback download URL; {arch} is replaced by amd64|arm64.
+    | Optional override for agent download URL ({arch} = amd64|arm64). When unset, the installer uses
+    | the official repository release matching VERSION (releases/download/vX.Y.Z/...).
+    | agent_binary_dir is only for local dev after scripts/build-agent.sh (not used in production).
     */
     'agent_binary_dir' => env('PHARE_AGENT_BINARY_DIR', storage_path('app/agent')),
-    'agent_download_url' => env('PHARE_AGENT_DOWNLOAD_URL', 'https://github.com/'.env('PHARE_REPOSITORY', 'mchev/phare').'/releases/latest/download/phare-agent-linux-{arch}'),
+    'agent_download_url' => env('PHARE_AGENT_DOWNLOAD_URL'),
 
     /*
     | Smart detection of a website added in the wizard: refuse addresses on private networks

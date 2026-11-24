@@ -40,12 +40,8 @@ Chaque groupe a ses propres options d'affichage :
 
 Un wallboard peut afficher un seul groupe : ses sous-groupes sont inclus. Importer depuis Uptime Kuma recrée les groupes Kuma sous forme de groupes imbriqués. Supprimer un groupe ne supprime pas son contenu : les sous-groupes remontent d'un niveau et les éléments sont simplement détachés.
 
-## Côté hub : fournir l'agent aux serveurs
+## Agent : releases GitHub officielles
 
-Le script télécharge le binaire depuis le hub. Construisez-le une fois (Go requis) :
+Les serveurs surveillés téléchargent `phare-agent` depuis la release **officielle** (`PHARE_OFFICIAL_REPOSITORY`, défaut `mchev/phare`), tag `vX.Y.Z` = fichier `VERSION` du hub. Aucun Go sur le hub en production.
 
-```sh
-scripts/build-agent.sh      # produit storage/app/agent/phare-agent-linux-{amd64,arm64}
-```
-
-Ou, sans Go sur le hub, définissez `PHARE_AGENT_DOWNLOAD_URL` (ex. `https://…/phare-agent-linux-{arch}`). `APP_URL` doit être l'adresse publique du hub, sinon les serveurs ne pourront pas l'atteindre.
+Les mainteneurs publient les binaires avec `git tag vX.Y.Z && git push --tags` (workflow `release.yml`) ou `scripts/build-agent.sh` avant de créer la release à la main. `APP_URL` reste l'adresse du hub pour l'enrôlement uniquement.

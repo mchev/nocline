@@ -49,7 +49,9 @@ const prefillDb = () => ({
     driver: props.database.prefill.driver || 'sqlite',
     database:
         props.database.prefill.database ||
-        (props.database.prefill.driver === 'sqlite' ? props.defaults.sqlite_path : ''),
+        (props.database.prefill.driver === 'sqlite'
+            ? props.defaults.sqlite_path
+            : ''),
     host: props.database.prefill.host || '127.0.0.1',
     port: props.database.prefill.port || '',
     username: props.database.prefill.username || '',
@@ -173,7 +175,10 @@ function validateStep(id: StepId): string | null {
         }
     }
 
-    if (id === 'instance' && (!instance.name || !/^https?:\/\//.test(instance.url))) {
+    if (
+        id === 'instance' &&
+        (!instance.name || !/^https?:\/\//.test(instance.url))
+    ) {
         return t('An instance name and a valid http(s) URL are required.');
     }
 
@@ -277,7 +282,11 @@ function err(key: string): string | undefined {
             class="rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-foreground"
             role="status"
         >
-            {{ t('Database already connected (migrations found). The database step is skipped.') }}
+            {{
+                t(
+                    'Database already connected (migrations found). The database step is skipped.',
+                )
+            }}
             <span class="mt-1 block font-medium">{{ database.summary }}</span>
         </p>
 
@@ -613,7 +622,11 @@ function err(key: string): string | undefined {
                 :disabled="testing"
                 @click="next"
             >
-                {{ stepId === 'mail' && !form.mail.host ? t('Skip') : t('Continue') }}
+                {{
+                    stepId === 'mail' && !form.mail.host
+                        ? t('Skip')
+                        : t('Continue')
+                }}
             </Button>
             <Button
                 v-else
