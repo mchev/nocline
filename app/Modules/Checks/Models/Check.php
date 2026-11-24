@@ -10,6 +10,7 @@ use App\Modules\Checks\Policies\CheckPolicy;
 use App\Modules\Checks\Services\SiteFaviconSync;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Renewals\Services\CheckRenewalCleanup;
 use Carbon\CarbonInterface;
 use Database\Factories\CheckFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -76,6 +77,7 @@ class Check extends Model
 
         static::deleted(function (Check $check): void {
             app(SiteFaviconSync::class)->purge($check);
+            app(CheckRenewalCleanup::class)->forDeletedCheck($check);
         });
     }
 

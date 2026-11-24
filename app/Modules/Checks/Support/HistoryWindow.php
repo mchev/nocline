@@ -30,4 +30,10 @@ final readonly class HistoryWindow
     {
         return new self(24, 24 / 60, imputePreCreation: false);
     }
+
+    /** Check detail page — one bucket per hour (default: last 7 days). */
+    public static function detailPage(int $hours = 168, int $buckets = 168): self
+    {
+        return new self($buckets, (float) $hours);
+    }
 }

@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { Pause, Pencil, Play, Trash2 } from '@lucide/vue';
 import { computed } from 'vue';
+import CheckController from '@/actions/App/Modules/Checks/Http/Controllers/CheckController';
 import HostController from '@/actions/App/Modules/Hosts/Http/Controllers/HostController';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
@@ -13,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { checkTypeLabel } from '@/lib/checks';
 import { hostMetricTone } from '@/lib/hostMetricTone';
 import { t } from '@/lib/i18n';
+import { siteHealthCompanionLabel } from '@/lib/siteHealthCompanion';
 import type { Check } from '@/types/checks';
 import type { GroupLayout } from '@/types/groups';
 
@@ -24,6 +26,8 @@ const props = defineProps<{
     isAdmin: boolean;
     statusText: string;
     categoryText: string | null;
+    /** Nested Laravel /up row under the main site monitor. */
+    companionRow?: boolean;
 }>();
 
 defineEmits<{
@@ -108,7 +112,11 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
     <tr
         v-if="layout === 'list'"
         class="group transition-colors hover:bg-muted/40"
-        :class="{ 'opacity-60': !check.enabled, 'bg-primary/5': selected }"
+        :class="{
+            'opacity-60': !check.enabled,
+            'bg-primary/5': selected,
+            'border-l-2 border-primary/25 bg-muted/15': companionRow,
+        }"
     >
         <td v-if="canManage" class="w-10 pl-4">
             <label class="target">
@@ -126,9 +134,16 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
                 />
             </label>
         </td>
-        <td class="w-36 px-3 py-3 whitespace-nowrap">
+        <td
+            class="w-36 whitespace-nowrap"
+            :class="companionRow ? 'px-3 py-2' : 'px-3 py-3'"
+        >
             <span class="inline-flex items-center gap-3 p-1">
-                <StatusDot :status="dotStatus(check)" :pulse="check.enabled" />
+                <StatusDot
+                    :class="{ 'scale-90': companionRow }"
+                    :status="dotStatus(check)"
+                    :pulse="check.enabled"
+                />
                 <span
                     class="chip"
                     :class="{
@@ -141,21 +156,33 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
                 </span>
             </span>
         </td>
-        <td class="max-w-md px-2 py-4">
+        <td class="max-w-md px-2" :class="companionRow ? 'py-2 pl-5' : 'py-4'">
             <div class="flex min-w-0 items-center gap-2.5">
                 <MonitorIdentityBadges
-                    v-if="isWebsite"
+                    v-if="isWebsite && !companionRow"
                     :name="check.name"
                     :favicon-url="check.favicon_url"
                     :ssl-status="check.ssl_status"
                     :ssl-days-remaining="check.ssl_days_remaining"
                     :site-framework="check.site_framework"
                 />
-                <span class="truncate font-semibold text-foreground">{{
-                    check.name
-                }}</span>
+                <Link
+                    :href="CheckController.show.url(check.id)"
+                    class="truncate hover:text-primary hover:underline focus-visible:underline"
+                    :class="
+                        companionRow
+                            ? 'text-sm font-medium text-muted-foreground'
+                            : 'font-semibold text-foreground'
+                    "
+                    @click.stop
+                >
+                    {{ companionRow ? siteHealthCompanionLabel() : check.name }}
+                </Link>
             </div>
-            <div class="max-w-80 truncate text-xs text-muted-foreground">
+            <div
+                v-if="!companionRow"
+                class="max-w-80 truncate text-xs text-muted-foreground"
+            >
                 {{ checkTypeLabel(check.type)
                 }}<template v-if="check.target"> · {{ check.target }}</template>
                 <template
@@ -177,8 +204,15 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
                 >
             </div>
         </td>
-        <td class="hidden w-48 min-w-[11rem] py-3 md:table-cell">
-            <UptimeHistoryDots v-if="supportsHistory" v-bind="uptimeHistory" />
+        <td
+            class="hidden w-48 min-w-[11rem] md:table-cell"
+            :class="companionRow ? 'py-2' : 'py-3'"
+        >
+            <UptimeHistoryDots
+                v-if="supportsHistory"
+                v-bind="uptimeHistory"
+                :class="{ 'origin-left scale-[0.92]': companionRow }"
+            />
             <span v-else class="text-xs text-muted-foreground">—</span>
         </td>
         <td class="hidden md:table-cell">
@@ -296,7 +330,13 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
                         :site-framework="check.site_framework"
                         favicon-size-class="size-5"
                     />
-                    <span class="truncate">{{ check.name }}</span>
+                    <Link
+                        :href="CheckController.show.url(check.id)"
+                        class="truncate hover:text-primary hover:underline"
+                        @click.stop
+                    >
+                        {{ check.name }}
+                    </Link>
                 </h3>
                 <p class="mt-0.5 truncate text-xs text-muted-foreground">
                     <template v-if="isWebsite">{{
@@ -512,9 +552,13 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
             :site-framework="check.site_framework"
             favicon-size-class="size-3.5"
         />
-        <span class="truncate font-medium text-foreground">{{
-            check.name
-        }}</span>
+        <Link
+            :href="CheckController.show.url(check.id)"
+            class="truncate font-medium text-foreground hover:text-primary hover:underline"
+            @click.stop
+        >
+            {{ check.name }}
+        </Link>
         <UptimeHistoryDots
             v-if="supportsHistory"
             v-bind="uptimeHistory"

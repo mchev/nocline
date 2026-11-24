@@ -43,6 +43,7 @@ final class WebsiteMonitorRows
 
                 return [
                     'id' => $c->id,
+                    ...SiteHealthCompanion::linkMeta($c),
                     'name' => $c->name,
                     'target' => $c->target,
                     'status' => $c->state?->status->value ?? 'unknown',

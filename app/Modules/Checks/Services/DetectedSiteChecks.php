@@ -28,7 +28,7 @@ class DetectedSiteChecks
         $parts = parse_url($site->target);
         $origin = ($parts['scheme'] ?? 'https').'://'.($parts['host'] ?? '').(isset($parts['port']) ? ':'.$parts['port'] : '');
 
-        return Check::create([
+        $health = Check::create([
             'name' => "{$site->name} — health",
             'type' => CheckType::Http,
             'category' => CheckCategory::Website,
@@ -38,6 +38,14 @@ class DetectedSiteChecks
             'interval_sec' => 60,
             'timeout_sec' => 10,
             'failure_threshold' => 2,
+            'config' => ['companion_of' => $site->id],
         ]);
+
+        $siteConfig = is_array($site->config) ? $site->config : [];
+        $site->forceFill([
+            'config' => [...$siteConfig, 'health_check_id' => $health->id],
+        ])->save();
+
+        return $health;
     }
 }

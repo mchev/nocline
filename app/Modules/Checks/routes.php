@@ -7,7 +7,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('checks')->name('checks.')->group(function () {
     Route::get('/', [CheckController::class, 'index'])->name('index');
+    Route::get('{check}/history', [CheckController::class, 'history'])->name('history');
+    Route::get('{check}/chart', [CheckController::class, 'chart'])->name('chart');
     Route::get('{check}/favicon', [CheckController::class, 'favicon'])->name('favicon');
+    Route::get('{check}', [CheckController::class, 'show'])->name('show');
     Route::post('/', [CheckController::class, 'store'])->name('store');
     Route::post('import/kuma', [CheckController::class, 'importKuma'])->name('import-kuma');
     Route::post('bulk', [CheckController::class, 'bulk'])->name('bulk');

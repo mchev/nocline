@@ -107,9 +107,9 @@ watch(
                     class="border-t border-border/60 pt-3 text-xs text-pretty text-muted-foreground"
                 >
                     {{
-                    t(
-                        'The server must reach this Phare hub and GitHub over HTTPS. Existing config in /etc/phare-agent/config.yaml is kept.',
-                    )
+                        t(
+                            'The server must reach this Phare hub and GitHub over HTTPS. Existing config in /etc/phare-agent/config.yaml is kept.',
+                        )
                     }}
                 </p>
             </div>

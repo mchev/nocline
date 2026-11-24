@@ -45,4 +45,7 @@ export type Check = {
     ssl_status?: 'ok' | 'warning' | 'expired' | 'error' | 'unknown' | null;
     ssl_days_remaining?: number | null;
     site_framework?: string | null;
+    health_check_id?: number;
+    companion_of?: number;
+    is_health_companion?: boolean;
 };

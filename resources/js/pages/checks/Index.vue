@@ -33,6 +33,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { checkTypeLabel } from '@/lib/checks';
 import { MONITOR_HISTORY_MINUTES } from '@/lib/monitorHistory';
+import { orderedWebsiteMonitorEntries } from '@/lib/siteHealthCompanion';
 import { groupWithDescendantIds } from '@/lib/groups';
 import { t } from '@/lib/i18n';
 import type { Check, CheckStatus } from '@/types/checks';
@@ -459,25 +460,7 @@ function openCreate() {
 }
 
 function openEdit(c: Check) {
-    editing.value = c;
-    form.clearErrors();
-    form.defaults({
-        name: c.name,
-        type: c.type,
-        target: c.target,
-        group_id: c.group_id ?? '',
-        host_id: c.host_id ?? '',
-        category: c.category,
-        tags: c.tags,
-        interval_sec: c.interval_sec,
-        timeout_sec: c.timeout_sec,
-        failure_threshold: c.failure_threshold,
-        execution: c.execution,
-        quorum: c.quorum,
-        enabled: c.enabled,
-    }).reset();
-    tagsInput.value = c.tags.join(', ');
-    dialogOpen.value = true;
+    router.visit(CheckController.show.url(c.id, { query: { edit: '1' } }));
 }
 
 const parseTags = (s: string) => [
@@ -941,26 +924,104 @@ function bulkDelete() {
                         </tr>
                     </thead>
                     <tbody>
-                        <CheckEntry
-                            v-for="c in s.items"
-                            :key="c.id"
-                            :check="c"
-                            layout="list"
-                            :selected="selected.includes(c.id)"
-                            :can-manage="canManage"
-                            :is-admin="isAdmin"
-                            :status-text="statusLabel(c.status)"
-                            :category-text="
-                                view.groupBy !== 'category'
-                                    ? categoryLabel(c.category)
-                                    : null
+                        <template
+                            v-for="entry in orderedWebsiteMonitorEntries(
+                                s.items,
+                            )"
+                            :key="
+                                entry.kind === 'site-group'
+                                    ? `g-${entry.group.primary.id}`
+                                    : entry.check.id
                             "
-                            @select="toggleSelect([c.id], $event)"
-                            @pause="togglePause(c)"
-                            @edit="openEdit(c)"
-                            @remove="remove(c)"
-                            @tag="view.q = $event"
-                        />
+                        >
+                            <template v-if="entry.kind === 'site-group'">
+                                <CheckEntry
+                                    :check="entry.group.primary"
+                                    layout="list"
+                                    :selected="
+                                        selected.includes(
+                                            entry.group.primary.id,
+                                        )
+                                    "
+                                    :can-manage="canManage"
+                                    :is-admin="isAdmin"
+                                    :status-text="
+                                        statusLabel(entry.group.primary.status)
+                                    "
+                                    :category-text="
+                                        view.groupBy !== 'category'
+                                            ? categoryLabel(
+                                                  entry.group.primary.category,
+                                              )
+                                            : null
+                                    "
+                                    @select="
+                                        toggleSelect(
+                                            [entry.group.primary.id],
+                                            $event,
+                                        )
+                                    "
+                                    @pause="togglePause(entry.group.primary)"
+                                    @edit="openEdit(entry.group.primary)"
+                                    @remove="remove(entry.group.primary)"
+                                    @tag="view.q = $event"
+                                />
+                                <CheckEntry
+                                    :check="entry.group.companion!"
+                                    layout="list"
+                                    companion-row
+                                    :selected="
+                                        selected.includes(
+                                            entry.group.companion!.id,
+                                        )
+                                    "
+                                    :can-manage="canManage"
+                                    :is-admin="isAdmin"
+                                    :status-text="
+                                        statusLabel(
+                                            entry.group.companion!.status,
+                                        )
+                                    "
+                                    :category-text="
+                                        view.groupBy !== 'category'
+                                            ? categoryLabel(
+                                                  entry.group.companion!
+                                                      .category,
+                                              )
+                                            : null
+                                    "
+                                    @select="
+                                        toggleSelect(
+                                            [entry.group.companion!.id],
+                                            $event,
+                                        )
+                                    "
+                                    @pause="togglePause(entry.group.companion!)"
+                                    @edit="openEdit(entry.group.companion!)"
+                                    @remove="remove(entry.group.companion!)"
+                                    @tag="view.q = $event"
+                                />
+                            </template>
+                            <CheckEntry
+                                v-else
+                                :check="entry.check"
+                                layout="list"
+                                :selected="selected.includes(entry.check.id)"
+                                :can-manage="canManage"
+                                :is-admin="isAdmin"
+                                :status-text="statusLabel(entry.check.status)"
+                                :category-text="
+                                    view.groupBy !== 'category'
+                                        ? categoryLabel(entry.check.category)
+                                        : null
+                                "
+                                @select="toggleSelect([entry.check.id], $event)"
+                                @pause="togglePause(entry.check)"
+                                @edit="openEdit(entry.check)"
+                                @remove="remove(entry.check)"
+                                @tag="view.q = $event"
+                            />
+                        </template>
                     </tbody>
                 </table>
                 <div

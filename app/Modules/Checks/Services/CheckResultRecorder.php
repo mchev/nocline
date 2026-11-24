@@ -7,6 +7,7 @@ use App\Modules\Checks\Events\CheckRecovered;
 use App\Modules\Checks\Events\CheckWentDown;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckEvent;
+use App\Modules\Checks\Models\CheckLatencySample;
 use App\Modules\Checks\Models\CheckState;
 use App\Support\OpsBroadcast;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +56,13 @@ class CheckResultRecorder
             }
 
             $state->save();
+
+            CheckLatencySample::query()->create([
+                'check_id' => $check->id,
+                'at' => now(),
+                'latency_ms' => $latencyMs,
+                'ok' => $ok,
+            ]);
 
             return $next !== $previous ? $next : null;
         });

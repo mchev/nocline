@@ -232,7 +232,7 @@ const trackStyle = computed(() => ({
                 <div
                     v-for="(bucket, i) in slots"
                     :key="`d-${i}`"
-                    class="group relative flex min-w-0 justify-center"
+                    class="group/dot relative flex min-w-0 justify-center"
                 >
                     <span
                         class="uptime-dot block w-full max-w-full rounded-full"
@@ -246,7 +246,7 @@ const trackStyle = computed(() => ({
                     />
                     <div
                         v-if="isBoard"
-                        class="timeline-popover pointer-events-none absolute top-[calc(100%+0.35rem)] left-1/2 z-[120] w-max max-w-[14rem] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+                        class="timeline-popover pointer-events-none absolute top-[calc(100%+0.35rem)] left-1/2 z-[120] w-max max-w-[14rem] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-focus-within/dot:opacity-100 group-hover/dot:opacity-100"
                         role="tooltip"
                     >
                         <p

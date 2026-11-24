@@ -948,6 +948,10 @@ const starts = [
     overflow: visible;
 }
 
+.board-row-monitor .col-history :deep(.uptime-dots-track) {
+    max-width: 12rem;
+}
+
 .board-row:hover {
     background: color-mix(in oklab, var(--muted) 55%, transparent);
 }
@@ -1019,6 +1023,11 @@ const starts = [
 
     .board-row-monitor .col-history {
         grid-column: 1 / -1;
+        justify-self: stretch;
+    }
+
+    .board-row-monitor .col-history :deep(.uptime-dots-track) {
+        max-width: min(100%, 11rem);
     }
 
     .board-row-monitor > :last-child {

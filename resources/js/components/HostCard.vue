@@ -247,6 +247,7 @@ const rows = computed(() => [
                         row.label
                     }}</span>
                     <Sparkline
+                        subtle
                         :values="row.series"
                         :tone="
                             hostMetricTone(

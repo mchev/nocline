@@ -25,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonInterface|null $last_checked_at
  * @property string|null $check_error
  */
-#[Fillable(['group_id', 'kind', 'label', 'expires_on', 'remind_days', 'notes'])]
+#[Fillable(['group_id', 'check_id', 'kind', 'source', 'label', 'expires_on', 'remind_days', 'notes'])]
 #[UsePolicy(RenewalPolicy::class)]
 class Renewal extends Model
 {

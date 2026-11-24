@@ -9,6 +9,10 @@ import type { UptimeHistoryDot } from '@/types/checks';
 export type WallboardSite = {
     id: number;
     name: string;
+    target?: string;
+    health_check_id?: number;
+    companion_of?: number;
+    is_health_companion?: boolean;
     status: string;
     latency_ms: number | null;
     in_maintenance: boolean;

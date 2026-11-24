@@ -1,8 +1,9 @@
+import CheckController from '@/actions/App/Modules/Checks/Http/Controllers/CheckController';
 import { index as checksIndex } from '@/routes/checks';
 
-/** Deep-link into Monitoring for a single check (wizard / dashboard rows). */
+/** Detail page for a monitored target (dashboard, lists). */
 export function checkMonitorHref(checkId: number): string {
-    return checksIndex.url({ query: { check: String(checkId) } });
+    return CheckController.show.url(checkId);
 }
 
 export function checksFilteredHref(query: Record<string, string>): string {

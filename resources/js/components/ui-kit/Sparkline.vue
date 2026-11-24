@@ -8,11 +8,14 @@ const props = withDefaults(
         max?: number;
         tone?: MetricSparklineTone | 'success' | 'primary';
         label?: string;
+        /** Lighter track (server cards). */
+        subtle?: boolean;
     }>(),
     {
         max: 100,
         tone: 'default',
         label: undefined,
+        subtle: false,
     },
 );
 
@@ -87,11 +90,20 @@ const stroke = computed(
 );
 
 const hasSeries = computed(() => linePath.value !== '');
+
+const fillOpacityTop = computed(() => (props.subtle ? 0.18 : 0.38));
+const fillOpacityMid = computed(() => (props.subtle ? 0.04 : 0.06));
+const trackClass = computed(() =>
+    props.subtle
+        ? 'border border-border/25 bg-transparent'
+        : 'bg-muted/35 dark:bg-muted/25',
+);
 </script>
 
 <template>
     <div
-        class="sparkline-track relative h-7 w-full overflow-hidden rounded-sm bg-muted/35 dark:bg-muted/25"
+        class="sparkline-track relative h-7 w-full overflow-hidden rounded-sm"
+        :class="trackClass"
         role="img"
         :aria-label="label || undefined"
         :aria-hidden="label ? undefined : true"
@@ -106,12 +118,12 @@ const hasSeries = computed(() => linePath.value !== '');
                     <stop
                         offset="0%"
                         :stop-color="stroke"
-                        stop-opacity="0.38"
+                        :stop-opacity="fillOpacityTop"
                     />
                     <stop
                         offset="85%"
                         :stop-color="stroke"
-                        stop-opacity="0.06"
+                        :stop-opacity="fillOpacityMid"
                     />
                     <stop offset="100%" :stop-color="stroke" stop-opacity="0" />
                 </linearGradient>
@@ -124,10 +136,10 @@ const hasSeries = computed(() => linePath.value !== '');
                 stroke="var(--color-border)"
                 stroke-width="1"
                 vector-effect="non-scaling-stroke"
-                opacity="0.55"
+                :opacity="subtle ? 0.3 : 0.55"
             />
             <path
-                v-if="areaPath"
+                v-if="areaPath && !subtle"
                 :d="areaPath"
                 :fill="`url(#${gradId})`"
                 stroke="none"
@@ -137,7 +149,7 @@ const hasSeries = computed(() => linePath.value !== '');
                 :d="linePath"
                 fill="none"
                 :stroke="stroke"
-                stroke-width="1.75"
+                :stroke-width="subtle ? 1.35 : 1.75"
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 vector-effect="non-scaling-stroke"

@@ -5,6 +5,7 @@ namespace App\Modules\Wallboard\Services;
 use App\Modules\Checks\Enums\CheckCategory;
 use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Models\Check;
+use App\Modules\Checks\Support\SiteHealthCompanion;
 use App\Modules\Checks\Support\WebsiteMonitorRows;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Incidents\Models\Incident;
@@ -72,7 +73,9 @@ class WallboardAggregator
             ->with('state')
             ->orderBy('name')
             ->limit(40)
-            ->get();
+            ->get()
+            ->reject(fn (Check $c) => SiteHealthCompanion::looksLikeHealthCompanion($c))
+            ->values();
 
         return [
             'name' => $wallboard->name,

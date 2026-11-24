@@ -11,6 +11,7 @@ use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckState;
 use App\Modules\Checks\Services\CheckStatusHistory;
 use App\Modules\Checks\Support\HistoryWindow;
+use App\Modules\Checks\Support\SiteHealthCompanion;
 use App\Modules\Checks\Support\WebsiteMonitorRows;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Hosts\Support\HostMetaPresenter;
@@ -139,7 +140,9 @@ class DashboardController extends Controller
             ->where('category', CheckCategory::Website)
             ->orderBy('name')
             ->limit(40)
-            ->get();
+            ->get()
+            ->reject(fn (Check $c) => SiteHealthCompanion::looksLikeHealthCompanion($c))
+            ->values();
         $hosts = $this->enrolledHosts();
         $series = $metrics->forHosts($hosts, 24);
 
