@@ -61,7 +61,11 @@ cd agent && go test ./...             # agent
 
 ## Releases
 
-Maintainers bump the `VERSION` file, then `git tag vX.Y.Z && git push --tags`; the `release.yml` workflow builds the agent binaries and publishes the GitHub release. Details in [docs/deploy/hub.md](docs/deploy/hub.md).
+Maintainers bump the `VERSION` file, commit, then `git tag vX.Y.Z && git push origin vX.Y.Z`. The [`release.yml`](.github/workflows/release.yml) workflow builds `phare-agent-linux-{amd64,arm64}` and **creates or updates** the GitHub release with those assets.
+
+Do **not** create an empty release in the GitHub UI only — the install script expects downloadable assets on that tag. If that already happened, re-run **Actions → release → Run workflow** with the tag name, or locally: `scripts/publish-agent-assets.sh vX.Y.Z`.
+
+Full checklist and ops guide: [docs/releases.md](docs/releases.md). Hub deployment: [docs/deploy/hub.md](docs/deploy/hub.md).
 
 ## Licence
 

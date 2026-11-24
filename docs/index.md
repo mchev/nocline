@@ -26,3 +26,4 @@
 ## Déploiement
 
 - [deploy/hub.md](deploy/hub.md) — Forge / VPS, Postgres, Redis, Horizon
+- [releases.md](releases.md) — publier une version, mettre à jour hub et agents

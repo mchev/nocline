@@ -52,4 +52,4 @@ Phare ne se met pas à jour tout seul (pas de code modifié à l'insu de l'admin
     Le script récupère le tag, lance `composer install --no-dev` et `npm run build`, puis `php artisan phare:update`, qui **sauvegarde la base** (copie du fichier SQLite dans `storage/app/backups`, ou demande confirmation pour une autre base), passe en maintenance, applique les migrations, rafraîchit les caches, redémarre les workers et rouvre. Il ne réinitialise jamais les données.
 
 - **Agents** : la ligne d'installation télécharge le binaire sur **GitHub** (`PHARE_OFFICIAL_REPOSITORY`, défaut `mchev/phare`), release `vX.Y.Z` = fichier `VERSION` du hub. Relancer la commande met à jour l'agent. Override réservé aux tests : `PHARE_AGENT_DOWNLOAD_URL`.
-- **Publier une release** (mainteneur) : incrémenter `VERSION`, `git tag vX.Y.Z && git push --tags` ; l'action `release.yml` compile l'agent Linux (amd64/arm64) et crée la release (les hubs en prod n'ont pas besoin de compiler).
+- **Publier une release** / mettre à jour hub et agents : voir **[releases.md](../releases.md)** (checklist, tag, CI, `scripts/update.sh`, agents).
