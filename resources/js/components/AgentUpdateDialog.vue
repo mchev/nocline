@@ -73,7 +73,7 @@ watch(
                     <DialogDescription class="text-pretty">
                         {{
                             t(
-                                'Hub version :hub — your server reports agent :agent. Paste this line in an SSH session on the server (with sudo). It downloads the latest agent and restarts the service.',
+                                'Hub version :hub — your server reports agent :agent. Paste this line in an SSH session on the server (with sudo). It downloads the latest binary and restarts the service without changing your API token.',
                                 {
                                     hub: hubVersion,
                                     agent: agentVersion ?? '—',
@@ -107,9 +107,9 @@ watch(
                     class="border-t border-border/60 pt-3 text-xs text-pretty text-muted-foreground"
                 >
                     {{
-                        t(
-                            'The link is valid 24 hours. The server must reach this Phare hub and GitHub over HTTPS.',
-                        )
+                    t(
+                        'The server must reach this Phare hub and GitHub over HTTPS. Existing config in /etc/phare-agent/config.yaml is kept.',
+                    )
                     }}
                 </p>
             </div>

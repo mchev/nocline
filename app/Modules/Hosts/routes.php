@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->prefix('hosts')->name('hosts.')->group(
 });
 
 Route::middleware('throttle:30,1')->group(function () {
+    Route::get('install/agent-update.sh', [InstallController::class, 'agentUpdateScript'])->name('install.agent-update');
     Route::get('install/agent/{arch}', [InstallController::class, 'binary'])->name('install.binary');
     Route::get('install/{token}', [InstallController::class, 'script'])->name('install.script');
 });

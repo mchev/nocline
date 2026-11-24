@@ -35,6 +35,17 @@ class InstallController extends Controller
         return response($body, 200, ['Content-Type' => 'text/x-shellscript; charset=utf-8', 'Cache-Control' => 'no-store']);
     }
 
+    public function agentUpdateScript(): Response
+    {
+        $agentBinary = app(AgentBinary::class);
+        $body = "#!/bin/sh\n".view('install.agent-update', [
+            'agentDownloadPrefix' => escapeshellarg($agentBinary->releaseDownloadPrefix()),
+            'agentReleaseTag' => $agentBinary->releaseTag(),
+        ])->render();
+
+        return response($body, 200, ['Content-Type' => 'text/x-shellscript; charset=utf-8', 'Cache-Control' => 'no-store']);
+    }
+
     public function binary(string $arch, AgentBinary $agentBinary): BinaryFileResponse|RedirectResponse
     {
         $arch = str_replace('linux-', '', $arch);

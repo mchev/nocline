@@ -104,10 +104,7 @@ const visibleSites = computed(() =>
     (data.value?.sites ?? []).slice(0, WALLBOARD_SITE_CAP),
 );
 const hiddenSiteCount = computed(() =>
-    Math.max(
-        0,
-        (data.value?.sites?.length ?? 0) - visibleSites.value.length,
-    ),
+    Math.max(0, (data.value?.sites?.length ?? 0) - visibleSites.value.length),
 );
 
 const since = (iso: string | null) => {
@@ -261,9 +258,7 @@ const since = (iso: string | null) => {
                 </section>
 
                 <section v-if="visibleSites.length" class="space-y-3">
-                    <div
-                        class="flex flex-wrap items-end justify-between gap-2"
-                    >
+                    <div class="flex flex-wrap items-end justify-between gap-2">
                         <h2
                             class="flex items-center gap-2 font-display text-3xl font-semibold"
                         >

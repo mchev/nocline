@@ -84,7 +84,7 @@ const latencyClass = computed(() => {
 
 <template>
     <li
-        class="surface flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,11rem)_4.5rem] sm:items-center sm:gap-3 sm:px-5 sm:py-3.5"
+        class="flex flex-wrap items-center gap-x-4 gap-y-2 surface px-4 py-3 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,11rem)_4.5rem] sm:items-center sm:gap-3 sm:px-5 sm:py-3.5"
         :class="rowClass"
     >
         <StatusDot
@@ -113,7 +113,7 @@ const latencyClass = computed(() => {
             class="min-w-0 sm:max-w-none"
         />
         <p
-            class="numeric w-full text-right text-lg font-semibold tabular-nums sm:w-auto sm:text-xl"
+            class="w-full text-right numeric text-lg font-semibold tabular-nums sm:w-auto sm:text-xl"
             :class="latencyClass"
         >
             <template v-if="site.latency_ms !== null">

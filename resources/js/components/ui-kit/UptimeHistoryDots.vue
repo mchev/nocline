@@ -219,10 +219,7 @@ const trackStyle = computed(() => ({
         <span
             v-if="showPercent && pctLabel"
             class="chip shrink-0 px-2 py-0.5 text-center numeric font-semibold"
-            :class="[
-                isWallboard ? 'w-14 text-sm' : 'w-11 text-xs',
-                pctTone,
-            ]"
+            :class="[isWallboard ? 'w-14 text-sm' : 'w-11 text-xs', pctTone]"
         >
             {{ pctLabel }}
         </span>

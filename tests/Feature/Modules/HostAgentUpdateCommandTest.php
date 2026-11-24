@@ -13,7 +13,7 @@ it('returns a curl install line to refresh an enrolled agent', function () {
         ->assertJsonStructure(['command', 'hub_version'])
         ->assertJsonPath('hub_version', (string) config('phare.version'));
 
-    expect($response->json('command'))->toStartWith('curl -fsSL ')->toEndWith('| sudo sh');
+    expect($response->json('command'))->toContain('/install/agent-update.sh');
 });
 
 it('forbids viewers from requesting an agent update command', function () {

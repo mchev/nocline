@@ -44,6 +44,14 @@ it('adds a server: host + presence check, then shows a one-line install command'
             ->where('install_command', fn ($c) => str_starts_with($c, 'curl -fsSL ') && str_ends_with($c, '| sudo sh')));
 });
 
+it('serves an agent update script without enrollment', function () {
+    $script = $this->get(route('install.agent-update'))->assertOk()->getContent();
+    expect($script)->toStartWith('#!/bin/sh')
+        ->toContain('phare-agent-linux-')
+        ->toContain('Restarting the agent')
+        ->not->toContain('Connecting this server');
+});
+
 it('serves a working installer script for a valid token only', function () {
     $host = Host::factory()->create();
     $token = $host->issueEnrollmentToken();

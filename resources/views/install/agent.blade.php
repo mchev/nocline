@@ -54,7 +54,11 @@ RestartSec=10
 WantedBy=multi-user.target
 UNIT
     systemctl daemon-reload
-    systemctl enable --now phare-agent >/dev/null 2>&1
+    if systemctl is-active phare-agent >/dev/null 2>&1; then
+        systemctl restart phare-agent
+    else
+        systemctl enable --now phare-agent >/dev/null 2>&1
+    fi
     say "Done! This server will appear in Phare within a minute."
 else
     say "Connected, but this server has no systemd. Start the agent with:"

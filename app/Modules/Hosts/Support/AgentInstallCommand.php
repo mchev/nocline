@@ -11,4 +11,10 @@ final class AgentInstallCommand
     {
         return 'curl -fsSL '.url("/install/{$enrollmentToken}").' | sudo sh';
     }
+
+    /** Refresh binary + restart systemd without rotating the API token. */
+    public static function curlUpdateSh(): string
+    {
+        return 'curl -fsSL '.url('/install/agent-update.sh').' | sudo sh';
+    }
 }

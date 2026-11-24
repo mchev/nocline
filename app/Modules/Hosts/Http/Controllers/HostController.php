@@ -201,10 +201,8 @@ class HostController extends Controller
 
         abort_unless($host->enrolled_at !== null, 422, __('This server is not connected yet. Use Install agent first.'));
 
-        $token = $host->issueEnrollmentToken();
-
         return response()->json([
-            'command' => AgentInstallCommand::curlSh($token),
+            'command' => AgentInstallCommand::curlUpdateSh(),
             'hub_version' => (string) config('phare.version'),
         ]);
     }
