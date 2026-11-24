@@ -280,16 +280,25 @@ const renewalsInStrip = computed(
     () => hasRenewals.value && props.overview.renewals.length <= 4,
 );
 
-const boardBodyClass = computed(() => ({
-    'board-body--servers-tall': hasServers.value,
-    'board-body--three-panels':
-        !renewalsInStrip.value &&
+const hasRenewalsPanel = computed(
+    () => hasRenewals.value && !renewalsInStrip.value,
+);
+
+const visiblePanelCount = computed(
+    () =>
         [
             hasSites.value,
             hasHeartbeats.value,
-            hasRenewals.value,
+            hasRenewalsPanel.value,
             hasServers.value,
-        ].filter(Boolean).length === 3,
+        ].filter(Boolean).length,
+);
+
+const boardBodyClass = computed(() => ({
+    'board-body--servers-tall': hasServers.value && visiblePanelCount.value > 2,
+    'board-body--panels-1': visiblePanelCount.value === 1,
+    'board-body--panels-2': visiblePanelCount.value === 2,
+    'board-body--three-panels': visiblePanelCount.value === 3,
 }));
 
 function rowProblemClass(
@@ -781,7 +790,7 @@ const starts = [
             </section>
 
             <section
-                v-if="hasRenewals && !renewalsInStrip"
+                v-if="hasRenewalsPanel"
                 class="panel flex min-h-0 min-w-0 flex-col overflow-hidden surface"
                 :aria-label="t('Renewals')"
             >
@@ -901,11 +910,22 @@ const starts = [
     align-content: stretch;
 }
 
+.board-body--panels-1 {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+}
+
+.board-body--panels-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+}
+
 .board-body--servers-tall {
     grid-template-rows: minmax(0, 1.2fr) minmax(0, 1.35fr);
 }
 
 .board-body--three-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
 }
 
@@ -1003,6 +1023,16 @@ const starts = [
         grid-template-columns: 1fr;
         grid-template-rows: none;
         grid-auto-rows: minmax(0, 12rem);
+    }
+
+    .board-body--panels-1 {
+        grid-auto-rows: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+    }
+
+    .board-body--panels-2 {
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: minmax(0, 1fr);
     }
 
     .board-top-bar {
