@@ -12,7 +12,7 @@ In the examples, `$PHARE` is your hub URL (`https://phare.example.com`) and `$TO
 
 ## Authentication
 
-Create a token in **Settings → API tokens**. Choose *Look only* (`read`) or *Look and change* (`read` + `write`), and an optional expiry. The secret (`phr_` followed by 40 characters) is shown **once**; Phare only stores its SHA-256 hash. Lost? Revoke it and create another.
+Create a token in **Settings → API tokens**. Choose _Look only_ (`read`) or _Look and change_ (`read` + `write`), and an optional expiry. The secret (`phr_` followed by 40 characters) is shown **once**; Phare only stores its SHA-256 hash. Lost? Revoke it and create another.
 
 Send it as a bearer token:
 
@@ -22,12 +22,12 @@ curl -H "Authorization: Bearer $TOKEN" -H "Accept: application/json" $PHARE/api/
 
 A token acts as **its owner**: the owner's role (`admin` / `tech` / `viewer`) still applies on top of the token abilities.
 
-| Request | Token ability needed | Role needed |
-|---------|----------------------|-------------|
-| `GET` | `read` | any (some fields are hidden from `viewer`, see `heartbeat_url`) |
-| create / update (`POST`, `PATCH`, `PUT`) | `write` | `admin` or `tech` |
-| delete a check | `write` | `admin` |
-| delete a group | `write` | `admin` or `tech` |
+| Request                                  | Token ability needed | Role needed                                                     |
+| ---------------------------------------- | -------------------- | --------------------------------------------------------------- |
+| `GET`                                    | `read`               | any (some fields are hidden from `viewer`, see `heartbeat_url`) |
+| create / update (`POST`, `PATCH`, `PUT`) | `write`              | `admin` or `tech`                                               |
+| delete a check                           | `write`              | `admin`                                                         |
+| delete a group                           | `write`              | `admin` or `tech`                                               |
 
 So a `viewer`'s read/write token can still only read.
 
@@ -51,13 +51,13 @@ Single resources are wrapped in `data`.
 
 **Errors.** Always JSON, always a `message`:
 
-| Status | Meaning | Body |
-|--------|---------|------|
-| 401 | bad / missing token | `{"message": "Unauthenticated."}` |
-| 403 | token ability or user role not sufficient | `{"message": "This action is unauthorized."}` (or `This token does not have the "write" ability.`) |
-| 404 | no such resource | `{"message": "Not found."}` |
-| 422 | validation error | `{"message": "The name field is required.", "errors": {"name": ["The name field is required."]}}` |
-| 429 | rate limit | `{"message": "Too many requests."}` + `Retry-After` header (seconds) |
+| Status | Meaning                                   | Body                                                                                               |
+| ------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 401    | bad / missing token                       | `{"message": "Unauthenticated."}`                                                                  |
+| 403    | token ability or user role not sufficient | `{"message": "This action is unauthorized."}` (or `This token does not have the "write" ability.`) |
+| 404    | no such resource                          | `{"message": "Not found."}`                                                                        |
+| 422    | validation error                          | `{"message": "The name field is required.", "errors": {"name": ["The name field is required."]}}`  |
+| 429    | rate limit                                | `{"message": "Too many requests."}` + `Retry-After` header (seconds)                               |
 
 **Rate limits.** 120 requests per minute **per token** (`X-RateLimit-Limit` and `X-RateLimit-Remaining` response headers). Repeated failed authentications are also throttled per IP address (30 per minute). `last_used_at` of a token is updated at most once a minute.
 
@@ -74,29 +74,40 @@ curl -H "Authorization: Bearer $TOKEN" $PHARE/api/v1/me
 ```
 
 ```json
-{ "data": { "id": 1, "name": "Ada", "email": "ada@example.com", "role": "tech",
-  "token": { "name": "CRM", "abilities": ["read", "write"], "expires_at": null } } }
+{
+    "data": {
+        "id": 1,
+        "name": "Ada",
+        "email": "ada@example.com",
+        "role": "tech",
+        "token": {
+            "name": "CRM",
+            "abilities": ["read", "write"],
+            "expires_at": null
+        }
+    }
+}
 ```
 
 ### Checks
 
 A check object:
 
-| Field | Description |
-|-------|-------------|
-| `id`, `name` | |
-| `type` | `http`, `tcp`, `icmp`, `dns`, `agent` or `heartbeat` |
-| `category` | `website`, `server`, `mail`, `dns`, `network`, `other` |
-| `target` | URL (`http`), `host:port` (`tcp`), host or domain (`icmp`, `dns`); empty for `agent` and `heartbeat` |
-| `group_id`, `host_id` | `host_id` is required for `agent` checks |
-| `tags` | up to 20 strings (50 characters each) |
-| `interval_sec` | 30–86400 (heartbeat: up to 2592000, 30 days) |
-| `timeout_sec`, `failure_threshold` | 1–60 s, 1–10 (heartbeat checks always use 1) |
-| `config` | `keyword`, `expected_status` (http); `grace_sec` (heartbeat) |
-| `enabled`, `execution` (`hub` / `probe`), `quorum` (`any` / `majority` / `all`) | |
-| `status` | `unknown`, `up`, `down`; `since_at` when it last changed |
-| `heartbeat_url` | heartbeat checks only, **only for `admin` / `tech`** (it contains the secret ping token) |
-| `created_at`, `updated_at` | |
+| Field                                                                           | Description                                                                                          |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `id`, `name`                                                                    |                                                                                                      |
+| `type`                                                                          | `http`, `tcp`, `icmp`, `dns`, `agent` or `heartbeat`                                                 |
+| `category`                                                                      | `website`, `server`, `mail`, `dns`, `network`, `other`                                               |
+| `target`                                                                        | URL (`http`), `host:port` (`tcp`), host or domain (`icmp`, `dns`); empty for `agent` and `heartbeat` |
+| `group_id`, `host_id`                                                           | `host_id` is required for `agent` checks                                                             |
+| `tags`                                                                          | up to 20 strings (50 characters each)                                                                |
+| `interval_sec`                                                                  | 30–86400 (heartbeat: up to 2592000, 30 days)                                                         |
+| `timeout_sec`, `failure_threshold`                                              | 1–60 s, 1–10 (heartbeat checks always use 1)                                                         |
+| `config`                                                                        | `keyword`, `expected_status` (http); `grace_sec` (heartbeat)                                         |
+| `enabled`, `execution` (`hub` / `probe`), `quorum` (`any` / `majority` / `all`) |                                                                                                      |
+| `status`                                                                        | `unknown`, `up`, `down`; `since_at` when it last changed                                             |
+| `heartbeat_url`                                                                 | heartbeat checks only, **only for `admin` / `tech`** (it contains the secret ping token)             |
+| `created_at`, `updated_at`                                                      |                                                                                                      |
 
 The validation rules are the ones of the web form.
 
@@ -139,9 +150,18 @@ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/js
 Current state of the check (one row, updated in place):
 
 ```json
-{ "data": { "check_id": 12, "status": "down", "since_at": "2026-11-24T10:00:00+00:00",
-  "last_checked_at": "2026-11-24T10:05:00+00:00", "last_ping_at": null,
-  "latency_ms": null, "last_error": "HTTP 503", "consecutive_failures": 3 } }
+{
+    "data": {
+        "check_id": 12,
+        "status": "down",
+        "since_at": "2026-11-24T10:00:00+00:00",
+        "last_checked_at": "2026-11-24T10:05:00+00:00",
+        "last_ping_at": null,
+        "latency_ms": null,
+        "last_error": "HTTP 503",
+        "consecutive_failures": 3
+    }
+}
 ```
 
 ### Groups
@@ -150,13 +170,13 @@ Groups are folders that nest through `parent_id` (`null` = top level): read the 
 
 Fields: `id`, `parent_id`, `name`, `color` (`#RRGGBB` or null), `layout` (`list` / `grid` / `compact`), `collapsed`, `position`, `created_at`, `updated_at`.
 
-| Endpoint | Notes |
-|----------|-------|
-| `GET /groups` | paginated, ordered by `position` then `name` |
-| `POST /groups` | `name` required; `parent_id`, `color`, `layout`, `collapsed`, `position` optional |
-| `GET /groups/{id}` | |
-| `PATCH /groups/{id}` | partial; a group cannot be moved inside itself or its descendants (422 on `parent_id`) |
-| `DELETE /groups/{id}` | sub-groups move up one level, its checks become ungrouped. `204` |
+| Endpoint              | Notes                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| `GET /groups`         | paginated, ordered by `position` then `name`                                           |
+| `POST /groups`        | `name` required; `parent_id`, `color`, `layout`, `collapsed`, `position` optional      |
+| `GET /groups/{id}`    |                                                                                        |
+| `PATCH /groups/{id}`  | partial; a group cannot be moved inside itself or its descendants (422 on `parent_id`) |
+| `DELETE /groups/{id}` | sub-groups move up one level, its checks become ungrouped. `204`                       |
 
 ```bash
 curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $PHARE/api/v1/groups -d '{"name": "Production", "parent_id": 1}'
@@ -170,12 +190,12 @@ Read only (servers are enrolled with the agent, see `agent/README.md`). Fields: 
 
 ### POST /monitors/website
 
-"Site created → monitor it". Same recipe as the guided *A website* screen: an HTTP check every 60 s, category `website`, 2 failures before it is down; domain and SSL expiry are tracked automatically.
+"Site created → monitor it". Same recipe as the guided _A website_ screen: an HTTP check every 60 s, category `website`, 2 failures before it is down; domain and SSL expiry are tracked automatically.
 
-| Field | |
-|-------|---|
-| `url` | required, `http`/`https`; a bare domain such as `example.com` becomes `https://example.com` |
-| `name` | optional, defaults to the domain without `www.` |
+| Field                      |                                                                                              |
+| -------------------------- | -------------------------------------------------------------------------------------------- |
+| `url`                      | required, `http`/`https`; a bare domain such as `example.com` becomes `https://example.com`  |
+| `name`                     | optional, defaults to the domain without `www.`                                              |
 | `group_id` or `group_name` | optional; `group_name` finds or creates a top-level group (needs the right to create groups) |
 
 ```bash
@@ -187,17 +207,17 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
 
 ## Heartbeat (scheduled task monitoring)
 
-A *heartbeat* check is the reverse of an uptime check: your job pings Phare, and Phare raises an incident when the pings stop (a "dead man's switch" for cron jobs, Laravel schedulers, backups).
+A _heartbeat_ check is the reverse of an uptime check: your job pings Phare, and Phare raises an incident when the pings stop (a "dead man's switch" for cron jobs, Laravel schedulers, backups).
 
-Create one from the UI (*Monitor → Something else → A scheduled task*, which shows ready-to-paste snippets) or with `POST /checks` and `"type": "heartbeat"`. Its `heartbeat_url` looks like `$PHARE/api/v1/heartbeat/<token>`.
+Create one from the UI (_Monitor → Something else → A scheduled task_, which shows ready-to-paste snippets) or with `POST /checks` and `"type": "heartbeat"`. Its `heartbeat_url` looks like `$PHARE/api/v1/heartbeat/<token>`.
 
 ### Ping endpoint
 
 No authentication; the random token in the path is the credential. `GET` or `POST`:
 
-| Call | Effect |
-|------|--------|
-| `/api/v1/heartbeat/{token}` | success: the check goes (or stays) **up** |
+| Call                                               | Effect                                                                                                                      |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `/api/v1/heartbeat/{token}`                        | success: the check goes (or stays) **up**                                                                                   |
 | `/api/v1/heartbeat/{token}/fail` or `?status=fail` | explicit failure: the check goes **down** at once and an incident opens. `?msg=` (max 200 characters) is shown as the error |
 
 ```bash

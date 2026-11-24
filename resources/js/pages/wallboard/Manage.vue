@@ -25,7 +25,8 @@ defineOptions({
 const page = usePage();
 const isAdmin = computed(() => page.props.auth.user.role === 'admin');
 const url = computed(() => page.props.wallboardUrl as string | null);
-const select = 'h-10 rounded-md border bg-transparent px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none';
+const select =
+    'h-10 rounded-md border bg-transparent px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none';
 
 function copyUrl() {
     if (url.value) {
@@ -36,15 +37,22 @@ function copyUrl() {
 function regenerate(w: { id: number; name: string }) {
     if (
         !confirm(
-            t('Generate a new URL for ":name"? The old link stops working immediately.', {
-                name: w.name,
-            }),
+            t(
+                'Generate a new URL for ":name"? The old link stops working immediately.',
+                {
+                    name: w.name,
+                },
+            ),
         )
     ) {
         return;
     }
 
-    router.post(WallboardController.regenerate.url(w.id), {}, { preserveScroll: true });
+    router.post(
+        WallboardController.regenerate.url(w.id),
+        {},
+        { preserveScroll: true },
+    );
 }
 </script>
 
@@ -55,7 +63,9 @@ function regenerate(w: { id: number; name: string }) {
         <PageHeader
             :title="$t('Wallboards')"
             :description="
-                $t('Wallboard: a full-screen display for a TV, showing what needs attention.')
+                $t(
+                    'Wallboard: a full-screen display for a TV, showing what needs attention.',
+                )
             "
         />
 
@@ -68,7 +78,10 @@ function regenerate(w: { id: number; name: string }) {
                 {{ $t('Screen URL (shown once, keep it safe)') }}
             </p>
             <div class="mt-2 flex items-start gap-2">
-                <code class="block min-w-0 flex-1 rounded-md bg-background/60 p-3 break-all select-all">{{ url }}</code>
+                <code
+                    class="block min-w-0 flex-1 rounded-md bg-background/60 p-3 break-all select-all"
+                    >{{ url }}</code
+                >
                 <Button
                     type="button"
                     size="icon"
@@ -90,7 +103,9 @@ function regenerate(w: { id: number; name: string }) {
             v-slot="{ processing }"
         >
             <div class="field-stack">
-                <Label for="wb-name" class="field-label">{{ $t('Name') }}</Label>
+                <Label for="wb-name" class="field-label">{{
+                    $t('Name')
+                }}</Label>
                 <Input
                     id="wb-name"
                     name="name"
@@ -119,7 +134,7 @@ function regenerate(w: { id: number; name: string }) {
             :icon="Tv"
             :title="$t('No wallboards.')"
         />
-        <ul v-else class="surface divide-y overflow-hidden">
+        <ul v-else class="divide-y overflow-hidden surface">
             <li
                 v-for="w in wallboards"
                 :key="w.id"
@@ -139,7 +154,12 @@ function regenerate(w: { id: number; name: string }) {
                     </span>
                 </span>
                 <div v-if="isAdmin" class="flex flex-wrap items-center gap-1">
-                    <Button type="button" variant="outline" size="sm" @click="regenerate(w)">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        @click="regenerate(w)"
+                    >
                         {{ $t('New URL') }}
                     </Button>
                     <Form v-bind="WallboardController.destroy.form(w.id)">

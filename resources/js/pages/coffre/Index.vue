@@ -105,7 +105,11 @@ async function copySecret() {
     <PageContainer>
         <PageHeader
             :title="$t('Vault')"
-            :description="$t('Encrypted secrets for your team. Reveals are logged and auto-hide after 30 seconds.')"
+            :description="
+                $t(
+                    'Encrypted secrets for your team. Reveals are logged and auto-hide after 30 seconds.',
+                )
+            "
         >
             <Button v-if="isAdmin" as-child variant="outline">
                 <Link :href="audit()">{{ $t('Audit log') }}</Link>
@@ -114,7 +118,7 @@ async function copySecret() {
 
         <div
             v-if="!configured"
-            class="surface border-danger/40 bg-danger/10 p-5 text-sm reveal"
+            class="reveal surface border-danger/40 bg-danger/10 p-5 text-sm"
             role="alert"
         >
             <p class="font-medium text-danger">
@@ -134,20 +138,29 @@ async function copySecret() {
             :reset-on-success="['secret', 'password', 'username', 'notes']"
             v-slot="{ errors, processing }"
         >
-            <h2 id="vault-add-heading" class="font-display text-lg font-semibold">
+            <h2
+                id="vault-add-heading"
+                class="font-display text-lg font-semibold"
+            >
                 {{ $t('Add') }}
             </h2>
             <div class="grid gap-4 md:grid-cols-3">
                 <div class="field-stack">
-                    <Label for="vault-label" class="field-label">{{ $t('Label') }}</Label>
+                    <Label for="vault-label" class="field-label">{{
+                        $t('Label')
+                    }}</Label>
                     <Input id="vault-label" name="label" required />
                 </div>
                 <div class="field-stack">
-                    <Label for="vault-url" class="field-label">{{ $t('URL (optional)') }}</Label>
+                    <Label for="vault-url" class="field-label">{{
+                        $t('URL (optional)')
+                    }}</Label>
                     <Input id="vault-url" name="url" />
                 </div>
                 <div class="field-stack">
-                    <Label for="vault-group" class="field-label">{{ $t('Group') }}</Label>
+                    <Label for="vault-group" class="field-label">{{
+                        $t('Group')
+                    }}</Label>
                     <select id="vault-group" name="group_id" :class="select">
                         <option value="">{{ $t('Group…') }}</option>
                         <option v-for="g in groups" :key="g.id" :value="g.id">
@@ -156,11 +169,15 @@ async function copySecret() {
                     </select>
                 </div>
                 <div class="field-stack">
-                    <Label for="vault-user" class="field-label">{{ $t('Username') }}</Label>
+                    <Label for="vault-user" class="field-label">{{
+                        $t('Username')
+                    }}</Label>
                     <Input id="vault-user" name="username" autocomplete="off" />
                 </div>
                 <div class="field-stack">
-                    <Label for="vault-secret" class="field-label">{{ $t('Secret') }}</Label>
+                    <Label for="vault-secret" class="field-label">{{
+                        $t('Secret')
+                    }}</Label>
                     <Input
                         id="vault-secret"
                         name="secret"
@@ -198,7 +215,7 @@ async function copySecret() {
 
         <div
             v-if="revealed"
-            class="surface border-warning/40 bg-warning/10 p-5 text-sm reveal"
+            class="reveal surface border-warning/40 bg-warning/10 p-5 text-sm"
             role="status"
         >
             <p class="mb-3 font-medium">
@@ -215,7 +232,9 @@ async function copySecret() {
             <p v-if="revealed.notes">{{ $t('Notes') }}: {{ revealed.notes }}</p>
             <div class="mt-3 flex gap-2">
                 <Button size="sm" @click="copySecret">{{ $t('Copy') }}</Button>
-                <Button size="sm" variant="ghost" @click="hide">{{ $t('Hide') }}</Button>
+                <Button size="sm" variant="ghost" @click="hide">{{
+                    $t('Hide')
+                }}</Button>
             </div>
         </div>
 
@@ -223,12 +242,16 @@ async function copySecret() {
             v-if="configured && !entries.length"
             :icon="KeyRound"
             :title="$t('No entries.')"
-            :description="$t('Add a secret above. You will need your password to reveal it later.')"
+            :description="
+                $t(
+                    'Add a secret above. You will need your password to reveal it later.',
+                )
+            "
         />
 
         <div
             v-else-if="entries.length"
-            class="surface overflow-hidden reveal reveal-delay-1"
+            class="reveal reveal-delay-1 overflow-hidden surface"
             tabindex="0"
             role="region"
             :aria-label="$t('Vault')"
@@ -238,22 +261,30 @@ async function copySecret() {
                     <tr>
                         <th scope="col">{{ $t('Label') }}</th>
                         <th scope="col">{{ $t('Group') }}</th>
-                        <th scope="col" class="hidden md:table-cell">{{ $t('URL (optional)') }}</th>
-                        <th scope="col" class="text-right">{{ $t('Reveal') }}</th>
+                        <th scope="col" class="hidden md:table-cell">
+                            {{ $t('URL (optional)') }}
+                        </th>
+                        <th scope="col" class="text-right">
+                            {{ $t('Reveal') }}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="e in entries" :key="e.id">
                         <td class="font-medium">{{ e.label }}</td>
                         <td>
-                            <span v-if="e.group" class="chip">{{ e.group }}</span>
+                            <span v-if="e.group" class="chip">{{
+                                e.group
+                            }}</span>
                             <span v-else class="text-muted-foreground">—</span>
                         </td>
                         <td class="hidden text-muted-foreground md:table-cell">
                             {{ e.url || '—' }}
                         </td>
                         <td>
-                            <div class="flex flex-wrap items-center justify-end gap-2">
+                            <div
+                                class="flex flex-wrap items-center justify-end gap-2"
+                            >
                                 <Input
                                     v-model="password"
                                     class="w-36"
@@ -262,7 +293,11 @@ async function copySecret() {
                                     autocomplete="current-password"
                                     :aria-label="$t('Password')"
                                 />
-                                <Button size="sm" variant="outline" @click="reveal(e.id)">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    @click="reveal(e.id)"
+                                >
                                     {{ $t('Reveal') }}
                                 </Button>
                             </div>

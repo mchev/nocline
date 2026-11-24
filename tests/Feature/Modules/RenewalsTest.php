@@ -282,7 +282,9 @@ it('records ssl expiry of https checks without duplicating rows', function () {
     $this->artisan('phare:renewals:scan-ssl')->assertSuccessful();
     $this->artisan('phare:renewals:scan-ssl')->assertSuccessful();
 
-    $renewal = Renewal::sole();
+    expect(Renewal::where('kind', 'ssl')->count())->toBe(1);
+
+    $renewal = Renewal::query()->where('check_id', $https->id)->where('kind', 'ssl')->sole();
     expect($renewal->check_id)->toBe($https->id)
         ->and($renewal->kind)->toBe('ssl')
         ->and($renewal->expires_on->toDateString())->toBe('2027-03-01');

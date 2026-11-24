@@ -4,10 +4,10 @@
 
 Hypothèses : 50 sites, 200 checks, 30 agents, poll check 60 s, métriques agent 30 s × 8 series.
 
-| Donnée | Mauvais modèle (tout en rows) | Modèle cible |
-|--------|-------------------------------|--------------|
-| Heartbeat check 60 s | ~200 × 525600 ≈ **100 M rows/an** | **~quelques milliers** events down/up + rollups |
-| Métriques 30 s × 8 × 30 hosts | ~**25 M points/an** | ~**500k** rows rollup (1 min/5 min/1 h) |
+| Donnée                        | Mauvais modèle (tout en rows)     | Modèle cible                                    |
+| ----------------------------- | --------------------------------- | ----------------------------------------------- |
+| Heartbeat check 60 s          | ~200 × 525600 ≈ **100 M rows/an** | **~quelques milliers** events down/up + rollups |
+| Métriques 30 s × 8 × 30 hosts | ~**25 M points/an**               | ~**500k** rows rollup (1 min/5 min/1 h)         |
 
 Objectif BDD métier : **&lt; 5 Go** à 2 ans hors coffre ; métriques rollup **&lt; 2 Go** ; pas de croissance exponentielle.
 
@@ -61,12 +61,18 @@ Ingestion API `POST /api/v1/ingest` :
 
 ```json
 {
-  "host_id": "…",
-  "window_sec": 30,
-  "metrics": [
-    { "key": "cpu.usage_pct", "min": 2.1, "max": 41.0, "avg": 12.3, "p95": 38.0 },
-    { "key": "mem.used_bytes", "avg": 4294967296 }
-  ]
+    "host_id": "…",
+    "window_sec": 30,
+    "metrics": [
+        {
+            "key": "cpu.usage_pct",
+            "min": 2.1,
+            "max": 41.0,
+            "avg": 12.3,
+            "p95": 38.0
+        },
+        { "key": "mem.used_bytes", "avg": 4294967296 }
+    ]
 }
 ```
 
@@ -107,8 +113,8 @@ Configuration `/etc/phare-agent/config.yaml` :
 
 ```yaml
 hub_url: https://ops.example.com
-role: host   # host | probe
-token: "***"
+role: host # host | probe
+token: '***'
 interval_sec: 30
 # role=host
 metrics: [cpu, memory, disk, load]
@@ -120,12 +126,12 @@ Install sonde avec ICMP (ex. Docker) : `cap_add: [NET_RAW]` ; binaire non-root a
 
 ## Checks — types MVP
 
-| Type | Méthode |
-|------|---------|
-| icmp | **sonde** avec `NET_RAW` uniquement |
-| http | GET, status, keyword, ssl_expiry_days |
-| tcp | connexion + timeout |
-| dns | résolution + latence (sonde) |
+| Type  | Méthode                                                                        |
+| ----- | ------------------------------------------------------------------------------ |
+| icmp  | **sonde** avec `NET_RAW` uniquement                                            |
+| http  | GET, status, keyword, ssl_expiry_days                                          |
+| tcp   | connexion + timeout                                                            |
+| dns   | résolution + latence (sonde)                                                   |
 | agent | « host agent vu &lt; N min » (complète checks réseau, pas un simple ping vide) |
 
 SSL : extraire `notAfter` ; alimenter module **Renewals** sans stocker chaque scan en historique — seulement dernier + event si &lt; 30 j.
@@ -156,7 +162,7 @@ Réponse agrégée (une requête) :
 - `hosts[]` : status, cpu_avg_5m, mem_pct, disk_pct_warn
 - `checks_failing[]` : name, since, latency
 
-Cache Redis TTL 10 s ; stale si &gt; 90 s sans refresh réussi (comme wallboard actuel).
+Cache Redis TTL 10 s ; stale si &gt; 90 s sans refresh réussi.
 
 ## Sondes — protocole hub ↔ probe (résumé)
 
@@ -164,23 +170,23 @@ Cache Redis TTL 10 s ; stale si &gt; 90 s sans refresh réussi (comme wallboard 
 2. Probe : **long poll** ou interval court `GET /api/v1/probe/work` (token probe) → exécute checks → `POST /api/v1/probe/results` (batch).
 3. Hub : `IngestProbeResults` met à jour `check_current`, écrit event si transition, merge rollups.
 4. **Quorum** (config par check) :
-   - `all` : down si toutes sondes down sur la fenêtre ;
-   - `any` : down si une sonde voit down (détection rapide) ;
-   - `majority` : défaut recommandé pour HTTP ; ICMP souvent `any` sur sonde **external** seule.
+    - `all` : down si toutes sondes down sur la fenêtre ;
+    - `any` : down si une sonde voit down (détection rapide) ;
+    - `majority` : défaut recommandé pour HTTP ; ICMP souvent `any` sur sonde **external** seule.
 5. Déploiement recommandé Phare (usage interne) :
-   - **probe-primary** : même réseau que le hub (checks admin / internes) ;
-   - **probe-external-eu** : VPS OVH/Hetzner/etc. (vue client réelle) ;
-   - option **probe-home** : désactivé par défaut (faux positifs si box down).
+    - **probe-primary** : même réseau que le hub (checks admin / internes) ;
+    - **probe-external-eu** : VPS OVH/Hetzner/etc. (vue client réelle) ;
+    - option **probe-home** : désactivé par défaut (faux positifs si box down).
 
 Kuma comparé : Kuma exécute tout depuis le conteneur unique ; nous **séparons** host metrics (push) et checks réseau (pull work sur sondes) pour scale et clarté des points de vue.
 
 ## Intégrations futures
 
-| Source | Approche |
-|--------|----------|
-| WordPress | plugin minimal : version, plugins, cron last run → API |
-| Hébergeurs sans API | checks HTTP + agent seulement |
-| Providers avec API | module `Integrations\{Provider}` ; secrets dans coffre |
+| Source              | Approche                                               |
+| ------------------- | ------------------------------------------------------ |
+| WordPress           | plugin minimal : version, plugins, cron last run → API |
+| Hébergeurs sans API | checks HTTP + agent seulement                          |
+| Providers avec API  | module `Integrations\{Provider}` ; secrets dans coffre |
 
 ## PostgreSQL vs MySQL
 
@@ -194,18 +200,18 @@ Kuma comparé : Kuma exécute tout depuis le conteneur unique ; nous **séparons
 
 ## Migration depuis stack actuelle
 
-- Uptime Kuma : import monitors via export JSON ou API si dispo → script one-shot `ImportKumaMonitors`.
-- Wallboard HTML actuel : remplacer source Kuma par endpoint wallboard hub quand prêt.
+- Uptime Kuma : import monitors (`phare:import-kuma` ou UI) — voir [migration-kuma.md](../migration-kuma.md).
+- Wallboard : URL jeton + `GET /api/wallboard/{token}` (voir module Wallboards).
 
 ## Décisions actées (2026-11)
 
-| Sujet | Décision |
-|-------|----------|
-| Modèle produit | Usage **interne** maintenant ; cible **OSS self-hosted** (pas SaaS multi-tenant managé en v1). |
-| ICMP / checks | **Sondes** (agent `role=probe`), modèle Kuma **enrichi** (résultats structurés, multi-sonde, quorum) ; pas d'ICMP depuis PHP. |
-| Coffre | **Confiance maximale** : MEK hors BDD, libsodium, audit, re-auth/2FA à la révélation, pas de secrets dans logs. |
-| GPU | **Hors périmètre** jusqu'à nouvel ordre. |
-| Nom produit | **Phare** (repo `phare`, binaires `phare-agent`). |
+| Sujet          | Décision                                                                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Modèle produit | Usage **interne** maintenant ; cible **OSS self-hosted** (pas SaaS multi-tenant managé en v1).                                |
+| ICMP / checks  | **Sondes** (agent `role=probe`), modèle Kuma **enrichi** (résultats structurés, multi-sonde, quorum) ; pas d'ICMP depuis PHP. |
+| Coffre         | **Confiance maximale** : MEK hors BDD, libsodium, audit, re-auth/2FA à la révélation, pas de secrets dans logs.               |
+| GPU            | **Hors périmètre** jusqu'à nouvel ordre.                                                                                      |
+| Nom produit    | **Phare** (repo `phare`, binaires `phare-agent`).                                                                             |
 
 ## Pistes v2 (non engagées)
 

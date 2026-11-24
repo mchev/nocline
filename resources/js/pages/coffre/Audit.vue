@@ -52,7 +52,9 @@ const actionChip = (action: string) => {
     <PageContainer>
         <PageHeader
             :title="$t('Vault audit')"
-            :description="$t('Who revealed or changed vault secrets, and when.')"
+            :description="
+                $t('Who revealed or changed vault secrets, and when.')
+            "
         >
             <Button as-child variant="outline">
                 <Link :href="index()">{{ $t('Vault') }}</Link>
@@ -68,7 +70,7 @@ const actionChip = (action: string) => {
 
         <div
             v-else
-            class="surface overflow-hidden reveal"
+            class="reveal overflow-hidden surface"
             tabindex="0"
             role="region"
             :aria-label="$t('Vault audit')"
@@ -86,7 +88,10 @@ const actionChip = (action: string) => {
                 <tbody>
                     <tr v-for="l in logs.data" :key="l.id">
                         <td>
-                            <time class="text-muted-foreground" :datetime="l.at">
+                            <time
+                                class="text-muted-foreground"
+                                :datetime="l.at"
+                            >
                                 {{ new Date(l.at).toLocaleString() }}
                             </time>
                         </td>

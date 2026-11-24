@@ -22,7 +22,9 @@ const passwordInput = useTemplateRef('passwordInput');
 </script>
 
 <template>
-    <section class="space-y-4 rounded-md border border-danger/30 bg-danger/10 p-6">
+    <section
+        class="space-y-4 rounded-md border border-danger/30 bg-danger/10 p-6"
+    >
         <Heading
             variant="small"
             :title="$t('Delete account')"
@@ -32,12 +34,18 @@ const passwordInput = useTemplateRef('passwordInput');
             <div class="relative space-y-0.5 text-danger">
                 <p class="font-medium">{{ $t('Warning') }}</p>
                 <p class="text-sm">
-                    {{ $t('Please proceed with caution, this cannot be undone.') }}
+                    {{
+                        $t(
+                            'Please proceed with caution, this cannot be undone.',
+                        )
+                    }}
                 </p>
             </div>
             <Dialog>
                 <DialogTrigger as-child>
-                    <Button variant="destructive" data-test="delete-user-button"
+                    <Button
+                        variant="destructive"
+                        data-test="delete-user-button"
                         >{{ $t('Delete account') }}</Button
                     >
                 </DialogTrigger>
@@ -53,13 +61,11 @@ const passwordInput = useTemplateRef('passwordInput');
                         v-slot="{ errors, processing, reset, clearErrors }"
                     >
                         <DialogHeader class="space-y-3">
-                            <DialogTitle
-                                >{{
-                                    $t(
-                                        'Are you sure you want to delete your account?',
-                                    )
-                                }}</DialogTitle
-                            >
+                            <DialogTitle>{{
+                                $t(
+                                    'Are you sure you want to delete your account?',
+                                )
+                            }}</DialogTitle>
                             <DialogDescription>
                                 {{
                                     $t(
@@ -70,9 +76,9 @@ const passwordInput = useTemplateRef('passwordInput');
                         </DialogHeader>
 
                         <div class="grid gap-2">
-                            <Label for="password" class="sr-only"
-                                >{{ $t('Password') }}</Label
-                            >
+                            <Label for="password" class="sr-only">{{
+                                $t('Password')
+                            }}</Label>
                             <PasswordInput
                                 id="password"
                                 name="password"

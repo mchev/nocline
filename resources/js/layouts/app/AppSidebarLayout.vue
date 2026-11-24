@@ -19,7 +19,10 @@ withDefaults(defineProps<Props>(), {
 <template>
     <AppShell variant="sidebar">
         <AppSidebar />
-        <AppContent variant="sidebar" class="aurora h-dvh min-h-0 min-w-0 overflow-hidden">
+        <AppContent
+            variant="sidebar"
+            class="h-dvh min-h-0 min-w-0 overflow-hidden aurora"
+        >
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <UpdateBanner />
             <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">

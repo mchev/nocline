@@ -8,6 +8,7 @@ use App\Modules\Checks\Enums\CheckCategory;
 use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Http\Requests\CheckRequest;
 use App\Modules\Checks\Models\Check;
+use App\Modules\Checks\Services\CheckStatusHistory;
 use App\Modules\Checks\Services\KumaImporter;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
@@ -22,14 +23,17 @@ use InvalidArgumentException;
 
 class CheckController extends Controller
 {
-    public function index(MaintenanceChecker $maintenance, HostMetricsReader $metrics): Response
-    {
+    public function index(
+        MaintenanceChecker $maintenance,
+        HostMetricsReader $metrics,
+        CheckStatusHistory $history,
+    ): Response {
         $this->authorize('viewAny', Check::class);
 
         $live = OpsSnapshotUpdated::class;
 
         return Inertia::render('checks/Index', [
-            'checks' => Inertia::live(function () use ($maintenance, $metrics) {
+            'checks' => Inertia::live(function () use ($maintenance, $metrics, $history) {
                 $checks = Check::query()
                     ->with(['state', 'host:id,name,enrolled_at,last_seen_at'])
                     ->orderBy('name')
@@ -38,6 +42,7 @@ class CheckController extends Controller
                 $inMaintenance = array_flip($maintenance->activeCheckIds($checks));
                 $linkedHosts = $checks->pluck('host')->filter()->unique('id')->values();
                 $series = $metrics->forHosts($linkedHosts, 24);
+                $histories = $history->forChecks($checks, $maintenance);
 
                 return $checks->map(fn (Check $c) => [
                     'id' => $c->id,
@@ -61,6 +66,8 @@ class CheckController extends Controller
                     'last_error' => $c->state?->last_error,
                     'in_maintenance' => isset($inMaintenance[$c->id]),
                     'metrics' => $c->host_id ? ($series[$c->host_id] ?? null) : null,
+                    'history' => $histories[$c->id]['history'] ?? [],
+                    'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
                 ])->values();
             }, $live),
             'groups' => Group::options(),

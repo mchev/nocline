@@ -8,8 +8,12 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
     >
         <AppLogoIcon class="size-[1.125rem]" />
     </div>
-    <div class="ml-2 grid min-w-0 flex-1 text-left leading-none group-data-[collapsible=icon]:hidden">
-        <span class="font-display text-[1.05rem] font-semibold tracking-tight lowercase text-foreground">
+    <div
+        class="ml-2 grid min-w-0 flex-1 text-left leading-none group-data-[collapsible=icon]:hidden"
+    >
+        <span
+            class="font-display text-[1.05rem] font-semibold tracking-tight text-foreground lowercase"
+        >
             phare<span class="text-primary">.</span>
         </span>
     </div>

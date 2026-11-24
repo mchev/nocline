@@ -7,7 +7,13 @@ withDefaults(
         value: string | number;
         hint?: string;
         icon?: Component;
-        tone?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'primary';
+        tone?:
+            | 'default'
+            | 'success'
+            | 'warning'
+            | 'danger'
+            | 'info'
+            | 'primary';
         variant?: 'default' | 'hero';
     }>(),
     { tone: 'default', variant: 'default' },
@@ -16,7 +22,7 @@ withDefaults(
 
 <template>
     <div
-        class="surface relative flex h-full min-h-[8.25rem] flex-col overflow-hidden p-4"
+        class="relative flex h-full min-h-[8.25rem] flex-col overflow-hidden surface p-4"
         :class="variant === 'hero' ? 'ring-1 ring-primary/20' : ''"
     >
         <div
@@ -48,7 +54,9 @@ withDefaults(
                 <component :is="icon" class="size-4" aria-hidden="true" />
             </span>
         </div>
-        <p class="numeric relative mt-3 text-4xl leading-none font-semibold tracking-tight">
+        <p
+            class="relative mt-3 numeric text-4xl leading-none font-semibold tracking-tight"
+        >
             {{ value }}
         </p>
         <p

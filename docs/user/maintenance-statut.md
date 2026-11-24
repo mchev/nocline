@@ -7,9 +7,9 @@ Vous allez redémarrer un serveur ou mettre à jour un site ? Annoncez-le à Pha
 1. Ouvrez **Maintenance** dans le menu.
 2. Cliquez sur **Planifier une maintenance** (ou sur **Démarrer une maintenance maintenant pour 1 heure** si vous commencez tout de suite).
 3. Choisissez **ce qui est concerné** :
-   - **Tout** ;
-   - **Un groupe** (ses sous-groupes sont inclus) ;
-   - **Une sonde** précise.
+    - **Tout** ;
+    - **Un groupe** (ses sous-groupes sont inclus) ;
+    - **Une sonde** précise.
 4. Indiquez le début et la fin (dans le fuseau horaire de votre navigateur).
 5. Si l'intervention revient régulièrement (par exemple chaque nuit), choisissez **Chaque jour** ou **Chaque semaine** : elle se répète à la même heure locale. Une maintenance qui se répète doit être plus courte que sa répétition.
 

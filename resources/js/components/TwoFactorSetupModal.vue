@@ -48,8 +48,7 @@ const modalConfig = computed<TwoFactorConfigContent>(() => {
     if (props.twoFactorEnabled) {
         return {
             title: t('Two-factor authentication enabled'),
-            description:
-                t(
+            description: t(
                 'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
             ),
             buttonText: t('Close'),
@@ -59,17 +58,18 @@ const modalConfig = computed<TwoFactorConfigContent>(() => {
     if (showVerificationStep.value) {
         return {
             title: t('Verify authentication code'),
-            description: t('Enter the 6-digit code from your authenticator app'),
+            description: t(
+                'Enter the 6-digit code from your authenticator app',
+            ),
             buttonText: t('Continue'),
         };
     }
 
     return {
         title: t('Enable two-factor authentication'),
-        description:
-            t(
-                'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-            ),
+        description: t(
+            'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
+        ),
         buttonText: t('Continue'),
     };
 });
@@ -201,9 +201,9 @@ watch(
                             <div
                                 class="absolute inset-0 top-1/2 h-px w-full bg-border"
                             />
-                            <span class="relative bg-card px-2 py-1"
-                                >{{ $t('or, enter the code manually') }}</span
-                            >
+                            <span class="relative bg-card px-2 py-1">{{
+                                $t('or, enter the code manually')
+                            }}</span>
                         </div>
 
                         <div

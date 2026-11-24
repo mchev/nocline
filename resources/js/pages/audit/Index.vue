@@ -83,7 +83,11 @@ function reset(): void {
                     <label for="audit-user" class="field-label">{{
                         $t('Who')
                     }}</label>
-                    <select id="audit-user" v-model="form.user_id" :class="select">
+                    <select
+                        id="audit-user"
+                        v-model="form.user_id"
+                        :class="select"
+                    >
                         <option value="">{{ $t('Everyone') }}</option>
                         <option v-for="u in users" :key="u.id" :value="u.id">
                             {{ u.name }}
@@ -133,13 +137,19 @@ function reset(): void {
         <EmptyState
             v-if="logs.data.length === 0"
             :icon="ScrollText"
-            :title="$t('Nothing recorded yet. Changes made by your team will show up here.')"
+            :title="
+                $t(
+                    'Nothing recorded yet. Changes made by your team will show up here.',
+                )
+            "
         />
 
-        <div v-else class="surface overflow-x-auto">
+        <div v-else class="overflow-x-auto surface">
             <table class="table-clean">
                 <caption class="sr-only">
-                    {{ $t('Activity log') }}
+                    {{
+                        $t('Activity log')
+                    }}
                 </caption>
                 <thead>
                     <tr>
@@ -150,7 +160,9 @@ function reset(): void {
                 </thead>
                 <tbody>
                     <tr v-for="l in logs.data" :key="l.id">
-                        <td class="numeric whitespace-nowrap text-muted-foreground">
+                        <td
+                            class="numeric whitespace-nowrap text-muted-foreground"
+                        >
                             <time :datetime="l.at">{{
                                 new Date(l.at).toLocaleString()
                             }}</time>

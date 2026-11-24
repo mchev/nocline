@@ -1,4 +1,12 @@
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch, type Ref } from 'vue';
+import {
+    computed,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    shallowRef,
+    watch,
+    type Ref,
+} from 'vue';
 
 type ListOptions = {
     itemHeight: number;
@@ -76,7 +84,10 @@ export function useListFit(options: ListOptions) {
         }
 
         const raw = Math.floor((height + gap) / (options.itemHeight + gap));
-        count.value = Math.max(options.min ?? 1, Math.min(options.max ?? 50, raw || 1));
+        count.value = Math.max(
+            options.min ?? 1,
+            Math.min(options.max ?? 50, raw || 1),
+        );
     });
 
     return { el, count };
@@ -94,15 +105,29 @@ export function useGridFit(options: GridOptions) {
             return;
         }
 
-        const nextCols = Math.max(1, Math.floor((width + gap) / (options.itemMinWidth + gap)));
-        const nextRows = Math.max(1, Math.floor((height + gap) / (options.itemMinHeight + gap)));
-        const capacity = Math.max(options.min ?? 1, Math.min(options.max ?? 50, nextCols * nextRows));
+        const nextCols = Math.max(
+            1,
+            Math.floor((width + gap) / (options.itemMinWidth + gap)),
+        );
+        const nextRows = Math.max(
+            1,
+            Math.floor((height + gap) / (options.itemMinHeight + gap)),
+        );
+        const capacity = Math.max(
+            options.min ?? 1,
+            Math.min(options.max ?? 50, nextCols * nextRows),
+        );
 
         cols.value = nextCols;
         rows.value = Math.max(1, Math.ceil(capacity / nextCols));
     });
 
-    const capacity = computed(() => Math.max(options.min ?? 1, Math.min(options.max ?? 50, cols.value * rows.value)));
+    const capacity = computed(() =>
+        Math.max(
+            options.min ?? 1,
+            Math.min(options.max ?? 50, cols.value * rows.value),
+        ),
+    );
 
     return { el, cols, rows, capacity };
 }

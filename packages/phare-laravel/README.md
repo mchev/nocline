@@ -42,13 +42,13 @@ Schedule::command('backup:run')->daily()
     ->pingPhareOnFailure('token-or-name');  // after a failed run: calls /fail, opens an incident right away
 ```
 
-| Macro | When it pings |
-|-------|---------------|
-| `pingPhare($token = null)` | after a successful run (same as `pingPhareOnSuccess`) |
-| `pingPhareOnSuccess($token = null)` | after a successful run |
-| `pingPhareOnFailure($token = null)` | after a failed run, on `/fail` |
-| `thenPingPhare($token = null)` | after the run, whatever the result |
-| `pingPhareBefore($token = null)` | before the run starts |
+| Macro                               | When it pings                                         |
+| ----------------------------------- | ----------------------------------------------------- |
+| `pingPhare($token = null)`          | after a successful run (same as `pingPhareOnSuccess`) |
+| `pingPhareOnSuccess($token = null)` | after a successful run                                |
+| `pingPhareOnFailure($token = null)` | after a failed run, on `/fail`                        |
+| `thenPingPhare($token = null)`      | after the run, whatever the result                    |
+| `pingPhareBefore($token = null)`    | before the run starts                                 |
 
 `$token` is a heartbeat token, or a name declared in `config('phare.heartbeats')` (`'backup' => env('PHARE_HEARTBEAT_BACKUP')`). When omitted, `PHARE_HEARTBEAT_TOKEN` is used.
 

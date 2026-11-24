@@ -156,9 +156,7 @@ async function next() {
     }
 
     if (step.value === 1 && !(await testConnection())) {
-        stepError.value = t(
-            'Fix the database connection before continuing.',
-        );
+        stepError.value = t('Fix the database connection before continuing.');
 
         return;
     }
@@ -225,7 +223,11 @@ function err(key: string): string | undefined {
                               : 'border-border'
                     "
                 >
-                    <Check v-if="i < step" class="size-3.5" aria-hidden="true" />
+                    <Check
+                        v-if="i < step"
+                        class="size-3.5"
+                        aria-hidden="true"
+                    />
                     <template v-else>{{ i + 1 }}</template>
                 </span>
                 <span class="hidden text-[0.7rem] sm:block">{{ label }}</span>
@@ -518,7 +520,9 @@ function err(key: string): string | undefined {
             <h2 class="font-display text-lg font-semibold">
                 {{ t('Review and install') }}
             </h2>
-            <dl class="surface-muted grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 p-4 text-sm">
+            <dl
+                class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 surface-muted p-4 text-sm"
+            >
                 <dt class="text-muted-foreground">{{ t('Language') }}</dt>
                 <dd>{{ locales[form.instance.locale] }}</dd>
                 <dt class="text-muted-foreground">{{ t('Database') }}</dt>

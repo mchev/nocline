@@ -141,17 +141,26 @@ function remove(g: GroupOption) {
             aria-labelledby="new-group-heading"
             @submit.prevent="create"
         >
-            <h2 id="new-group-heading" class="font-display text-lg font-semibold">
+            <h2
+                id="new-group-heading"
+                class="font-display text-lg font-semibold"
+            >
                 {{ t('Add a group') }}
             </h2>
-            <div class="grid gap-4 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
+            <div
+                class="grid gap-4 md:grid-cols-[1fr_1fr_auto_auto] md:items-end"
+            >
                 <div class="field-stack">
-                    <Label for="new-name" class="field-label">{{ t('Group name') }}</Label>
+                    <Label for="new-name" class="field-label">{{
+                        t('Group name')
+                    }}</Label>
                     <Input id="new-name" v-model="createForm.name" required />
                     <InputError :message="createForm.errors.name" />
                 </div>
                 <div class="field-stack">
-                    <Label for="new-parent" class="field-label">{{ t('Inside') }}</Label>
+                    <Label for="new-parent" class="field-label">{{
+                        t('Inside')
+                    }}</Label>
                     <GroupSelect
                         id="new-parent"
                         v-model="createForm.parent_id"
@@ -161,21 +170,35 @@ function remove(g: GroupOption) {
                     <InputError :message="createForm.errors.parent_id" />
                 </div>
                 <div class="field-stack">
-                    <Label for="new-color" class="field-label">{{ t('Colour') }}</Label>
+                    <Label for="new-color" class="field-label">{{
+                        t('Colour')
+                    }}</Label>
                     <input
                         id="new-color"
                         type="color"
                         class="h-10 w-14 cursor-pointer rounded-md border border-input bg-transparent p-1"
                         :value="createForm.color || DEFAULT_GROUP_COLOR"
                         @input="
-                            createForm.color = ($event.target as HTMLInputElement).value
+                            createForm.color = (
+                                $event.target as HTMLInputElement
+                            ).value
                         "
                     />
                 </div>
                 <div class="field-stack">
-                    <Label for="new-layout" class="field-label">{{ t('Display') }}</Label>
-                    <select id="new-layout" v-model="createForm.layout" :class="select">
-                        <option v-for="l in layouts" :key="l.value" :value="l.value">
+                    <Label for="new-layout" class="field-label">{{
+                        t('Display')
+                    }}</Label>
+                    <select
+                        id="new-layout"
+                        v-model="createForm.layout"
+                        :class="select"
+                    >
+                        <option
+                            v-for="l in layouts"
+                            :key="l.value"
+                            :value="l.value"
+                        >
                             {{ l.label }}
                         </option>
                     </select>
@@ -195,8 +218,15 @@ function remove(g: GroupOption) {
             :description="t('No groups yet. Create your first one above.')"
         />
 
-        <ul v-else class="surface divide-y overflow-hidden reveal reveal-delay-1">
-            <li v-for="g in groups" :key="g.id" class="px-4 py-3 transition-colors hover:bg-muted/50">
+        <ul
+            v-else
+            class="reveal reveal-delay-1 divide-y overflow-hidden surface"
+        >
+            <li
+                v-for="g in groups"
+                :key="g.id"
+                class="px-4 py-3 transition-colors hover:bg-muted/50"
+            >
                 <form
                     v-if="editingId === g.id"
                     class="grid gap-4 rounded-md border border-dashed bg-muted/30 p-4 md:grid-cols-[1fr_1fr_auto_auto] md:items-end"
@@ -207,7 +237,11 @@ function remove(g: GroupOption) {
                         <Label :for="`edit-name-${g.id}`" class="field-label">
                             {{ t('Group name') }}
                         </Label>
-                        <Input :id="`edit-name-${g.id}`" v-model="editForm.name" required />
+                        <Input
+                            :id="`edit-name-${g.id}`"
+                            v-model="editForm.name"
+                            required
+                        />
                         <InputError :message="editForm.errors.name" />
                     </div>
                     <div class="field-stack">
@@ -234,7 +268,9 @@ function remove(g: GroupOption) {
                                 class="h-10 w-14 cursor-pointer rounded-md border border-input bg-transparent p-1"
                                 :value="editForm.color || DEFAULT_GROUP_COLOR"
                                 @input="
-                                    editForm.color = ($event.target as HTMLInputElement).value
+                                    editForm.color = (
+                                        $event.target as HTMLInputElement
+                                    ).value
                                 "
                             />
                             <Button
@@ -257,17 +293,27 @@ function remove(g: GroupOption) {
                             v-model="editForm.layout"
                             :class="select"
                         >
-                            <option v-for="l in layouts" :key="l.value" :value="l.value">
+                            <option
+                                v-for="l in layouts"
+                                :key="l.value"
+                                :value="l.value"
+                            >
                                 {{ l.label }}
                             </option>
                         </select>
                     </div>
-                    <label class="flex min-h-10 items-center gap-2 text-sm md:col-span-2">
+                    <label
+                        class="flex min-h-10 items-center gap-2 text-sm md:col-span-2"
+                    >
                         <input v-model="editForm.collapsed" type="checkbox" />
                         {{ t('Folded by default') }}
                     </label>
                     <div class="flex justify-end gap-2 md:col-span-2">
-                        <Button type="button" variant="outline" @click="editingId = null">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="editingId = null"
+                        >
                             {{ t('Cancel') }}
                         </Button>
                         <Button type="submit" :disabled="editForm.processing">
@@ -284,16 +330,25 @@ function remove(g: GroupOption) {
                     <span
                         class="size-3.5 shrink-0 rounded-full ring-4 ring-muted"
                         :style="{ backgroundColor: g.color ?? 'transparent' }"
-                        :class="{ 'border border-dashed border-muted-foreground/40': !g.color }"
+                        :class="{
+                            'border border-dashed border-muted-foreground/40':
+                                !g.color,
+                        }"
                         aria-hidden="true"
                     />
                     <div class="min-w-0 flex-1">
                         <p class="font-medium">{{ g.name }}</p>
                         <p class="text-xs text-muted-foreground">
-                            {{ t(':count monitors', { count: g.checks_count ?? 0 }) }}
+                            {{
+                                t(':count monitors', {
+                                    count: g.checks_count ?? 0,
+                                })
+                            }}
                         </p>
                     </div>
-                    <span class="chip">{{ layouts.find((l) => l.value === g.layout)?.label }}</span>
+                    <span class="chip">{{
+                        layouts.find((l) => l.value === g.layout)?.label
+                    }}</span>
                     <div v-if="canManage" class="flex">
                         <Button
                             size="icon"

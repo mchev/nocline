@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { Activity, BellRing, ShieldCheck } from '@lucide/vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { home } from '@/routes';
-
-const page = usePage();
-const name = page.props.name;
 
 defineProps<{
     title?: string;
@@ -20,7 +17,9 @@ const points = [
 </script>
 
 <template>
-    <div class="grid min-h-svh bg-background lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
+    <div
+        class="grid min-h-svh bg-background lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]"
+    >
         <aside
             class="relative hidden flex-col justify-between border-r bg-card p-8 lg:flex xl:p-10"
         >
@@ -31,11 +30,13 @@ const points = [
                 <span
                     class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground"
                 >
-                    <AppLogoIcon class="size-5 fill-current" />
+                    <AppLogoIcon class="size-5" />
                 </span>
-                <span class="font-display text-lg font-semibold tracking-tight">{{
-                    name
-                }}</span>
+                <span
+                    class="font-display text-lg font-semibold tracking-tight lowercase"
+                >
+                    phare<span class="text-primary">.</span>
+                </span>
             </Link>
 
             <div class="relative space-y-6">
@@ -60,23 +61,25 @@ const points = [
                 </ul>
             </div>
 
-            <p class="relative text-xs text-muted-foreground">{{ name }}</p>
+            <p class="relative text-xs text-muted-foreground">phare.</p>
         </aside>
 
         <main class="flex flex-col justify-center px-6 py-10 md:px-12 lg:px-16">
             <div class="w-full max-w-sm space-y-7">
                 <Link
                     :href="home()"
-                    class="flex items-center gap-2 lg:hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    class="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none lg:hidden"
                 >
                     <span
                         class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground"
                     >
-                        <AppLogoIcon class="size-4 fill-current" />
+                        <AppLogoIcon class="size-4" />
                     </span>
-                    <span class="font-display text-lg font-semibold tracking-tight">{{
-                        name
-                    }}</span>
+                    <span
+                        class="font-display text-lg font-semibold tracking-tight lowercase"
+                    >
+                        phare<span class="text-primary">.</span>
+                    </span>
                 </Link>
 
                 <header v-if="title" class="space-y-1.5">

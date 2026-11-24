@@ -49,18 +49,31 @@ defineOptions({
 });
 
 const canManage = computed(() => usePage().props.auth.user.role !== 'viewer');
-const select = 'h-10 rounded-md border bg-transparent px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none';
+const select =
+    'h-10 rounded-md border bg-transparent px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none';
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-const active = computed(() => props.windows.filter((w) => w.state === 'active'));
-const upcoming = computed(() => props.windows.filter((w) => w.state === 'upcoming'));
+const active = computed(() =>
+    props.windows.filter((w) => w.state === 'active'),
+);
+const upcoming = computed(() =>
+    props.windows.filter((w) => w.state === 'upcoming'),
+);
 const past = computed(() => props.windows.filter((w) => w.state === 'past'));
 
 const recurrenceLabel = (r: Recurrence) =>
     ({ none: t('Once'), daily: t('Every day'), weekly: t('Every week') })[r];
 const scopeLabel = (w: Win) =>
-    w.check_id !== null ? t('Monitor: :name', { name: w.scope ?? '' }) : w.group_id !== null ? t('Group: :name', { name: w.scope ?? '' }) : t('Everything');
-const when = (iso: string) => new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    w.check_id !== null
+        ? t('Monitor: :name', { name: w.scope ?? '' })
+        : w.group_id !== null
+          ? t('Group: :name', { name: w.scope ?? '' })
+          : t('Everything');
+const when = (iso: string) =>
+    new Date(iso).toLocaleString([], {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    });
 
 /** ISO instant -> value of a datetime-local input (browser time zone). */
 function toInput(date: Date): string {
@@ -115,7 +128,12 @@ function startEdit(w: Win) {
     form.clearErrors();
     form.defaults({
         name: w.name,
-        scope: w.check_id !== null ? 'check' : w.group_id !== null ? 'group' : 'all',
+        scope:
+            w.check_id !== null
+                ? 'check'
+                : w.group_id !== null
+                  ? 'group'
+                  : 'all',
         group_id: w.group_id ?? '',
         check_id: w.check_id ?? '',
         starts_at: toInput(new Date(w.starts_at)),
@@ -135,7 +153,10 @@ function save() {
         recurrence: d.recurrence,
     }));
 
-    const options = { preserveScroll: true, onSuccess: () => (open.value = false) };
+    const options = {
+        preserveScroll: true,
+        onSuccess: () => (open.value = false),
+    };
 
     if (editingId.value === null) {
         form.post(MaintenanceController.store.url(), options);
@@ -146,7 +167,9 @@ function save() {
 
 function remove(w: Win) {
     if (confirm(t('Delete the maintenance ":name"?', { name: w.name }))) {
-        router.delete(MaintenanceController.destroy.url(w.id), { preserveScroll: true });
+        router.delete(MaintenanceController.destroy.url(w.id), {
+            preserveScroll: true,
+        });
     }
 }
 </script>
@@ -157,13 +180,21 @@ function remove(w: Win) {
     <PageContainer>
         <PageHeader
             :title="t('Planned maintenance')"
-            :description="t(`Announce an intervention and we won't alert you during this time. Monitors keep running and show “Maintenance” instead of “Down”.`)"
+            :description="
+                t(
+                    `Announce an intervention and we won't alert you during this time. Monitors keep running and show “Maintenance” instead of “Down”.`,
+                )
+            "
         >
             <template v-if="canManage">
                 <Button variant="outline" @click="startCreate(60)">
-                    <Play class="size-4" /> {{ t('Start maintenance now for 1 hour') }}
+                    <Play class="size-4" />
+                    {{ t('Start maintenance now for 1 hour') }}
                 </Button>
-                <Button @click="startCreate()"><Plus class="size-4" /> {{ t('Plan a maintenance') }}</Button>
+                <Button @click="startCreate()"
+                    ><Plus class="size-4" />
+                    {{ t('Plan a maintenance') }}</Button
+                >
             </template>
         </PageHeader>
 
@@ -171,36 +202,84 @@ function remove(w: Win) {
             v-if="windows.length === 0"
             :icon="Wrench"
             :title="t('No maintenance planned')"
-            :description="t('Going to restart a server or update a site? Plan it here so nobody gets a false alarm.')"
+            :description="
+                t(
+                    'Going to restart a server or update a site? Plan it here so nobody gets a false alarm.',
+                )
+            "
         >
-            <Button v-if="canManage" @click="startCreate()">{{ t('Plan a maintenance') }}</Button>
+            <Button v-if="canManage" @click="startCreate()">{{
+                t('Plan a maintenance')
+            }}</Button>
         </EmptyState>
 
-        <template v-for="section in [
-            { key: 'active', title: t('In progress'), items: active },
-            { key: 'upcoming', title: t('Upcoming'), items: upcoming },
-            { key: 'past', title: t('Past'), items: past },
-        ]" :key="section.key">
-            <section v-if="section.items.length" :aria-labelledby="`h-${section.key}`">
-                <h2 :id="`h-${section.key}`" class="mb-3 text-sm font-medium tracking-wide text-muted-foreground uppercase">{{ section.title }}</h2>
-                <ul class="surface divide-y overflow-hidden">
-                    <li v-for="w in section.items" :key="w.id" class="flex flex-wrap items-center gap-3 p-4 transition-colors hover:bg-muted/50">
-                        <CalendarClock class="size-5 shrink-0" :class="w.state === 'active' ? 'text-info' : 'text-muted-foreground'" aria-hidden="true" />
+        <template
+            v-for="section in [
+                { key: 'active', title: t('In progress'), items: active },
+                { key: 'upcoming', title: t('Upcoming'), items: upcoming },
+                { key: 'past', title: t('Past'), items: past },
+            ]"
+            :key="section.key"
+        >
+            <section
+                v-if="section.items.length"
+                :aria-labelledby="`h-${section.key}`"
+            >
+                <h2
+                    :id="`h-${section.key}`"
+                    class="mb-3 text-sm font-medium tracking-wide text-muted-foreground uppercase"
+                >
+                    {{ section.title }}
+                </h2>
+                <ul class="divide-y overflow-hidden surface">
+                    <li
+                        v-for="w in section.items"
+                        :key="w.id"
+                        class="flex flex-wrap items-center gap-3 p-4 transition-colors hover:bg-muted/50"
+                    >
+                        <CalendarClock
+                            class="size-5 shrink-0"
+                            :class="
+                                w.state === 'active'
+                                    ? 'text-info'
+                                    : 'text-muted-foreground'
+                            "
+                            aria-hidden="true"
+                        />
                         <div class="min-w-0 flex-1">
                             <p class="font-medium">
                                 {{ w.name }}
-                                <Badge v-if="w.state === 'active'" variant="info" class="ml-1">{{ t('Maintenance') }}</Badge>
+                                <Badge
+                                    v-if="w.state === 'active'"
+                                    variant="info"
+                                    class="ml-1"
+                                    >{{ t('Maintenance') }}</Badge
+                                >
                             </p>
                             <p class="text-sm text-muted-foreground">
-                                {{ when(w.next_starts_at) }} → {{ when(w.next_ends_at) }}
-                                · {{ recurrenceLabel(w.recurrence) }} · {{ scopeLabel(w) }}
+                                {{ when(w.next_starts_at) }} →
+                                {{ when(w.next_ends_at) }} ·
+                                {{ recurrenceLabel(w.recurrence) }} ·
+                                {{ scopeLabel(w) }}
                             </p>
                         </div>
                         <div v-if="canManage" class="flex">
-                            <Button size="icon" variant="ghost" :title="t('Edit')" :aria-label="t('Edit')" @click="startEdit(w)">
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                :title="t('Edit')"
+                                :aria-label="t('Edit')"
+                                @click="startEdit(w)"
+                            >
                                 <Pencil class="size-4" />
                             </Button>
-                            <Button size="icon" variant="ghost" :title="t('Delete')" :aria-label="t('Delete')" @click="remove(w)">
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                :title="t('Delete')"
+                                :aria-label="t('Delete')"
+                                @click="remove(w)"
+                            >
                                 <Trash2 class="size-4" />
                             </Button>
                         </div>
@@ -212,63 +291,165 @@ function remove(w: Win) {
         <Dialog v-model:open="open">
             <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>{{ editingId === null ? t('Plan a maintenance') : t('Edit maintenance') }}</DialogTitle>
+                    <DialogTitle>{{
+                        editingId === null
+                            ? t('Plan a maintenance')
+                            : t('Edit maintenance')
+                    }}</DialogTitle>
                 </DialogHeader>
-                <p class="text-sm text-muted-foreground">{{ t("Planned maintenance — we won't alert you during this time.") }}</p>
+                <p class="text-sm text-muted-foreground">
+                    {{
+                        t(
+                            "Planned maintenance — we won't alert you during this time.",
+                        )
+                    }}
+                </p>
 
                 <form class="grid gap-4" @submit.prevent="save">
                     <div class="field-stack">
-                        <Label for="m-name" class="field-label">{{ t('Name') }}</Label>
-                        <Input id="m-name" v-model="form.name" :placeholder="t('Server update')" required />
+                        <Label for="m-name" class="field-label">{{
+                            t('Name')
+                        }}</Label>
+                        <Input
+                            id="m-name"
+                            v-model="form.name"
+                            :placeholder="t('Server update')"
+                            required
+                        />
                         <InputError :message="form.errors.name" />
                     </div>
 
                     <fieldset class="grid gap-2">
-                        <legend class="field-label mb-1">{{ t('What is affected?') }}</legend>
+                        <legend class="field-label mb-1">
+                            {{ t('What is affected?') }}
+                        </legend>
                         <label class="flex min-h-10 items-center gap-2 text-sm">
-                            <input v-model="form.scope" type="radio" name="scope" value="all" class="accent-primary" /> {{ t('Everything') }}
+                            <input
+                                v-model="form.scope"
+                                type="radio"
+                                name="scope"
+                                value="all"
+                                class="accent-primary"
+                            />
+                            {{ t('Everything') }}
                         </label>
-                        <label class="flex min-h-10 flex-wrap items-center gap-2 text-sm">
-                            <input v-model="form.scope" type="radio" name="scope" value="group" class="accent-primary" /> {{ t('A group (and its sub-groups)') }}
-                            <GroupSelect v-if="form.scope === 'group'" v-model="form.group_id" :groups="groups" :empty-label="t('Choose a group')" :aria-label="t('Group')" />
+                        <label
+                            class="flex min-h-10 flex-wrap items-center gap-2 text-sm"
+                        >
+                            <input
+                                v-model="form.scope"
+                                type="radio"
+                                name="scope"
+                                value="group"
+                                class="accent-primary"
+                            />
+                            {{ t('A group (and its sub-groups)') }}
+                            <GroupSelect
+                                v-if="form.scope === 'group'"
+                                v-model="form.group_id"
+                                :groups="groups"
+                                :empty-label="t('Choose a group')"
+                                :aria-label="t('Group')"
+                            />
                         </label>
-                        <label class="flex min-h-10 flex-wrap items-center gap-2 text-sm">
-                            <input v-model="form.scope" type="radio" name="scope" value="check" class="accent-primary" /> {{ t('One monitor') }}
-                            <select v-if="form.scope === 'check'" v-model="form.check_id" :class="select" :aria-label="t('Monitor')">
-                                <option value="">{{ t('Choose a monitor') }}</option>
-                                <option v-for="c in checks" :key="c.id" :value="c.id">{{ c.name }}</option>
+                        <label
+                            class="flex min-h-10 flex-wrap items-center gap-2 text-sm"
+                        >
+                            <input
+                                v-model="form.scope"
+                                type="radio"
+                                name="scope"
+                                value="check"
+                                class="accent-primary"
+                            />
+                            {{ t('One monitor') }}
+                            <select
+                                v-if="form.scope === 'check'"
+                                v-model="form.check_id"
+                                :class="select"
+                                :aria-label="t('Monitor')"
+                            >
+                                <option value="">
+                                    {{ t('Choose a monitor') }}
+                                </option>
+                                <option
+                                    v-for="c in checks"
+                                    :key="c.id"
+                                    :value="c.id"
+                                >
+                                    {{ c.name }}
+                                </option>
                             </select>
                         </label>
-                        <InputError :message="form.errors.group_id || form.errors.check_id" />
+                        <InputError
+                            :message="
+                                form.errors.group_id || form.errors.check_id
+                            "
+                        />
                     </fieldset>
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="field-stack">
-                            <Label for="m-start" class="field-label">{{ t('Starts') }}</Label>
-                            <Input id="m-start" v-model="form.starts_at" type="datetime-local" required />
+                            <Label for="m-start" class="field-label">{{
+                                t('Starts')
+                            }}</Label>
+                            <Input
+                                id="m-start"
+                                v-model="form.starts_at"
+                                type="datetime-local"
+                                required
+                            />
                             <InputError :message="form.errors.starts_at" />
                         </div>
                         <div class="field-stack">
-                            <Label for="m-end" class="field-label">{{ t('Ends') }}</Label>
-                            <Input id="m-end" v-model="form.ends_at" type="datetime-local" required />
+                            <Label for="m-end" class="field-label">{{
+                                t('Ends')
+                            }}</Label>
+                            <Input
+                                id="m-end"
+                                v-model="form.ends_at"
+                                type="datetime-local"
+                                required
+                            />
                             <InputError :message="form.errors.ends_at" />
                         </div>
                     </div>
-                    <p class="field-hint -mt-2">{{ t('Times are in your time zone (:zone).', { zone: timeZone }) }}</p>
+                    <p class="field-hint -mt-2">
+                        {{
+                            t('Times are in your time zone (:zone).', {
+                                zone: timeZone,
+                            })
+                        }}
+                    </p>
 
                     <div class="field-stack">
-                        <Label for="m-rec" class="field-label">{{ t('Repeat') }}</Label>
-                        <select id="m-rec" v-model="form.recurrence" :class="select">
+                        <Label for="m-rec" class="field-label">{{
+                            t('Repeat')
+                        }}</Label>
+                        <select
+                            id="m-rec"
+                            v-model="form.recurrence"
+                            :class="select"
+                        >
                             <option value="none">{{ t('Once') }}</option>
                             <option value="daily">{{ t('Every day') }}</option>
-                            <option value="weekly">{{ t('Every week') }}</option>
+                            <option value="weekly">
+                                {{ t('Every week') }}
+                            </option>
                         </select>
                         <InputError :message="form.errors.recurrence" />
                     </div>
 
                     <div class="flex justify-end gap-2">
-                        <Button type="button" variant="outline" @click="open = false">{{ t('Cancel') }}</Button>
-                        <Button type="submit" :disabled="form.processing">{{ t('Save') }}</Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="open = false"
+                            >{{ t('Cancel') }}</Button
+                        >
+                        <Button type="submit" :disabled="form.processing">{{
+                            t('Save')
+                        }}</Button>
                     </div>
                 </form>
             </DialogContent>

@@ -53,7 +53,11 @@ const handleDelete = () => {
                     {{ $t('Added :when', { when: passkey.created_at_diff }) }}
                     <template v-if="passkey.last_used_at_diff">
                         <span class="mx-1 text-muted-foreground/50">/</span>
-                        {{ $t('Last used :when', { when: passkey.last_used_at_diff }) }}
+                        {{
+                            $t('Last used :when', {
+                                when: passkey.last_used_at_diff,
+                            })
+                        }}
                     </template>
                 </p>
             </div>
@@ -90,7 +94,11 @@ const handleDelete = () => {
                         :disabled="isDeleting"
                         @click="handleDelete"
                     >
-                        {{ isDeleting ? $t('Removing...') : $t('Remove passkey') }}
+                        {{
+                            isDeleting
+                                ? $t('Removing...')
+                                : $t('Remove passkey')
+                        }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

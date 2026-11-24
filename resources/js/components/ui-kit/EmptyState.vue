@@ -6,7 +6,7 @@ defineProps<{ title: string; description?: string; icon?: Component }>();
 
 <template>
     <div
-        class="surface-muted flex flex-col items-start gap-2 border-dashed px-5 py-8"
+        class="flex flex-col items-start gap-2 surface-muted border-dashed px-5 py-8"
     >
         <span
             v-if="icon"
@@ -21,10 +21,7 @@ defineProps<{ title: string; description?: string; icon?: Component }>();
         >
             {{ description }}
         </p>
-        <div
-            v-if="$slots.default"
-            class="mt-2 flex flex-wrap gap-2"
-        >
+        <div v-if="$slots.default" class="mt-2 flex flex-wrap gap-2">
             <slot />
         </div>
     </div>

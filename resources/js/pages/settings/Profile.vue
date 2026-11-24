@@ -80,7 +80,9 @@ const user = computed(() => page.props.auth.user);
                         as="button"
                         class="text-foreground underline underline-offset-4"
                     >
-                        {{ $t('Click here to re-send the verification email.') }}
+                        {{
+                            $t('Click here to re-send the verification email.')
+                        }}
                     </Link>
                 </p>
 

@@ -26,7 +26,8 @@ async function copy() {
     }
 
     requestAnimationFrame(() => {
-        message.value = state.value === 'copied' ? t('Copied') : t('Copy failed');
+        message.value =
+            state.value === 'copied' ? t('Copied') : t('Copy failed');
     });
     timer = setTimeout(() => {
         state.value = 'idle';
@@ -38,8 +39,11 @@ onBeforeUnmount(() => clearTimeout(timer));
 </script>
 
 <template>
-    <div class="surface-muted flex items-start gap-2 p-3">
-        <pre class="min-w-0 flex-1 overflow-x-auto text-sm select-all" tabindex="0"><code>{{ text }}</code></pre>
+    <div class="flex items-start gap-2 surface-muted p-3">
+        <pre
+            class="min-w-0 flex-1 overflow-x-auto text-sm select-all"
+            tabindex="0"
+        ><code>{{ text }}</code></pre>
         <span class="relative flex shrink-0 items-center gap-2">
             <Button
                 type="button"
@@ -49,10 +53,16 @@ onBeforeUnmount(() => clearTimeout(timer));
                 :aria-label="t('Copy: :what', { what: label })"
                 @click="copy"
             >
-                <Check v-if="state === 'copied'" class="size-4" aria-hidden="true" />
+                <Check
+                    v-if="state === 'copied'"
+                    class="size-4"
+                    aria-hidden="true"
+                />
                 <Copy v-else class="size-4" aria-hidden="true" />
             </Button>
-            <span role="status" class="text-xs text-muted-foreground">{{ message }}</span>
+            <span role="status" class="text-xs text-muted-foreground">{{
+                message
+            }}</span>
         </span>
     </div>
 </template>

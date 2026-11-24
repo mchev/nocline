@@ -21,10 +21,7 @@
 - **Modules métier** : [`../app/Modules/README.md`](../app/Modules/README.md)
 - **Package client Laravel `phare/laravel`** : [`../packages/phare-laravel/README.md`](../packages/phare-laravel/README.md)
 
-## Legacy
-
-- Wallboard Kuma statique (inspiration UX) : [`../legacy/wallboard/`](../legacy/wallboard/)
-- Migration Kuma / wallboard : [migration-kuma.md](migration-kuma.md)
+- **Migration depuis Uptime Kuma** : [migration-kuma.md](migration-kuma.md)
 
 ## Déploiement
 

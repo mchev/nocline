@@ -51,13 +51,13 @@ cd agent && go test ./...             # agent
 
 ## Labels
 
-| Label | Meaning |
-|-------|---------|
-| `good first issue` | Small, well-described, a good start |
-| `help wanted` | We would love a contribution |
-| `translation` | New language or wording fix |
-| `adapter` | New notification channel |
-| `needs-triage` | Not yet reviewed (set automatically by the issue forms) |
+| Label              | Meaning                                                 |
+| ------------------ | ------------------------------------------------------- |
+| `good first issue` | Small, well-described, a good start                     |
+| `help wanted`      | We would love a contribution                            |
+| `translation`      | New language or wording fix                             |
+| `adapter`          | New notification channel                                |
+| `needs-triage`     | Not yet reviewed (set automatically by the issue forms) |
 
 ## Releases
 

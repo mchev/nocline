@@ -3,6 +3,7 @@ import { Pause, Pencil, Play, Trash2 } from '@lucide/vue';
 import { computed } from 'vue';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
+import UptimeHistoryDots from '@/components/ui-kit/UptimeHistoryDots.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { checkTypeLabel } from '@/lib/checks';
@@ -48,8 +49,12 @@ const dotStatus = (c: Check) =>
 const latencyTone = (ms: number | null) =>
     ms === null ? '' : ms > 1500 ? 'text-warning' : 'text-foreground';
 
-const isServer = computed(() => props.check.category === 'server' || props.check.type === 'agent');
-const isWebsite = computed(() => props.check.category === 'website' || props.check.type === 'http');
+const isServer = computed(
+    () => props.check.category === 'server' || props.check.type === 'agent',
+);
+const isWebsite = computed(
+    () => props.check.category === 'website' || props.check.type === 'http',
+);
 const isHeartbeat = computed(() => props.check.type === 'heartbeat');
 
 const relativeAgo = (iso: string | null) => {
@@ -57,7 +62,10 @@ const relativeAgo = (iso: string | null) => {
         return t('never');
     }
 
-    const sec = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+    const sec = Math.max(
+        0,
+        Math.round((Date.now() - new Date(iso).getTime()) / 1000),
+    );
 
     if (sec < 60) {
         return t(':n s ago', { n: sec });
@@ -77,6 +85,16 @@ const freeDisk = computed(() => {
 
     return used === null ? null : Math.max(0, 100 - used);
 });
+
+const showHistory = computed(
+    () =>
+        (props.check.history?.length ?? 0) > 0 &&
+        (props.check.category === 'website' ||
+            props.check.type === 'heartbeat' ||
+            props.check.type === 'http' ||
+            props.check.type === 'tcp' ||
+            props.check.type === 'icmp'),
+);
 </script>
 
 <template>
@@ -93,7 +111,12 @@ const freeDisk = computed(() => {
                     class="size-4 accent-primary"
                     :checked="selected"
                     :aria-label="t('Select')"
-                    @change="$emit('select', ($event.target as HTMLInputElement).checked)"
+                    @change="
+                        $emit(
+                            'select',
+                            ($event.target as HTMLInputElement).checked,
+                        )
+                    "
                 />
             </label>
         </td>
@@ -112,28 +135,44 @@ const freeDisk = computed(() => {
                 </span>
             </span>
         </td>
-        <td class="py-3">
+        <td class="max-w-md py-3">
             <div class="font-medium">{{ check.name }}</div>
             <div class="max-w-80 truncate text-xs text-muted-foreground">
-                {{ checkTypeLabel(check.type) }}<template v-if="check.target"> · {{ check.target }}</template>
-                <span v-if="check.last_error" class="text-danger"> — {{ check.last_error }}</span>
+                {{ checkTypeLabel(check.type)
+                }}<template v-if="check.target"> · {{ check.target }}</template>
+                <span v-if="check.last_error" class="text-danger">
+                    — {{ check.last_error }}</span
+                >
             </div>
+        </td>
+        <td v-if="showHistory" class="hidden w-44 py-3 lg:table-cell xl:w-56">
+            <UptimeHistoryDots
+                :history="check.history"
+                :uptime-pct="check.uptime_24h_pct"
+                show-percent
+                dense
+            />
         </td>
         <td class="hidden md:table-cell">
             <div class="flex flex-wrap gap-1">
-                <Badge v-if="categoryText" variant="secondary">{{ categoryText }}</Badge>
+                <Badge v-if="categoryText" variant="secondary">{{
+                    categoryText
+                }}</Badge>
                 <Badge
                     v-for="tag in check.tags"
                     :key="tag"
                     variant="outline"
                     class="cursor-pointer hover:bg-muted"
                     @click="$emit('tag', tag)"
-                >{{ tag }}</Badge>
+                    >{{ tag }}</Badge
+                >
             </div>
         </td>
         <td class="w-24 text-right whitespace-nowrap">
             <template v-if="isHeartbeat">
-                <span class="text-xs text-muted-foreground">{{ relativeAgo(check.since_at) }}</span>
+                <span class="text-xs text-muted-foreground">{{
+                    relativeAgo(check.since_at)
+                }}</span>
             </template>
             <template v-else-if="isServer && check.metrics">
                 <span class="numeric text-xs text-muted-foreground">
@@ -145,7 +184,10 @@ const freeDisk = computed(() => {
                 class="numeric text-sm font-medium"
                 :class="latencyTone(check.latency_ms)"
             >
-                {{ check.latency_ms }}<span class="ml-0.5 text-xs font-normal text-muted-foreground">ms</span>
+                {{ check.latency_ms
+                }}<span class="ml-0.5 text-xs font-normal text-muted-foreground"
+                    >ms</span
+                >
             </span>
         </td>
         <td v-if="canManage" class="w-36 pr-3 text-right whitespace-nowrap">
@@ -159,7 +201,13 @@ const freeDisk = computed(() => {
                 <Pause v-if="check.enabled" class="size-4" />
                 <Play v-else class="size-4" />
             </Button>
-            <Button size="icon" variant="ghost" :title="t('Edit')" :aria-label="t('Edit')" @click="$emit('edit')">
+            <Button
+                size="icon"
+                variant="ghost"
+                :title="t('Edit')"
+                :aria-label="t('Edit')"
+                @click="$emit('edit')"
+            >
                 <Pencil class="size-4" />
             </Button>
             <Button
@@ -178,11 +226,14 @@ const freeDisk = computed(() => {
     <!-- grid: differentiated cards -->
     <article
         v-else-if="layout === 'grid'"
-        class="surface flex flex-col gap-3 p-5 transition"
+        class="flex flex-col gap-3 surface p-5 transition"
         :class="{
             'opacity-60': !check.enabled,
             'ring-2 ring-primary/40': selected,
-            'border-danger/40': check.enabled && !check.in_maintenance && check.status === 'down',
+            'border-danger/40':
+                check.enabled &&
+                !check.in_maintenance &&
+                check.status === 'down',
         }"
     >
         <div class="flex items-start gap-2">
@@ -192,16 +243,28 @@ const freeDisk = computed(() => {
                     class="size-4 accent-primary"
                     :checked="selected"
                     :aria-label="t('Select')"
-                    @change="$emit('select', ($event.target as HTMLInputElement).checked)"
+                    @change="
+                        $emit(
+                            'select',
+                            ($event.target as HTMLInputElement).checked,
+                        )
+                    "
                 />
             </label>
             <div class="min-w-0 flex-1">
-                <h3 class="flex items-center gap-2 truncate font-display text-base font-semibold">
-                    <StatusDot :status="dotStatus(check)" :pulse="check.enabled" />
+                <h3
+                    class="flex items-center gap-2 truncate font-display text-base font-semibold"
+                >
+                    <StatusDot
+                        :status="dotStatus(check)"
+                        :pulse="check.enabled"
+                    />
                     <span class="truncate">{{ check.name }}</span>
                 </h3>
                 <p class="mt-0.5 truncate text-xs text-muted-foreground">
-                    <template v-if="isWebsite">{{ check.target || checkTypeLabel(check.type) }}</template>
+                    <template v-if="isWebsite">{{
+                        check.target || checkTypeLabel(check.type)
+                    }}</template>
                     <template v-else-if="isServer">
                         {{
                             check.host_online === true
@@ -211,9 +274,14 @@ const freeDisk = computed(() => {
                                   : checkTypeLabel(check.type)
                         }}
                     </template>
-                    <template v-else-if="isHeartbeat">{{ t('Heartbeat') }}</template>
+                    <template v-else-if="isHeartbeat">{{
+                        t('Heartbeat')
+                    }}</template>
                     <template v-else>
-                        {{ checkTypeLabel(check.type) }}<template v-if="check.target"> · {{ check.target }}</template>
+                        {{ checkTypeLabel(check.type)
+                        }}<template v-if="check.target">
+                            · {{ check.target }}</template
+                        >
                     </template>
                 </p>
             </div>
@@ -229,28 +297,65 @@ const freeDisk = computed(() => {
             </span>
         </div>
 
-        <p v-if="check.last_error" class="line-clamp-2 text-xs text-danger">{{ check.last_error }}</p>
+        <p v-if="check.last_error" class="line-clamp-2 text-xs text-danger">
+            {{ check.last_error }}
+        </p>
+
+        <UptimeHistoryDots
+            v-if="showHistory"
+            :history="check.history"
+            :uptime-pct="check.uptime_24h_pct"
+            show-percent
+            class="w-full"
+        />
 
         <!-- Server: CPU / RAM / disk sparklines -->
         <div v-if="isServer && check.metrics" class="grid gap-1.5">
             <div class="grid grid-cols-[3rem_1fr_2.25rem] items-center gap-2">
-                <span class="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase">CPU</span>
-                <Sparkline :values="check.metrics.cpu" tone="primary" :label="`CPU ${pct(check.metrics.cpu_now)}`" />
-                <span class="numeric text-right text-xs font-semibold">{{ pct(check.metrics.cpu_now) }}</span>
-            </div>
-            <div class="grid grid-cols-[3rem_1fr_2.25rem] items-center gap-2">
-                <span class="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase">RAM</span>
-                <Sparkline :values="check.metrics.mem" tone="primary" :label="`RAM ${pct(check.metrics.mem_now)}`" />
-                <span class="numeric text-right text-xs font-semibold">{{ pct(check.metrics.mem_now) }}</span>
-            </div>
-            <div class="grid grid-cols-[3rem_1fr_2.25rem] items-center gap-2">
-                <span class="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase">{{ t('Disk') }}</span>
+                <span
+                    class="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase"
+                    >CPU</span
+                >
                 <Sparkline
-                    :values="(check.metrics.disk ?? []).map((v) => (v === null ? null : Math.max(0, 100 - v)))"
+                    :values="check.metrics.cpu"
+                    tone="primary"
+                    :label="`CPU ${pct(check.metrics.cpu_now)}`"
+                />
+                <span class="text-right numeric text-xs font-semibold">{{
+                    pct(check.metrics.cpu_now)
+                }}</span>
+            </div>
+            <div class="grid grid-cols-[3rem_1fr_2.25rem] items-center gap-2">
+                <span
+                    class="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase"
+                    >RAM</span
+                >
+                <Sparkline
+                    :values="check.metrics.mem"
+                    tone="primary"
+                    :label="`RAM ${pct(check.metrics.mem_now)}`"
+                />
+                <span class="text-right numeric text-xs font-semibold">{{
+                    pct(check.metrics.mem_now)
+                }}</span>
+            </div>
+            <div class="grid grid-cols-[3rem_1fr_2.25rem] items-center gap-2">
+                <span
+                    class="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase"
+                    >{{ t('Disk') }}</span
+                >
+                <Sparkline
+                    :values="
+                        (check.metrics.disk ?? []).map((v) =>
+                            v === null ? null : Math.max(0, 100 - v),
+                        )
+                    "
                     tone="primary"
                     :label="`${t('Disk free')} ${pct(freeDisk)}`"
                 />
-                <span class="numeric text-right text-xs font-semibold">{{ pct(freeDisk) }}</span>
+                <span class="text-right numeric text-xs font-semibold">{{
+                    pct(freeDisk)
+                }}</span>
             </div>
         </div>
 
@@ -260,13 +365,18 @@ const freeDisk = computed(() => {
             class="numeric text-2xl font-semibold"
             :class="latencyTone(check.latency_ms)"
         >
-            {{ check.latency_ms }}<span class="ml-1 text-xs font-normal text-muted-foreground">ms</span>
+            {{ check.latency_ms
+            }}<span class="ml-1 text-xs font-normal text-muted-foreground"
+                >ms</span
+            >
         </p>
 
         <!-- Heartbeat: last ping -->
         <p v-else-if="isHeartbeat" class="text-sm text-muted-foreground">
             {{ t('Last ping') }}:
-            <span class="font-medium text-foreground">{{ relativeAgo(check.since_at) }}</span>
+            <span class="font-medium text-foreground">{{
+                relativeAgo(check.since_at)
+            }}</span>
         </p>
 
         <!-- Other: optional latency -->
@@ -275,7 +385,10 @@ const freeDisk = computed(() => {
             class="numeric text-2xl font-semibold"
             :class="latencyTone(check.latency_ms)"
         >
-            {{ check.latency_ms }}<span class="ml-1 text-xs font-normal text-muted-foreground">ms</span>
+            {{ check.latency_ms
+            }}<span class="ml-1 text-xs font-normal text-muted-foreground"
+                >ms</span
+            >
         </p>
 
         <div v-if="check.tags.length" class="flex flex-wrap gap-1">
@@ -285,7 +398,8 @@ const freeDisk = computed(() => {
                 variant="outline"
                 class="cursor-pointer hover:bg-muted"
                 @click="$emit('tag', tag)"
-            >{{ tag }}</Badge>
+                >{{ tag }}</Badge
+            >
         </div>
 
         <footer v-if="canManage" class="mt-auto -mr-2 -mb-2 flex justify-end">
@@ -299,7 +413,13 @@ const freeDisk = computed(() => {
                 <Pause v-if="check.enabled" class="size-4" />
                 <Play v-else class="size-4" />
             </Button>
-            <Button size="icon" variant="ghost" :title="t('Edit')" :aria-label="t('Edit')" @click="$emit('edit')">
+            <Button
+                size="icon"
+                variant="ghost"
+                :title="t('Edit')"
+                :aria-label="t('Edit')"
+                @click="$emit('edit')"
+            >
                 <Pencil class="size-4" />
             </Button>
             <Button
@@ -322,8 +442,12 @@ const freeDisk = computed(() => {
         :class="{
             'opacity-60': !check.enabled,
             'ring-2 ring-primary/40': selected,
-            'chip-danger': check.enabled && !check.in_maintenance && check.status === 'down',
-            'chip-success': check.enabled && !check.in_maintenance && check.status === 'up',
+            'chip-danger':
+                check.enabled &&
+                !check.in_maintenance &&
+                check.status === 'down',
+            'chip-success':
+                check.enabled && !check.in_maintenance && check.status === 'up',
             'chip-info': check.in_maintenance,
         }"
         :title="`${statusText} · ${check.target}${check.last_error ? ' — ' + check.last_error : ''}`"
@@ -334,16 +458,40 @@ const freeDisk = computed(() => {
                 class="size-3.5 accent-primary"
                 :checked="selected"
                 :aria-label="t('Select')"
-                @change="$emit('select', ($event.target as HTMLInputElement).checked)"
+                @change="
+                    $emit('select', ($event.target as HTMLInputElement).checked)
+                "
             />
         </label>
-        <StatusDot :status="dotStatus(check)" :pulse="check.enabled" :label="label(check, statusText)" />
-        <span class="truncate font-medium text-foreground">{{ check.name }}</span>
-        <span v-if="isHeartbeat" class="text-muted-foreground">{{ relativeAgo(check.since_at) }}</span>
-        <span v-else-if="isServer && check.metrics?.cpu_now != null" class="numeric text-muted-foreground">
+        <StatusDot
+            :status="dotStatus(check)"
+            :pulse="check.enabled"
+            :label="label(check, statusText)"
+        />
+        <span class="truncate font-medium text-foreground">{{
+            check.name
+        }}</span>
+        <UptimeHistoryDots
+            v-if="showHistory"
+            :history="check.history"
+            :uptime-pct="check.uptime_24h_pct"
+            dense
+            class="hidden min-w-[6rem] sm:flex"
+        />
+        <span v-if="isHeartbeat" class="text-muted-foreground">{{
+            relativeAgo(check.since_at)
+        }}</span>
+        <span
+            v-else-if="isServer && check.metrics?.cpu_now != null"
+            class="numeric text-muted-foreground"
+        >
             {{ pct(check.metrics.cpu_now) }}
         </span>
-        <span v-else-if="check.latency_ms !== null" class="numeric text-muted-foreground">{{ check.latency_ms }} ms</span>
+        <span
+            v-else-if="check.latency_ms !== null"
+            class="numeric text-muted-foreground"
+            >{{ check.latency_ms }} ms</span
+        >
         <button
             v-if="canManage"
             type="button"

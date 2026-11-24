@@ -27,10 +27,7 @@ defineProps<{
                 {{ description }}
             </p>
         </div>
-        <div
-            v-if="$slots.default"
-            class="flex flex-wrap items-center gap-2"
-        >
+        <div v-if="$slots.default" class="flex flex-wrap items-center gap-2">
             <slot />
         </div>
     </header>

@@ -81,7 +81,7 @@ const statusLabel = (p: { enrolled: boolean; online: boolean }) => {
 
         <div
             v-if="enrollment"
-            class="surface border-warning/40 bg-warning/10 p-5 text-sm reveal"
+            class="reveal surface border-warning/40 bg-warning/10 p-5 text-sm"
             role="status"
         >
             <p class="font-medium">
@@ -93,7 +93,9 @@ const statusLabel = (p: { enrolled: boolean; online: boolean }) => {
                 }}
             </p>
             <div class="mt-3 flex items-start gap-2">
-                <code class="block flex-1 break-all select-all rounded-md bg-background/60 p-3">
+                <code
+                    class="block flex-1 rounded-md bg-background/60 p-3 break-all select-all"
+                >
                     {{ enrollCommand }}
                 </code>
                 <Button
@@ -117,12 +119,17 @@ const statusLabel = (p: { enrolled: boolean; online: boolean }) => {
             reset-on-success
             v-slot="{ processing }"
         >
-            <h2 id="probe-add-heading" class="font-display text-lg font-semibold">
+            <h2
+                id="probe-add-heading"
+                class="font-display text-lg font-semibold"
+            >
                 {{ $t('Add') }}
             </h2>
             <div class="grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end">
                 <div class="field-stack">
-                    <Label for="probe-name" class="field-label">{{ $t('Name') }}</Label>
+                    <Label for="probe-name" class="field-label">{{
+                        $t('Name')
+                    }}</Label>
                     <Input
                         id="probe-name"
                         name="name"
@@ -131,7 +138,9 @@ const statusLabel = (p: { enrolled: boolean; online: boolean }) => {
                     />
                 </div>
                 <div class="field-stack">
-                    <Label for="probe-role" class="field-label">{{ $t('Role') }}</Label>
+                    <Label for="probe-role" class="field-label">{{
+                        $t('Role')
+                    }}</Label>
                     <select id="probe-role" name="role" :class="select">
                         <option value="primary">
                             {{ $t('primary (same network)') }}
@@ -160,7 +169,7 @@ const statusLabel = (p: { enrolled: boolean; online: boolean }) => {
 
         <div
             v-else
-            class="surface overflow-hidden reveal reveal-delay-1"
+            class="reveal reveal-delay-1 overflow-hidden surface"
             tabindex="0"
             role="region"
             :aria-label="$t('Probes')"
@@ -203,13 +212,25 @@ const statusLabel = (p: { enrolled: boolean; online: boolean }) => {
                                 </span>
                             </span>
                         </td>
-                        <td class="hidden text-xs text-muted-foreground md:table-cell">
+                        <td
+                            class="hidden text-xs text-muted-foreground md:table-cell"
+                        >
                             {{ p.capabilities.join(', ') || '—' }}
                         </td>
                         <td v-if="isAdmin">
                             <div class="flex flex-wrap justify-end gap-1">
-                                <Form v-bind="ProbeController.enrollmentToken.form(p.id)">
-                                    <Button type="submit" variant="ghost" size="sm">
+                                <Form
+                                    v-bind="
+                                        ProbeController.enrollmentToken.form(
+                                            p.id,
+                                        )
+                                    "
+                                >
+                                    <Button
+                                        type="submit"
+                                        variant="ghost"
+                                        size="sm"
+                                    >
                                         {{ $t('Token') }}
                                     </Button>
                                 </Form>
@@ -217,12 +238,22 @@ const statusLabel = (p: { enrolled: boolean; online: boolean }) => {
                                     v-if="p.enrolled"
                                     v-bind="ProbeController.revoke.form(p.id)"
                                 >
-                                    <Button type="submit" variant="ghost" size="sm">
+                                    <Button
+                                        type="submit"
+                                        variant="ghost"
+                                        size="sm"
+                                    >
                                         {{ $t('Revoke') }}
                                     </Button>
                                 </Form>
-                                <Form v-bind="ProbeController.destroy.form(p.id)">
-                                    <Button type="submit" variant="ghost" size="sm">
+                                <Form
+                                    v-bind="ProbeController.destroy.form(p.id)"
+                                >
+                                    <Button
+                                        type="submit"
+                                        variant="ghost"
+                                        size="sm"
+                                    >
                                         {{ $t('Delete') }}
                                     </Button>
                                 </Form>

@@ -74,7 +74,9 @@ const toneFor = (v: number | null, invert = false) => {
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v)}%`);
 
 const freeDisk = computed(() =>
-    props.metrics.disk_now === null ? null : Math.max(0, 100 - props.metrics.disk_now),
+    props.metrics.disk_now === null
+        ? null
+        : Math.max(0, 100 - props.metrics.disk_now),
 );
 
 const rows = computed(() => [
@@ -96,8 +98,11 @@ const rows = computed(() => [
         key: 'disk',
         label: t('Disk free'),
         now: props.metrics.disk_now,
-        series: props.metrics.disk.map((v) => (v === null ? null : Math.max(0, 100 - v))),
-        display: freeDisk.value === null ? '—' : `${Math.round(freeDisk.value)}%`,
+        series: props.metrics.disk.map((v) =>
+            v === null ? null : Math.max(0, 100 - v),
+        ),
+        display:
+            freeDisk.value === null ? '—' : `${Math.round(freeDisk.value)}%`,
         toneNow: freeDisk.value,
         invertTone: true,
     },
@@ -106,7 +111,7 @@ const rows = computed(() => [
 
 <template>
     <article
-        class="host-card surface flex flex-col"
+        class="host-card flex flex-col surface"
         :class="{
             'gap-3 p-4': !compact,
             'gap-2 p-3': compact,
@@ -120,12 +125,20 @@ const rows = computed(() => [
                     class="flex items-center gap-2 truncate font-display font-semibold"
                     :class="compact ? 'text-sm' : 'text-base'"
                 >
-                    <StatusDot :status="status" :pulse="enrolled !== false && !online" />
+                    <StatusDot
+                        :status="status"
+                        :pulse="enrolled !== false && !online"
+                    />
                     <span class="truncate">{{ name }}</span>
                 </h3>
-                <p v-if="agentVersion && !compact" class="mt-0.5 text-xs text-muted-foreground">
+                <p
+                    v-if="agentVersion && !compact"
+                    class="mt-0.5 text-xs text-muted-foreground"
+                >
                     agent {{ agentVersion }}
-                    <span v-if="agentOutdated" class="chip chip-warning ml-1">{{ t('update available') }}</span>
+                    <span v-if="agentOutdated" class="ml-1 chip chip-warning">{{
+                        t('update available')
+                    }}</span>
                 </p>
             </div>
             <span
@@ -140,19 +153,33 @@ const rows = computed(() => [
         </header>
 
         <ul class="grid gap-2" role="list">
-            <li v-for="row in rows" :key="row.key" class="grid grid-cols-[3.5rem_1fr_2.5rem] items-center gap-2">
-                <span class="text-xs font-medium text-muted-foreground">{{ row.label }}</span>
+            <li
+                v-for="row in rows"
+                :key="row.key"
+                class="grid grid-cols-[3.5rem_1fr_2.5rem] items-center gap-2"
+            >
+                <span class="text-xs font-medium text-muted-foreground">{{
+                    row.label
+                }}</span>
                 <Sparkline
                     :values="row.series"
-                    :tone="toneFor(row.invertTone ? (row.toneNow ?? null) : row.now, !!row.invertTone)"
+                    :tone="
+                        toneFor(
+                            row.invertTone ? (row.toneNow ?? null) : row.now,
+                            !!row.invertTone,
+                        )
+                    "
                     :label="`${row.label} ${row.display}`"
                 />
                 <span
-                    class="numeric text-right text-sm font-semibold tabular-nums"
+                    class="text-right numeric text-sm font-semibold tabular-nums"
                     :class="{
-                        'text-danger': row.invertTone ? (row.toneNow ?? 100) <= 10 : (row.now ?? 0) >= 90,
+                        'text-danger': row.invertTone
+                            ? (row.toneNow ?? 100) <= 10
+                            : (row.now ?? 0) >= 90,
                         'text-warning': row.invertTone
-                            ? (row.toneNow ?? 100) <= 25 && (row.toneNow ?? 100) > 10
+                            ? (row.toneNow ?? 100) <= 25 &&
+                              (row.toneNow ?? 100) > 10
                             : (row.now ?? 0) >= 75 && (row.now ?? 0) < 90,
                     }"
                 >
@@ -161,7 +188,10 @@ const rows = computed(() => [
             </li>
         </ul>
 
-        <footer v-if="$slots.actions" class="mt-auto -mb-1 flex flex-wrap items-center gap-1 border-t pt-2">
+        <footer
+            v-if="$slots.actions"
+            class="mt-auto -mb-1 flex flex-wrap items-center gap-1 border-t pt-2"
+        >
             <slot name="actions" />
         </footer>
     </article>

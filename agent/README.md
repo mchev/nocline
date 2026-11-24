@@ -2,9 +2,9 @@
 
 Binaire unique, deux rôles :
 
-| Rôle | Comportement |
-|------|----------------|
-| `host` | Push métriques + heartbeat vers le hub (aucun port entrant) |
+| Rôle    | Comportement                                                          |
+| ------- | --------------------------------------------------------------------- |
+| `host`  | Push métriques + heartbeat vers le hub (aucun port entrant)           |
 | `probe` | Pull travaux de checks, exécute ICMP/HTTP/TCP/SSL/DNS, push résultats |
 
 ## Spec complète
@@ -33,9 +33,9 @@ phare-agent [-config /etc/phare-agent/config.yaml]   # boucle de collecte + push
 
 ```yaml
 hub_url: https://ops.example.com
-role: host          # host | probe
-token: "***"
-interval_sec: 30    # défaut 30, min 5
+role: host # host | probe
+token: '***'
+interval_sec: 30 # défaut 30, min 5
 ```
 
 ## Fonctionnement
@@ -54,16 +54,16 @@ phare-agent -config /etc/phare-agent/config.yaml
 ```yaml
 hub_url: https://ops.example.com
 role: probe
-token: "***"
-interval_sec: 15            # défaut 15 pour une probe, min 5
-capabilities: [http, tcp, dns]   # défaut http,tcp,dns ; ajouter icmp pour le ping
+token: '***'
+interval_sec: 15 # défaut 15 pour une probe, min 5
+capabilities: [http, tcp, dns] # défaut http,tcp,dns ; ajouter icmp pour le ping
 ```
 
 - Poll `GET /api/v1/probe/work?capabilities=…` (Bearer), exécution concurrente (pool de 8, `timeout_sec` respecté), puis `POST /api/v1/probe/results` (≤ 200 résultats par requête, attend 202, retry exponentiel 1 s → 30 s). 401 : log + nouvel essai toutes les 5 min.
 - `http` : GET sans suivi de redirection ; ok si statut == `expected_status` (sinon < 400) et mot-clé présent (lecture ≤ 1 Mio) ; métadonnées `http_status`, `ssl_days_remaining` (https). `tcp` : dial `host:port`. `dns` : `LookupHost`. `icmp` : echo request sur socket raw `ip4:icmp`.
 - `icmp` n'est annoncé que s'il est listé dans `capabilities` **et** qu'une socket raw peut être ouverte au démarrage (sinon avertissement et capability retirée). Il faut `CAP_NET_RAW` :
-  - binaire : `sudo setcap cap_net_raw+ep /usr/local/bin/phare-agent`
-  - Docker : `cap_add: [NET_RAW]` (`--cap-add NET_RAW`)
+    - binaire : `sudo setcap cap_net_raw+ep /usr/local/bin/phare-agent`
+    - Docker : `cap_add: [NET_RAW]` (`--cap-add NET_RAW`)
 - Aucun port entrant ; mémoire bornée (corps HTTP lus ≤ 1 Mio, pool fixe).
 
 ## Tests

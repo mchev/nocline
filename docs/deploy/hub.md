@@ -45,10 +45,11 @@ Phare ne se met pas à jour tout seul (pas de code modifié à l'insu de l'admin
 - **Prévenir** : une fois par jour (`phare:update:check`, via le scheduler), le hub lit la dernière release GitHub (`PHARE_REPOSITORY`, défaut `mchev/phare`). Si elle est plus récente que le fichier `VERSION`, les **administrateurs** voient une bannière avec les notes de version. Désactivable : `PHARE_UPDATE_CHECK=false` (aucun appel sortant).
 - **Appliquer** (installation par `git clone`) :
 
-  ```sh
-  scripts/update.sh          # dernière release ; ou scripts/update.sh v0.3.0
-  ```
+    ```sh
+    scripts/update.sh          # dernière release ; ou scripts/update.sh v0.3.0
+    ```
 
-  Le script récupère le tag, lance `composer install --no-dev` et `npm run build`, puis `php artisan phare:update`, qui **sauvegarde la base** (copie du fichier SQLite dans `storage/app/backups`, ou demande confirmation pour une autre base), passe en maintenance, applique les migrations, rafraîchit les caches, redémarre les workers et rouvre. Il ne réinitialise jamais les données.
+    Le script récupère le tag, lance `composer install --no-dev` et `npm run build`, puis `php artisan phare:update`, qui **sauvegarde la base** (copie du fichier SQLite dans `storage/app/backups`, ou demande confirmation pour une autre base), passe en maintenance, applique les migrations, rafraîchit les caches, redémarre les workers et rouvre. Il ne réinitialise jamais les données.
+
 - **Agents** : la page Serveurs signale un agent plus ancien que le hub ; relancer la ligne d'installation le met à jour (elle télécharge le binaire de la release : `PHARE_AGENT_DOWNLOAD_URL` pointe par défaut vers les binaires publiés sur GitHub, sans Go sur le hub).
 - **Publier une release** (mainteneur) : incrémenter `VERSION`, `git tag vX.Y.Z && git push --tags` ; l'action `release.yml` compile l'agent Linux (amd64/arm64) et crée la release GitHub.

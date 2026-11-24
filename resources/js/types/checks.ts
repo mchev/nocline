@@ -1,5 +1,7 @@
 export type CheckStatus = 'unknown' | 'up' | 'down';
 
+export type UptimeHistoryDot = 'up' | 'down' | 'unknown' | 'maintenance';
+
 export type CheckMetrics = {
     cpu: (number | null)[];
     mem: (number | null)[];
@@ -31,4 +33,6 @@ export type Check = {
     last_error: string | null;
     in_maintenance: boolean;
     metrics?: CheckMetrics | null;
+    history?: UptimeHistoryDot[];
+    uptime_24h_pct?: number | null;
 };

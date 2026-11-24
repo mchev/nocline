@@ -5,6 +5,7 @@ Format : [Keep a Changelog](https://keepachangelog.com), versions [SemVer](https
 ## [Unreleased]
 
 ### Added
+
 - Parcours « Add a monitor » (site, serveur, autre) et installation serveur en une ligne.
 - Groupes imbriqués (couleur, disposition liste/cartes/compact, repliage) à la place des clients.
 - Renouvellements automatiques (domaine via RDAP, certificat SSL).
@@ -12,4 +13,5 @@ Format : [Keep a Changelog](https://keepachangelog.com), versions [SemVer](https
 - Vérification quotidienne des releases GitHub, bannière de mise à jour, `scripts/update.sh` et `php artisan phare:update`.
 
 ### Changed
+
 - Les clients sont remplacés par des groupes (migration automatique : chaque client devient un groupe).

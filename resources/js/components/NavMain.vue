@@ -33,10 +33,7 @@ const { isCurrentUrl } = useCurrentUrl();
             {{ section.title }}
         </SidebarGroupLabel>
         <SidebarMenu>
-            <SidebarMenuItem
-                v-for="item in section.items"
-                :key="item.title"
-            >
+            <SidebarMenuItem v-for="item in section.items" :key="item.title">
                 <SidebarMenuButton
                     as-child
                     :is-active="isCurrentUrl(item.href)"

@@ -45,7 +45,7 @@ class HostMetricsReader
         $bucketStarts = [];
 
         for ($i = $points - 1; $i >= 0; $i--) {
-            $bucketStarts[] = now()->subMinutes($i)->startOfMinute()->timestamp;
+            $bucketStarts[] = (int) now()->subMinutes($i)->startOfMinute()->timestamp;
         }
 
         $index = array_flip($bucketStarts);
@@ -77,7 +77,7 @@ class HostMetricsReader
                 continue;
             }
 
-            $ts = $row->bucket_start->startOfMinute()->timestamp;
+            $ts = (int) $row->bucket_start->startOfMinute()->timestamp;
             $i = $index[$ts] ?? null;
 
             if ($i === null) {

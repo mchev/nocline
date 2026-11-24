@@ -33,7 +33,9 @@ async function onChange(event: Event) {
         groupId.value = '';
         await nextTick();
         (
-            document.getElementById(`${props.id}-name`) as HTMLInputElement | null
+            document.getElementById(
+                `${props.id}-name`,
+            ) as HTMLInputElement | null
         )?.focus();
 
         return;

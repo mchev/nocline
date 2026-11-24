@@ -107,7 +107,7 @@ const since = (iso: string | null) => {
         class="dark relative min-h-svh overflow-hidden bg-background p-6 text-foreground lg:p-10"
     >
         <div
-            class="pointer-events-none absolute inset-0 aurora opacity-80"
+            class="pointer-events-none absolute inset-0 opacity-80 aurora"
             aria-hidden="true"
         />
         <div class="relative flex flex-col gap-8">
@@ -249,7 +249,7 @@ const since = (iso: string | null) => {
                         <li
                             v-for="c in data.checks_failing"
                             :key="c.id"
-                            class="surface flex flex-wrap justify-between gap-2 px-6 py-3"
+                            class="flex flex-wrap justify-between gap-2 surface px-6 py-3"
                         >
                             <span class="font-medium text-danger">{{
                                 c.name
@@ -272,15 +272,13 @@ const since = (iso: string | null) => {
                             v-for="h in data.hosts"
                             :key="h.id"
                             class="surface p-5"
-                            :class="
-                                h.online ? '' : 'border-danger opacity-60'
-                            "
+                            :class="h.online ? '' : 'border-danger opacity-60'"
                         >
                             <div class="truncate text-2xl font-semibold">
                                 {{ h.name }}
                             </div>
                             <div
-                                class="numeric mt-2 grid grid-cols-3 gap-2 text-xl font-semibold"
+                                class="mt-2 grid grid-cols-3 gap-2 numeric text-xl font-semibold"
                             >
                                 <span :class="level(h.cpu_avg_5m, 70, 90)">
                                     CPU {{ h.cpu_avg_5m ?? '–' }}%

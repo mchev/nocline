@@ -84,7 +84,9 @@ const select =
                         required
                         autocomplete="new-password"
                     />
-                    <p class="field-hint">{{ $t('At least 12 characters.') }}</p>
+                    <p class="field-hint">
+                        {{ $t('At least 12 characters.') }}
+                    </p>
                     <InputError :message="errors.password" />
                 </div>
                 <div class="field-stack">
@@ -109,10 +111,12 @@ const select =
             :title="$t('No users yet.')"
         />
 
-        <div v-else class="surface overflow-x-auto">
+        <div v-else class="overflow-x-auto surface">
             <table class="table-clean">
                 <caption class="sr-only">
-                    {{ $t('Users') }}
+                    {{
+                        $t('Users')
+                    }}
                 </caption>
                 <thead>
                     <tr>
@@ -148,7 +152,11 @@ const select =
                                         {{ r }}
                                     </option>
                                 </select>
-                                <Button type="submit" variant="outline" size="sm">
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    size="sm"
+                                >
                                     {{ $t('Save') }}
                                 </Button>
                             </Form>

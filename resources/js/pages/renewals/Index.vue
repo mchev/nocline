@@ -111,10 +111,7 @@ function refreshNow(): void {
     <Head :title="$t('Renewals')" />
 
     <PageContainer>
-        <PageHeader
-            :title="$t('Renewals')"
-            :description="summary"
-        >
+        <PageHeader :title="$t('Renewals')" :description="summary">
             <Button
                 v-if="can_refresh"
                 variant="outline"
@@ -130,10 +127,7 @@ function refreshNow(): void {
             </Button>
         </PageHeader>
 
-        <div
-            v-if="renewals.length"
-            class="grid gap-4 sm:grid-cols-2 reveal"
-        >
+        <div v-if="renewals.length" class="reveal grid gap-4 sm:grid-cols-2">
             <StatTile
                 :label="$t('Due within 30 days')"
                 :value="urgentCount"
@@ -170,9 +164,11 @@ function refreshNow(): void {
                     class="mb-3 text-sm font-medium tracking-wide text-muted-foreground uppercase"
                 >
                     {{ g.title }}
-                    <span class="numeric ml-1 text-foreground">{{ g.items.length }}</span>
+                    <span class="ml-1 numeric text-foreground">{{
+                        g.items.length
+                    }}</span>
                 </h2>
-                <ul class="surface divide-y overflow-hidden">
+                <ul class="divide-y overflow-hidden surface">
                     <li
                         v-for="r in g.items"
                         :key="r.id"

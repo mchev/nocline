@@ -24,14 +24,17 @@
         {{-- FOUC: match app.css tokens before Vite CSS loads --}}
         <style>
             html {
-                background-color: oklch(0.97 0.006 240);
+                background-color: #f7f6f2;
             }
 
             html.dark {
-                background-color: oklch(0.14 0.012 240);
+                background-color: #252b24;
             }
         </style>
 
+        <meta name="theme-color" content="#f4512a" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#252b24" media="(prefers-color-scheme: dark)">
+        <link rel="manifest" href="/site.webmanifest">
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -40,7 +43,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
+            <title>{{ config('app.name', 'Phare') }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

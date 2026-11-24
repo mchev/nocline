@@ -1,40 +1,38 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from "@inertiajs/vue3";
-import { computed, ref, watchEffect } from "vue";
-import InputError from "@/components/InputError.vue";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
+import { computed, ref, watchEffect } from 'vue';
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     InputOTP,
     InputOTPGroup,
     InputOTPSlot,
-} from "@/components/ui/input-otp";
-import { store } from "@/routes/two-factor/login";
-import { t } from "@/lib/i18n";
-import type { TwoFactorConfigContent } from "@/types";
+} from '@/components/ui/input-otp';
+import { store } from '@/routes/two-factor/login';
+import { t } from '@/lib/i18n';
+import type { TwoFactorConfigContent } from '@/types';
 
 const showRecoveryInput = ref<boolean>(false);
-const code = ref<string>("");
+const code = ref<string>('');
 
 const authConfigContent = computed<TwoFactorConfigContent>(() => {
     if (showRecoveryInput.value) {
         return {
-            title: t("Recovery code"),
-            description:
-                t(
-                "Please confirm access to your account by entering one of your emergency recovery codes.",
+            title: t('Recovery code'),
+            description: t(
+                'Please confirm access to your account by entering one of your emergency recovery codes.',
             ),
-            buttonText: t("login using an authentication code"),
+            buttonText: t('login using an authentication code'),
         };
     }
 
     return {
-        title: t("Authentication code"),
-        description:
-            t(
-            "Enter the authentication code provided by your authenticator application.",
+        title: t('Authentication code'),
+        description: t(
+            'Enter the authentication code provided by your authenticator application.',
         ),
-        buttonText: t("login using a recovery code"),
+        buttonText: t('login using a recovery code'),
     };
 });
 
@@ -48,7 +46,7 @@ watchEffect(() => {
 const toggleRecoveryMode = (clearErrors: () => void): void => {
     showRecoveryInput.value = !showRecoveryInput.value;
     clearErrors();
-    code.value = "";
+    code.value = '';
 };
 </script>
 
@@ -88,9 +86,9 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                     </div>
                     <InputError :message="errors.code" />
                 </div>
-                <Button type="submit" class="w-full" :disabled="processing"
-                    >{{ $t('Continue') }}</Button
-                >
+                <Button type="submit" class="w-full" :disabled="processing">{{
+                    $t('Continue')
+                }}</Button>
                 <div class="text-center text-sm text-muted-foreground">
                     <span>{{ $t('or you can') }} </span>
                     <button
@@ -126,9 +124,9 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                     />
                     <InputError :message="errors.recovery_code" />
                 </div>
-                <Button type="submit" class="w-full" :disabled="processing"
-                    >{{ $t('Continue') }}</Button
-                >
+                <Button type="submit" class="w-full" :disabled="processing">{{
+                    $t('Continue')
+                }}</Button>
 
                 <div class="text-center text-sm text-muted-foreground">
                     <span>{{ $t('or you can') }} </span>

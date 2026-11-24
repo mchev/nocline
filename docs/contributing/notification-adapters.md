@@ -30,12 +30,12 @@ class NtfyAdapter implements NotificationAdapter
 }
 ```
 
-2. C'est tout : l'adapter est **découvert automatiquement**. Il apparaît dans *Alertes → Ajouter un canal* avec le formulaire déclaré par `fields()` ; la validation, le chiffrement de la config, le bouton « Envoyer un test » et l'idempotence des envois sont gérés par Phare.
+2. C'est tout : l'adapter est **découvert automatiquement**. Il apparaît dans _Alertes → Ajouter un canal_ avec le formulaire déclaré par `fields()` ; la validation, le chiffrement de la config, le bouton « Envoyer un test » et l'idempotence des envois sont gérés par Phare.
 3. Ajouter un test (voir `tests/Feature/Modules/NotificationAdaptersTest.php`, `Http::fake()`), les traductions (`php artisan phare:lang:missing`) et une ligne dans `docs/user/`.
 
 ## Règles
 
-- `send()` lève une exception en cas d'échec (le canal est marqué *failed*, les autres ne sont pas bloqués). Timeout ≤ 10 s ; pas de file d'attente à gérer.
+- `send()` lève une exception en cas d'échec (le canal est marqué _failed_, les autres ne sont pas bloqués). Timeout ≤ 10 s ; pas de file d'attente à gérer.
 - Champs : types `text`, `email`, `url`, `password`, `textarea`. `secret: true` = jamais renvoyé au navigateur (laisser vide à l'édition conserve la valeur). Noms réservés : `name`, `type`, `enabled`.
 - `key()` est stocké en base : ne jamais le renommer après publication.
 - Pas de logique métier ni d'accès à la base dans un adapter : uniquement formater et envoyer `AlertMessage` (`kind`, `subject`, `body`, `incident?`, `plainText()`).

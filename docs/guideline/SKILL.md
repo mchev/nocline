@@ -1,25 +1,43 @@
 ---
 name: phare
 description: >-
-  Conçoit et implémente Phare — plateforme ops self-hosted OSS (uptime, perf,
-  alertes, coffre, renewals, wallboard) pour ~50 sites multi-providers. Utiliser
-  quand l'utilisateur dit Phare, remplace Kuma/Netdata, agent phare, sonde,
-  wallboard NOC, métriques, Laravel Inertia Vue, ou coffre secrets.
+    Conçoit et implémente Phare — plateforme ops self-hosted OSS (uptime, perf,
+    alertes, coffre, renewals, wallboard) pour ~50 sites multi-providers. Utiliser
+    quand l'utilisateur dit Phare, remplace Kuma/Netdata, agent phare, sonde,
+    wallboard NOC, métriques, Laravel Inertia Vue, ou coffre secrets.
 ---
 
 # Phare — guideline produit & technique
 
 **Phare** : console + wallboard + agents (métaphore du phare — voir l'état de l'infra de loin).
 
-| Identité | Valeur |
-|----------|--------|
-| Nom produit | **Phare** |
-| Repo OSS visé | `phare/phare` (ou org perso + nom `phare`) |
-| Binaires | `phare-agent`, `phare-probe` (même binaire, rôle config) |
-| App Laravel | namespace / package `Phare` |
-| Tagline | *« Self-hosted NOC : checks, métriques, incidents, wallboard. »* |
+| Identité            | Valeur                                                             |
+| ------------------- | ------------------------------------------------------------------ |
+| Nom affiché (UI)    | **phare.** (tout en minuscules, point orange)                      |
+| Nom produit / légal | Phare                                                              |
+| Repo OSS visé       | `phare/phare` (ou org perso + nom `phare`)                         |
+| Binaires            | `phare-agent`, `phare-probe` (même binaire, rôle config)           |
+| App Laravel         | namespace / package `Phare`                                        |
+| Tagline             | _« Self-hosted NOC : checks, métriques, incidents, wallboard. »_   |
+| Baseline (FR)       | _Un repère dans le bruit_ · _Gardez le cap. Même quand tout dort._ |
 
 **Source de vérité (git).** Copie Cursor : `.cursor/skills/phare/SKILL.md` (même contenu).
+
+## Identité visuelle (2026)
+
+| Rôle                            | Token                        | Hex       |
+| ------------------------------- | ---------------------------- | --------- |
+| **Signal** (accent, CTA, icône) | `--phare-signal` / `primary` | `#F4512A` |
+| **Nuit** (texte, fond sombre)   | `--phare-nuit`               | `#252B24` |
+| **Brume** (fond clair)          | `--phare-brume`              | `#F7F6F2` |
+
+- **Symbole (source)** : `public/brand/phare-symbole-signal.png` (Signal sur fond transparent, porte en relief blanc).
+- **Symbole UI** : `public/brand/phare-symbole-brume.png` (Brume, porte transparente) — `AppLogoIcon.vue` sur fond `primary`.
+- **Favicon / PWA** : `public/favicon.svg`, `public/favicon.ico`, `public/apple-touch-icon.png` (dérivés du symbole officiel).
+- **Logo principal** : symbole + wordmark `phare.` — `AppLogo.vue`, fichiers référence `public/brand/phare-logo-wordmark-{light,dark}.png`.
+- **PWA** : `public/site.webmanifest` (`theme_color` Signal, `background_color` Brume).
+- **CSS** : tokens dans `resources/css/app.css` (plus de thème teal « coastal »).
+- **Ne pas** réintroduire violet SaaS 2020 ni teal 195° comme primaire sans demande explicite.
 
 Document vivant : l'utilisateur affine par itérations. L'agent suit ces choix par défaut sauf contre-indication explicite.
 
@@ -27,14 +45,14 @@ Document vivant : l'utilisateur affine par itérations. L'agent suit ces choix p
 
 **Une console + un wallboard + des agents**, pas un empilement d'outils.
 
-| Besoin | Inspiration | Notre réponse |
-|--------|-------------|---------------|
-| Up/down, ping, HTTP, SSL | Uptime Kuma, Better Stack | Module **Checks** + historique d'états |
-| CPU/RAM/DISK, graphiques | Netdata | Agent **léger** + rollups côté hub (GPU **hors v1**) |
-| Parc WordPress / MAJ | ManageWP | Module **Sites** (plugins, noyau, backups) — phase 2+ |
-| Alerting, incidents, on-call | Better Stack | Module **Alertes** (règles, escalade, canaux) |
-| Ops métier (MDP, renouvellements) | — | Module **Coffre** + **Calendrier** (domaines, certs, contrats) |
-| Vue d'ensemble TV / bureau | wallboard actuel | **Wallboard** read-only, temps réel léger |
+| Besoin                            | Inspiration               | Notre réponse                                                  |
+| --------------------------------- | ------------------------- | -------------------------------------------------------------- |
+| Up/down, ping, HTTP, SSL          | Uptime Kuma, Better Stack | Module **Checks** + historique d'états                         |
+| CPU/RAM/DISK, graphiques          | Netdata                   | Agent **léger** + rollups côté hub (GPU **hors v1**)           |
+| Parc WordPress / MAJ              | ManageWP                  | Module **Sites** (plugins, noyau, backups) — phase 2+          |
+| Alerting, incidents, on-call      | Better Stack              | Module **Alertes** (règles, escalade, canaux)                  |
+| Ops métier (MDP, renouvellements) | —                         | Module **Coffre** + **Calendrier** (domaines, certs, contrats) |
+| Vue d'ensemble TV / bureau        | Uptime Kuma TV            | **Wallboard** read-only, temps réel léger                      |
 
 ## Impératifs (non négociables)
 
@@ -45,17 +63,16 @@ Document vivant : l'utilisateur affine par itérations. L'agent suit ces choix p
 5. **Élégant** : UI sobre, dense, lisible à 3 m (wallboard) et au bureau (console).
 6. **Agent** : quasi invisible (CPU/RAM négligeable), **push-only**, installation en une commande, **mTLS** ou clé par serveur.
 7. **Accessible à tous** : l'app doit être comprise et utilisable par quelqu'un qui ne connaît rien à l'informatique. Parcours « Surveiller → un site / un serveur / autre → réglages selon le choix », vocabulaire courant (« serveur », « site », pas « host/check/probe » en façade), un seul geste par étape, valeurs par défaut sensées, tout ce qui peut être détecté automatiquement l'est (ex. expiration de domaine/SSL) au lieu d'être saisi, installation serveur = **une seule ligne à coller**. Les options avancées restent disponibles mais jamais sur le chemin principal.
-7. **Accessible à tous** : l'app doit être comprise et utilisable par quelqu'un qui ne connaît rien à l'informatique. Parcours « Surveiller → un site / un serveur / autre → réglages selon le choix », vocabulaire courant (« serveur », « site », pas « host/check/probe » en façade), un seul geste par étape, valeurs par défaut sensées, tout ce qui peut être détecté automatiquement l'est (ex. expiration de domaine/SSL) au lieu d'être saisi, installation serveur = **une seule ligne à coller**. Les options avancées restent disponibles mais jamais sur le chemin principal.
 
 ## Stack recommandée (défaut)
 
-| Couche | Choix | Pourquoi |
-|--------|-------|----------|
-| Hub (UI, API, alertes, coffre, billing interne) | **Laravel 13+**, **Inertia**, **Vue 3**, Tailwind | CRUD, files, queues, chiffrement, notifs, écosystème mature ; tu maîtrises déjà le flux. |
-| Temps réel wallboard / console | **Laravel Reverb** ou SSE ; WebSockets seulement si besoin prouvé | Moins de complexité qu'un second stack. |
-| Files & queues | **Redis** + Horizon | Checks planifiés, agrégation métriques, alertes. |
-| Agent serveur | **Go** (binaire statique unique) | Faible empreinte, cross-compile, pas de runtime sur les hosts. *Rust* si besoin ultra-strict mémoire. |
-| Checks réseau (ICMP/HTTP/TCP/SSL) | **Sondes** (modèle Kuma enrichi) — binaire agent en `role=probe` | Plus qu'un heartbeat : exécution du check, latence, métadonnées, attribution par sonde. |
+| Couche                                          | Choix                                                             | Pourquoi                                                                                              |
+| ----------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Hub (UI, API, alertes, coffre, billing interne) | **Laravel 13+**, **Inertia**, **Vue 3**, Tailwind                 | CRUD, files, queues, chiffrement, notifs, écosystème mature ; tu maîtrises déjà le flux.              |
+| Temps réel wallboard / console                  | **Laravel Reverb** ou SSE ; WebSockets seulement si besoin prouvé | Moins de complexité qu'un second stack.                                                               |
+| Files & queues                                  | **Redis** + Horizon                                               | Checks planifiés, agrégation métriques, alertes.                                                      |
+| Agent serveur                                   | **Go** (binaire statique unique)                                  | Faible empreinte, cross-compile, pas de runtime sur les hosts. _Rust_ si besoin ultra-strict mémoire. |
+| Checks réseau (ICMP/HTTP/TCP/SSL)               | **Sondes** (modèle Kuma enrichi) — binaire agent en `role=probe`  | Plus qu'un heartbeat : exécution du check, latence, métadonnées, attribution par sonde.               |
 
 **À ne pas faire** : tout le monitoring dans PHP long-running sur les serveurs ; stocker chaque heartbeat 15 s × 50 machines × N métriques en lignes SQL brutes.
 
@@ -109,18 +126,18 @@ Voir détails chiffrés et estimations volume dans [reference.md](reference.md).
 
 ## Modules (boundary Laravel)
 
-| Module | Responsabilité | MVP |
-|--------|----------------|-----|
-| **Checks** | monitors, types (ping, http, tcp, keyword), planification | oui |
-| **Hosts** | serveurs, agents, versions, groupes, tags | oui |
-| **Metrics** | ingest agent, rollups, graphiques | oui (CPU/RAM/DISK) |
-| **Incidents** | timeline, ack, résolution | oui |
-| **Alertes** | politiques, canaux, silence | oui (mail + 1 autre) |
-| **Wallboard** | vue TV, layout, cible = un groupe (sous-groupes inclus), filtres tag | oui (phase 1.5) |
-| **Groups** | dossiers imbriquables (serveurs, sites, autres) ; options d'affichage par groupe : layout liste/grille/compact, couleur, replié | oui |
-| **Coffre** | entrées, rotation, liens vers host/site | phase 2 |
-| **Renewals** | domaines, SSL, contrats, rappels | phase 2 |
-| **WordPress** | MAJ, vulnérabilités, backup status | phase 3 (API/plugin WP) |
+| Module        | Responsabilité                                                                                                                  | MVP                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| **Checks**    | monitors, types (ping, http, tcp, keyword), planification                                                                       | oui                     |
+| **Hosts**     | serveurs, agents, versions, groupes, tags                                                                                       | oui                     |
+| **Metrics**   | ingest agent, rollups, graphiques                                                                                               | oui (CPU/RAM/DISK)      |
+| **Incidents** | timeline, ack, résolution                                                                                                       | oui                     |
+| **Alertes**   | politiques, canaux, silence                                                                                                     | oui (mail + 1 autre)    |
+| **Wallboard** | vue TV, layout, cible = un groupe (sous-groupes inclus), filtres tag                                                            | oui (phase 1.5)         |
+| **Groups**    | dossiers imbriquables (serveurs, sites, autres) ; options d'affichage par groupe : layout liste/grille/compact, couleur, replié | oui                     |
+| **Coffre**    | entrées, rotation, liens vers host/site                                                                                         | phase 2                 |
+| **Renewals**  | domaines, SSL, contrats, rappels                                                                                                | phase 2                 |
+| **WordPress** | MAJ, vulnérabilités, backup status                                                                                              | phase 3 (API/plugin WP) |
 
 Chaque module : `routes`, `policies`, `jobs`, `models` ; pas de dépendances circulaires — **Events** Laravel pour couplage faible.
 
@@ -137,14 +154,13 @@ Chaque module : `routes`, `policies`, `jobs`, `models` ; pas de dépendances cir
 
 - Mode **kiosque** : pas de chrome inutile, rafraîchissement 15–30 s ou push.
 - Panneaux : santé globale, pannes actives, top latences, carte hosts (CPU/RAM), bandeau incidents non ack.
-- Héritage : garder l'esprit du wallboard Kuma actuel (lisibilité, stale banner) mais données via API hub.
+- UX : lisibilité NOC, bandeau _stale_, données via `GET /api/wallboard/{token}`.
 - Auth : URL signée longue durée ou Basic Auth / IP allowlist pour écrans.
 
 ## UI / UX
 
 - Console : dashboard **dense** type NOC, pas un SaaS marketing.
-- Couleurs sémantiques alignées wallboard existant (ok / down / warn / maint).
-- **Test du novice** : avant de livrer un écran, se demander « quelqu'un qui n'y connaît rien sait-il quoi faire ici en 5 secondes ? ». Un état vide propose toujours l'action suivante ; les statuts sont dits en phrases (« Tout fonctionne », « 2 choses demandent votre attention »).
+- Couleurs sémantiques Phare (ok / down / warn / maint).
 - **Test du novice** : avant de livrer un écran, se demander « quelqu'un qui n'y connaît rien sait-il quoi faire ici en 5 secondes ? ». Un état vide propose toujours l'action suivante ; les statuts sont dits en phrases (« Tout fonctionne », « 2 choses demandent votre attention »).
 - Mobile : consultation oui ; admin lourd non prioritaire MVP.
 
@@ -160,7 +176,7 @@ Chaque module : `routes`, `policies`, `jobs`, `models` ; pas de dépendances cir
 
 Inspiré d'Uptime Kuma (checks exécutés **depuis** des points de vue réseau), mais **pas** limité à un ping/heartbeat stocké en masse :
 
-1. **Hub** planifie les checks, file d'attente par sonde, agrège les résultats (quorum configurable : *toutes* / *une* / *majorité* down → incident).
+1. **Hub** planifie les checks, file d'attente par sonde, agrège les résultats (quorum configurable : _toutes_ / _une_ / _majorité_ down → incident).
 2. **Sonde** = agent Go `role=probe`, installée sur **1 hub local** + **1–2 VPS** (autre provider / pays) pour la « vue Internet ».
 3. Chaque exécution renvoie : `status`, `latency_ms`, `probe_id`, `checked_at`, **metadata** (code HTTP, erreur TLS, jours SSL restants, body match…).
 4. Stockage côté hub : toujours **état courant + events + rollups** (pas un row par tick par sonde sauf fenêtre courte optionnelle debug).

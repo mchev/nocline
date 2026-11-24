@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { Activity, ChevronDown, ChevronRight, Pause, Play, Plus, Trash2, Upload } from '@lucide/vue';
+import {
+    Activity,
+    ChevronDown,
+    ChevronRight,
+    Pause,
+    Play,
+    Plus,
+    Trash2,
+    Upload,
+} from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CheckController from '@/actions/App/Modules/Checks/Http/Controllers/CheckController';
 import GroupController from '@/actions/App/Modules/Groups/Http/Controllers/GroupController';
@@ -86,8 +95,11 @@ function readStorage<T>(key: string): Partial<T> {
     }
 }
 
-const pick = <T extends string>(value: unknown, allowed: T[], fallback: T): T =>
-    allowed.includes(value as T) ? (value as T) : fallback;
+const pick = <T extends string>(
+    value: unknown,
+    allowed: T[],
+    fallback: T,
+): T => (allowed.includes(value as T) ? (value as T) : fallback);
 
 function loadView(): View {
     const s = readStorage<Record<string, unknown>>(VIEW_KEY);
@@ -96,7 +108,11 @@ function loadView(): View {
         groupFilter: typeof s.groupFilter === 'string' ? s.groupFilter : 'all',
         category: typeof s.category === 'string' ? s.category : 'all',
         status: pick(s.status, ['all', 'up', 'down', 'unknown'], 'all'),
-        groupBy: pick(s.groupBy, ['group', 'category', 'status', 'none'], 'group'),
+        groupBy: pick(
+            s.groupBy,
+            ['group', 'category', 'status', 'none'],
+            'group',
+        ),
         layout: pick(s.layout, ['auto', 'list', 'grid', 'compact'], 'auto'),
         sort: pick(s.sort, ['status', 'name', 'latency'], 'status'),
         q: '',
@@ -113,7 +129,10 @@ if (
     view.value.groupFilter = 'all';
 }
 
-if (view.value.category !== 'all' && !props.categories.includes(view.value.category)) {
+if (
+    view.value.category !== 'all' &&
+    !props.categories.includes(view.value.category)
+) {
     view.value.category = 'all';
 }
 
@@ -128,11 +147,18 @@ watch(
 
 /** Per-user fold state, keyed by section key; absent = use the default. */
 const foldState = ref<Record<string, boolean>>(
-    readStorage<Record<string, boolean>>(COLLAPSED_KEY) as Record<string, boolean>,
+    readStorage<Record<string, boolean>>(COLLAPSED_KEY) as Record<
+        string,
+        boolean
+    >,
 );
-watch(foldState, (v) => localStorage.setItem(COLLAPSED_KEY, JSON.stringify(v)), {
-    deep: true,
-});
+watch(
+    foldState,
+    (v) => localStorage.setItem(COLLAPSED_KEY, JSON.stringify(v)),
+    {
+        deep: true,
+    },
+);
 
 const selected = ref<number[]>([]);
 const statusRank: Record<CheckStatus, number> = { down: 0, unknown: 1, up: 2 };
@@ -160,11 +186,17 @@ const filtered = computed(() => {
                 return false;
             }
 
-            if (allowedGroupIds && (c.group_id === null || !allowedGroupIds.has(c.group_id))) {
+            if (
+                allowedGroupIds &&
+                (c.group_id === null || !allowedGroupIds.has(c.group_id))
+            ) {
                 return false;
             }
 
-            if (view.value.category !== 'all' && c.category !== view.value.category) {
+            if (
+                view.value.category !== 'all' &&
+                c.category !== view.value.category
+            ) {
                 return false;
             }
 
@@ -177,7 +209,9 @@ const filtered = computed(() => {
                 [
                     c.name,
                     c.target,
-                    c.group_id !== null ? (groupById.value.get(c.group_id)?.path ?? '') : '',
+                    c.group_id !== null
+                        ? (groupById.value.get(c.group_id)?.path ?? '')
+                        : '',
                     ...c.tags,
                 ]
                     .join(' ')
@@ -216,7 +250,9 @@ type Section = {
 };
 
 const isCollapsed = (s: Section) =>
-    view.value.q.trim() !== '' ? false : (foldState.value[s.key] ?? s.defaultCollapsed);
+    view.value.q.trim() !== ''
+        ? false
+        : (foldState.value[s.key] ?? s.defaultCollapsed);
 
 function toggleSection(s: Section) {
     foldState.value[s.key] = !isCollapsed(s);
@@ -342,7 +378,9 @@ const sections = computed<Section[]>(() => {
 });
 
 const layoutOf = (s: Section): GroupLayout =>
-    view.value.layout !== 'auto' ? view.value.layout : (s.group?.layout ?? 'list');
+    view.value.layout !== 'auto'
+        ? view.value.layout
+        : (s.group?.layout ?? 'list');
 
 const totals = computed(() => ({
     down: props.checks.filter(isDown).length,
@@ -417,15 +455,14 @@ function openEdit(c: Check) {
     dialogOpen.value = true;
 }
 
-const parseTags = (s: string) =>
-    [
-        ...new Set(
-            s
-                .split(',')
-                .map((x) => x.trim())
-                .filter(Boolean),
-        ),
-    ];
+const parseTags = (s: string) => [
+    ...new Set(
+        s
+            .split(',')
+            .map((x) => x.trim())
+            .filter(Boolean),
+    ),
+];
 
 function save() {
     form.tags = parseTags(tagsInput.value);
@@ -434,7 +471,10 @@ function save() {
         group_id: d.group_id === '' ? null : d.group_id,
         host_id: d.type === 'agent' && d.host_id !== '' ? d.host_id : null,
     }));
-    const options = { preserveScroll: true, onSuccess: () => (dialogOpen.value = false) };
+    const options = {
+        preserveScroll: true,
+        onSuccess: () => (dialogOpen.value = false),
+    };
 
     if (editing.value) {
         form.patch(CheckController.update.url(editing.value.id), options);
@@ -583,7 +623,11 @@ function bulkDelete() {
 
         <!-- toolbar -->
         <search v-if="checks.length" class="surface p-4">
-            <form class="flex flex-wrap items-center gap-2" role="search" @submit.prevent>
+            <form
+                class="flex flex-wrap items-center gap-2"
+                role="search"
+                @submit.prevent
+            >
                 <Input
                     v-model="view.q"
                     class="w-56"
@@ -595,26 +639,44 @@ function bulkDelete() {
                     autocapitalize="none"
                     spellcheck="false"
                 />
-                <select v-model="view.groupFilter" :class="select" :aria-label="t('Group')">
+                <select
+                    v-model="view.groupFilter"
+                    :class="select"
+                    :aria-label="t('Group')"
+                >
                     <option value="all">{{ t('All groups') }}</option>
                     <option value="none">{{ t('No group') }}</option>
-                    <option v-for="g in groups" :key="g.id" :value="String(g.id)">
+                    <option
+                        v-for="g in groups"
+                        :key="g.id"
+                        :value="String(g.id)"
+                    >
                         {{ g.path }}
                     </option>
                 </select>
-                <select v-model="view.category" :class="select" :aria-label="t('Category')">
+                <select
+                    v-model="view.category"
+                    :class="select"
+                    :aria-label="t('Category')"
+                >
                     <option value="all">{{ t('All categories') }}</option>
                     <option v-for="c in categories" :key="c" :value="c">
                         {{ categoryLabel(c) }}
                     </option>
                 </select>
-                <select v-model="view.status" :class="select" :aria-label="t('Status')">
+                <select
+                    v-model="view.status"
+                    :class="select"
+                    :aria-label="t('Status')"
+                >
                     <option value="all">{{ t('All statuses') }}</option>
                     <option value="down">{{ t('Down') }}</option>
                     <option value="up">{{ t('Up') }}</option>
                     <option value="unknown">{{ t('Unknown') }}</option>
                 </select>
-                <label class="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
+                <label
+                    class="ml-auto flex items-center gap-2 text-sm text-muted-foreground"
+                >
                     {{ t('Group by') }}
                     <select v-model="view.groupBy" :class="select">
                         <option value="group">{{ t('Group tree') }}</option>
@@ -623,16 +685,28 @@ function bulkDelete() {
                         <option value="none">{{ t('No grouping') }}</option>
                     </select>
                 </label>
-                <label class="flex items-center gap-2 text-sm text-muted-foreground">
+                <label
+                    class="flex items-center gap-2 text-sm text-muted-foreground"
+                >
                     {{ t('Display') }}
                     <select v-model="view.layout" :class="select">
-                        <option value="auto">{{ t("Use each group's layout") }}</option>
-                        <option v-for="l in layoutOptions" :key="l.value" :value="l.value">
+                        <option value="auto">
+                            {{ t("Use each group's layout") }}
+                        </option>
+                        <option
+                            v-for="l in layoutOptions"
+                            :key="l.value"
+                            :value="l.value"
+                        >
                             {{ l.label }}
                         </option>
                     </select>
                 </label>
-                <select v-model="view.sort" :class="select" :aria-label="t('Sort')">
+                <select
+                    v-model="view.sort"
+                    :class="select"
+                    :aria-label="t('Sort')"
+                >
                     <option value="status">{{ t('Sort: status') }}</option>
                     <option value="name">{{ t('Sort: name') }}</option>
                     <option value="latency">{{ t('Sort: latency') }}</option>
@@ -643,17 +717,27 @@ function bulkDelete() {
         <!-- bulk bar -->
         <div
             v-if="selected.length && canManage"
-            class="surface flex flex-wrap items-center gap-2 p-4 text-sm"
+            class="flex flex-wrap items-center gap-2 surface p-4 text-sm"
         >
-            <strong class="font-display">{{ t(':count selected', { count: selected.length }) }}</strong>
-            <select v-model="bulk.group_id" :class="select" :aria-label="t('Group')">
+            <strong class="font-display">{{
+                t(':count selected', { count: selected.length })
+            }}</strong>
+            <select
+                v-model="bulk.group_id"
+                :class="select"
+                :aria-label="t('Group')"
+            >
                 <option value="">{{ t('Group…') }}</option>
                 <option value="none">{{ t('No group') }}</option>
                 <option v-for="g in groups" :key="g.id" :value="String(g.id)">
                     {{ g.path }}
                 </option>
             </select>
-            <select v-model="bulk.category" :class="select" :aria-label="t('Category')">
+            <select
+                v-model="bulk.category"
+                :class="select"
+                :aria-label="t('Category')"
+            >
                 <option value="">{{ t('Category…') }}</option>
                 <option v-for="c in categories" :key="c" :value="c">
                     {{ categoryLabel(c) }}
@@ -709,7 +793,7 @@ function bulkDelete() {
         <section
             v-for="s in sections"
             :key="s.key"
-            class="surface overflow-hidden"
+            class="overflow-hidden surface"
             :style="{ marginLeft: `${s.depth * 1.25}rem` }"
         >
             <header
@@ -717,12 +801,17 @@ function bulkDelete() {
                 class="flex flex-wrap items-center gap-2 border-b border-l-4 bg-muted/30 px-4 py-3"
                 :style="{ borderLeftColor: s.color ?? 'transparent' }"
             >
-                <label v-if="canManage && s.items.length" class="inline-flex size-6 items-center justify-center">
+                <label
+                    v-if="canManage && s.items.length"
+                    class="inline-flex size-6 items-center justify-center"
+                >
                     <input
                         type="checkbox"
                         class="size-4 accent-primary"
                         :checked="s.items.every((c) => selected.includes(c.id))"
-                        :aria-label="t('Select all in :name', { name: s.label })"
+                        :aria-label="
+                            t('Select all in :name', { name: s.label })
+                        "
                         @change="
                             toggleSelect(
                                 s.items.map((c) => c.id),
@@ -744,18 +833,20 @@ function bulkDelete() {
                             class="size-4 shrink-0"
                             aria-hidden="true"
                         />
-                        <span class="truncate font-display font-semibold">{{ s.label }}</span>
+                        <span class="truncate font-display font-semibold">{{
+                            s.label
+                        }}</span>
                         <span class="chip">{{ s.total }}</span>
                         <span
                             v-if="s.down"
-                            class="chip chip-danger ml-1 inline-flex items-center gap-1.5"
+                            class="ml-1 chip inline-flex items-center gap-1.5 chip-danger"
                         >
                             <StatusDot status="down" />
                             {{ s.down }} {{ t('down') }}
                         </span>
                         <span
                             v-else-if="s.total > 0 && s.up === s.total"
-                            class="chip chip-success ml-1 inline-flex items-center gap-1.5"
+                            class="ml-1 chip inline-flex items-center gap-1.5 chip-success"
                         >
                             <StatusDot status="up" />
                             {{ t('all up') }}
@@ -770,17 +861,25 @@ function bulkDelete() {
                     @change="
                         setGroupLayout(
                             s.group!,
-                            ($event.target as HTMLSelectElement).value as GroupLayout,
+                            ($event.target as HTMLSelectElement)
+                                .value as GroupLayout,
                         )
                     "
                 >
-                    <option v-for="l in layoutOptions" :key="l.value" :value="l.value">
+                    <option
+                        v-for="l in layoutOptions"
+                        :key="l.value"
+                        :value="l.value"
+                    >
                         {{ l.label }}
                     </option>
                 </select>
             </header>
 
-            <div v-if="!s.showHeader || !isCollapsed(s)" :id="`section-${s.key}`">
+            <div
+                v-if="!s.showHeader || !isCollapsed(s)"
+                :id="`section-${s.key}`"
+            >
                 <table
                     v-if="s.items.length && layoutOf(s) === 'list'"
                     class="table-clean"
@@ -795,7 +894,11 @@ function bulkDelete() {
                             :can-manage="canManage"
                             :is-admin="isAdmin"
                             :status-text="statusLabel(c.status)"
-                            :category-text="view.groupBy !== 'category' ? categoryLabel(c.category) : null"
+                            :category-text="
+                                view.groupBy !== 'category'
+                                    ? categoryLabel(c.category)
+                                    : null
+                            "
                             @select="toggleSelect([c.id], $event)"
                             @pause="togglePause(c)"
                             @edit="openEdit(c)"
@@ -841,7 +944,9 @@ function bulkDelete() {
         <Dialog v-model:open="importOpen">
             <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>{{ t('Import from Uptime Kuma') }}</DialogTitle>
+                    <DialogTitle>{{
+                        t('Import from Uptime Kuma')
+                    }}</DialogTitle>
                 </DialogHeader>
                 <p class="text-sm text-muted-foreground">
                     {{
@@ -863,7 +968,7 @@ function bulkDelete() {
                 <InputError :message="importForm.errors.file" />
                 <div
                     v-if="kumaResult"
-                    class="surface-muted max-h-60 overflow-y-auto p-4 text-sm"
+                    class="max-h-60 overflow-y-auto surface-muted p-4 text-sm"
                 >
                     <p class="font-medium">
                         {{
@@ -933,13 +1038,20 @@ function bulkDelete() {
                             :class="select"
                         >
                             <option value="">—</option>
-                            <option v-for="h in hosts" :key="h.id" :value="h.id">
+                            <option
+                                v-for="h in hosts"
+                                :key="h.id"
+                                :value="h.id"
+                            >
                                 {{ h.name }}
                             </option>
                         </select>
                         <InputError :message="form.errors.host_id" />
                     </div>
-                    <div v-else-if="form.type !== 'heartbeat'" class="field-stack">
+                    <div
+                        v-else-if="form.type !== 'heartbeat'"
+                        class="field-stack"
+                    >
                         <Label for="target">{{
                             t('Target (URL, host:port, domain)')
                         }}</Label>
@@ -948,7 +1060,11 @@ function bulkDelete() {
                     </div>
                     <div class="field-stack">
                         <Label for="group_id">{{ t('Group') }}</Label>
-                        <GroupSelect id="group_id" v-model="form.group_id" :groups="groups" />
+                        <GroupSelect
+                            id="group_id"
+                            v-model="form.group_id"
+                            :groups="groups"
+                        />
                         <InputError :message="form.errors.group_id" />
                     </div>
                     <div class="field-stack">
@@ -964,7 +1080,9 @@ function bulkDelete() {
                         </select>
                     </div>
                     <div class="field-stack sm:col-span-2">
-                        <Label for="tags">{{ t('Tags (comma separated)') }}</Label>
+                        <Label for="tags">{{
+                            t('Tags (comma separated)')
+                        }}</Label>
                         <Input
                             id="tags"
                             v-model="tagsInput"
@@ -972,7 +1090,9 @@ function bulkDelete() {
                         />
                     </div>
                     <div class="field-stack">
-                        <Label for="interval">{{ t('Interval (seconds)') }}</Label>
+                        <Label for="interval">{{
+                            t('Interval (seconds)')
+                        }}</Label>
                         <Input
                             id="interval"
                             v-model.number="form.interval_sec"
@@ -1001,7 +1121,9 @@ function bulkDelete() {
                             :class="select"
                         >
                             <option value="hub">{{ t('The hub') }}</option>
-                            <option value="probe">{{ t('Remote probes') }}</option>
+                            <option value="probe">
+                                {{ t('Remote probes') }}
+                            </option>
                         </select>
                     </div>
                     <div v-if="form.execution === 'probe'" class="field-stack">
@@ -1011,7 +1133,9 @@ function bulkDelete() {
                             v-model="form.quorum"
                             :class="select"
                         >
-                            <option value="majority">{{ t('Majority of probes') }}</option>
+                            <option value="majority">
+                                {{ t('Majority of probes') }}
+                            </option>
                             <option value="any">{{ t('Any probe') }}</option>
                             <option value="all">{{ t('All probes') }}</option>
                         </select>

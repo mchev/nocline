@@ -5,11 +5,12 @@ Bouton **Add a monitor** (haut du dashboard et de la barre latérale). Trois cho
 1. **Un site** — saisissez l'adresse (`example.com` suffit). Phare vérifie qu'il répond, et suit automatiquement l'expiration du domaine et du certificat SSL (page Renewals, aucune saisie).
 2. **Un serveur** — donnez-lui un nom. Phare affiche **une seule ligne** à coller dans un terminal du serveur :
 
-   ```sh
-   curl -fsSL https://votre-hub/install/<jeton> | sudo sh
-   ```
+    ```sh
+    curl -fsSL https://votre-hub/install/<jeton> | sudo sh
+    ```
 
-   Le script installe l'agent, l'enregistre et le démarre (systemd). La page se met à jour seule dès que le serveur est connecté. Le lien est à usage unique et expire après 24 h (« Generate a new command » pour en obtenir un autre).
+    Le script installe l'agent, l'enregistre et le démarre (systemd). La page se met à jour seule dès que le serveur est connecté. Le lien est à usage unique et expire après 24 h (« Generate a new command » pour en obtenir un autre).
+
 3. **Autre chose** — serveur mail, port/application, machine (ping), nom de domaine (DNS).
 
 Pour chaque choix vous pouvez, en option, ranger l'élément dans un groupe (existant ou créé à la volée).
@@ -33,7 +34,7 @@ Un **groupe** est un dossier qui regroupe serveurs, sites et autres éléments (
 
 Chaque groupe a ses propres options d'affichage :
 
-- **Présentation** : *liste* (une ligne par élément), *grille* (cartes) ou *compact* (pastilles, pour de nombreux éléments) ;
+- **Présentation** : _liste_ (une ligne par élément), _grille_ (cartes) ou _compact_ (pastilles, pour de nombreux éléments) ;
 - **Couleur**, pour le repérer d'un coup d'œil ;
 - **Replié** : le groupe est fermé par défaut et n'affiche que son état global.
 

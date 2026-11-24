@@ -16,7 +16,7 @@ Alignée sur [`.cursor/skills/phare/SKILL.md`](../.cursor/skills/phare/SKILL.md)
 
 ## Phase 1.5
 
-- [x] **Wallboard** Inertia (esprit `legacy/wallboard`)
+- [x] **Wallboard** Inertia (TV / kiosque, API token)
 - [x] **Sondes** (hub + agent Go validés) `role=probe` + quorum
 - [x] API wallboard agrégée + cache Redis
 

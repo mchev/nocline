@@ -21,9 +21,8 @@ export function updateTheme(value: Appearance): void {
     }
 
     if (value === 'system') {
-        const systemTheme = window.matchMedia(
-            '(prefers-color-scheme: dark)',
-        ).matches
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+            .matches
             ? 'dark'
             : 'light';
 

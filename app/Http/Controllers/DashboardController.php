@@ -9,6 +9,7 @@ use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckState;
+use App\Modules\Checks\Services\CheckStatusHistory;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Incidents\Models\Incident;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
@@ -27,8 +28,11 @@ class DashboardController extends Controller
     /** @var Collection<int, Host>|null */
     private ?Collection $enrolledHostsCache = null;
 
-    public function __invoke(MaintenanceChecker $maintenance, HostMetricsReader $metrics): Response
-    {
+    public function __invoke(
+        MaintenanceChecker $maintenance,
+        HostMetricsReader $metrics,
+        CheckStatusHistory $history,
+    ): Response {
         $live = OpsSnapshotUpdated::class;
 
         return Inertia::render('Dashboard', [
@@ -55,7 +59,7 @@ class DashboardController extends Controller
                 fn () => Renewal::query()->where('expires_on', '<=', now()->addDays(30))->count(),
                 $live,
             ),
-            'overview' => Inertia::live(fn () => $this->overview($maintenance, $metrics), $live),
+            'overview' => Inertia::live(fn () => $this->overview($maintenance, $metrics, $history), $live),
         ]);
     }
 
@@ -91,20 +95,20 @@ class DashboardController extends Controller
         [$underMaintenance, $problems] = $down->partition(fn (Check $c) => isset($inMaintenance[$c->id]));
 
         return $this->problemsCache = [
-            'problems' => $problems->take(20)
+            'problems' => array_values($problems->take(20)
                 ->map(fn (Check $c) => [
                     'id' => $c->id,
                     'name' => $c->name,
                     'group' => $c->group?->name,
                     'since_at' => $c->state?->since_at?->toIso8601String(),
                     'error' => $c->state?->last_error,
-                ])->values()->all(),
-            'maintenance' => $underMaintenance->take(20)
+                ])->all()),
+            'maintenance' => array_values($underMaintenance->take(20)
                 ->map(fn (Check $c) => [
                     'id' => $c->id,
                     'name' => $c->name,
                     'group' => $c->group?->name,
-                ])->values()->all(),
+                ])->all()),
         ];
     }
 
@@ -124,7 +128,7 @@ class DashboardController extends Controller
      *     renewals: list<array<string, mixed>>
      * }
      */
-    private function overview(MaintenanceChecker $maintenance, HostMetricsReader $metrics): array
+    private function overview(MaintenanceChecker $maintenance, HostMetricsReader $metrics, CheckStatusHistory $history): array
     {
         $sites = Check::query()
             ->with('state')
@@ -151,6 +155,9 @@ class DashboardController extends Controller
             ->limit(20)
             ->get(['id', 'label', 'kind', 'expires_on']);
 
+        $tracked = $sites->concat($heartbeats)->unique('id');
+        $histories = $history->forChecks($tracked, $maintenance);
+
         $siteRows = $sites->map(fn (Check $c) => [
             'id' => $c->id,
             'name' => $c->name,
@@ -159,10 +166,14 @@ class DashboardController extends Controller
             'latency_ms' => $c->state?->last_latency_ms,
             'in_maintenance' => isset($siteMaint[$c->id]),
             'enabled' => $c->enabled,
+            'history' => $histories[$c->id]['history'] ?? [],
+            'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
         ])->sortBy([
             fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']),
             fn (array $row) => $row['name'],
         ])->values()->all();
+
+        $siteRows = array_values($siteRows);
 
         $serverRows = $hosts->map(function (Host $h) use ($series) {
             $m = $series[$h->id] ?? [
@@ -188,6 +199,8 @@ class DashboardController extends Controller
             fn (array $row) => $row['name'],
         ])->values()->all();
 
+        $serverRows = array_values($serverRows);
+
         $heartbeatRows = $heartbeats->map(fn (Check $c) => [
             'id' => $c->id,
             'name' => $c->name,
@@ -196,21 +209,25 @@ class DashboardController extends Controller
             'in_maintenance' => isset($hbMaint[$c->id]),
             'enabled' => $c->enabled,
             'grace_sec' => $c->heartbeatGraceSeconds(),
+            'history' => $histories[$c->id]['history'] ?? [],
+            'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
         ])->sortBy([
             fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']),
             fn (array $row) => $row['name'],
         ])->values()->all();
 
+        $heartbeatRows = array_values($heartbeatRows);
+
         return [
             'sites' => $siteRows,
             'servers' => $serverRows,
             'heartbeats' => $heartbeatRows,
-            'renewals' => $renewals->map(fn (Renewal $r) => [
+            'renewals' => array_values($renewals->map(fn (Renewal $r) => [
                 'id' => $r->id,
                 'name' => $r->label,
                 'kind' => $r->kind,
-                'expires_on' => $r->expires_on?->toDateString(),
-            ])->values()->all(),
+                'expires_on' => $r->expires_on->toDateString(),
+            ])->all()),
         ];
     }
 

@@ -21,7 +21,11 @@ const pad = 1;
 
 const path = computed(() => {
     const pts = props.values
-        .map((v, i) => (v === null || Number.isNaN(v) ? null : { i, v: Math.min(props.max, Math.max(0, v)) }))
+        .map((v, i) =>
+            v === null || Number.isNaN(v)
+                ? null
+                : { i, v: Math.min(props.max, Math.max(0, v)) },
+        )
         .filter((p): p is { i: number; v: number } => p !== null);
 
     if (pts.length < 2) {

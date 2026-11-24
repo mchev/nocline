@@ -35,7 +35,9 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
                 v-for="item in sidebarNavItems"
                 :key="toUrl(item.href)"
                 :href="item.href"
-                :aria-current="isCurrentOrParentUrl(item.href) ? 'page' : undefined"
+                :aria-current="
+                    isCurrentOrParentUrl(item.href) ? 'page' : undefined
+                "
                 class="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-transparent px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aria-[current=page]:border-border aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
             >
                 <component :is="item.icon" class="size-4" aria-hidden="true" />

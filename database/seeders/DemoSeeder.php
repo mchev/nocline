@@ -474,7 +474,7 @@ class DemoSeeder extends Seeder
                 'title' => 'Acme status',
                 'description' => 'Public demo status page for Acme Corp.',
                 'group_id' => $groups['acme']->id,
-                'accent_color' => '#0d9488',
+                'accent_color' => '#F4512A',
                 'show_incidents' => true,
                 'enabled' => true,
             ],

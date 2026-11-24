@@ -1,4 +1,8 @@
-import type { LiveChannel, LiveEventHandler, LiveTransport } from '@inertiajs/core';
+import type {
+    LiveChannel,
+    LiveEventHandler,
+    LiveTransport,
+} from '@inertiajs/core';
 
 /**
  * Polling stand-in for Echo/Reverb so Inertia live props work on a plain

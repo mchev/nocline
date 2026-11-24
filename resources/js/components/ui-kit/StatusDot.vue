@@ -18,7 +18,8 @@ withDefaults(
                 'bg-danger text-danger': status === 'down',
                 'bg-warning text-warning': status === 'warning',
                 'bg-info text-info': status === 'maintenance',
-                'bg-muted-foreground/40 text-muted-foreground': status === 'unknown',
+                'bg-muted-foreground/40 text-muted-foreground':
+                    status === 'unknown',
             },
             pulse && status === 'down'
                 ? 'motion-safe:animate-[pulse-ring_1.6s_ease-out_infinite]'

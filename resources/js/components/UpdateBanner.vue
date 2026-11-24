@@ -16,10 +16,7 @@ const installed = computed(() => usePage().props.version as string);
         role="status"
         class="mx-4 mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-info/35 bg-info/10 px-3 py-2 text-sm md:mx-6"
     >
-        <ArrowUpCircle
-            class="size-5 shrink-0 text-info"
-            aria-hidden="true"
-        />
+        <ArrowUpCircle class="size-5 shrink-0 text-info" aria-hidden="true" />
         <span class="font-medium">
             {{
                 t('Phare :version is available (you have :current).', {
@@ -36,7 +33,7 @@ const installed = computed(() => usePage().props.version as string);
         >
             {{ t('See what is new') }}
         </a>
-        <code class="chip chip-info font-mono text-[0.7rem]"
+        <code class="chip font-mono text-[0.7rem] chip-info"
             >scripts/update.sh</code
         >
     </aside>

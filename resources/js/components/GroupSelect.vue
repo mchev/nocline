@@ -11,7 +11,12 @@ withDefaults(
         /** Group ids that must not be selectable (e.g. the group being edited). */
         exclude?: number[];
     }>(),
-    { emptyLabel: undefined, name: undefined, id: undefined, exclude: () => [] },
+    {
+        emptyLabel: undefined,
+        name: undefined,
+        id: undefined,
+        exclude: () => [],
+    },
 );
 
 const model = defineModel<string | number>({ default: '' });

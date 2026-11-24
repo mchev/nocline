@@ -54,7 +54,7 @@ const chipTone = (s: StatusMonitor['status']) =>
         </h2>
         <ul
             v-if="(node?.monitors ?? monitors ?? []).length"
-            class="surface divide-y overflow-hidden"
+            class="divide-y overflow-hidden surface"
         >
             <li
                 v-for="(m, i) in node?.monitors ?? monitors"

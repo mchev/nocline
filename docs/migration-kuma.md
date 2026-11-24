@@ -1,11 +1,8 @@
-# Migration depuis Uptime Kuma & wallboard
+# Migration depuis Uptime Kuma
 
-## Wallboard HTML actuel
+## Wallboard
 
-Référence conservée dans [`legacy/wallboard/`](../legacy/wallboard/) :
-
-- UX dense, bandeau *stale*, couleurs ok/down/warn
-- À remplacer par une page Inertia alimentée par `GET /api/wallboard/{token}` (spec dans `reference.md`)
+Le wallboard Phare (URL jeton, rafraîchissement ~15 s, bandeau _stale_) est documenté dans [user/sondes-wallboard.md](user/sondes-wallboard.md). API : `GET /api/wallboard/{token}` (spec dans [guideline/reference.md](guideline/reference.md)).
 
 ## Importer ses monitors Kuma
 

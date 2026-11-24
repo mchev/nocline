@@ -6,10 +6,10 @@ Phare stores credentials (vault), talks to your servers (agents) and sends alert
 
 Phare is young. Only the **latest release** receives security fixes. Please update (`scripts/update.sh`) before reporting, if you can.
 
-| Version | Supported |
-|---------|-----------|
-| Latest release | Yes |
-| Older releases | No |
+| Version        | Supported |
+| -------------- | --------- |
+| Latest release | Yes       |
+| Older releases | No        |
 
 ## Reporting a vulnerability
 
@@ -22,12 +22,12 @@ Please include what you found, how to reproduce it, the Phare version, and the i
 
 ## What to expect
 
-| Step | Target |
-|------|--------|
-| Acknowledgement | within 3 working days |
-| First assessment (accepted / need more info / not a vulnerability) | within 10 working days |
-| Fix or mitigation for confirmed issues | depends on severity; critical issues first |
-| Public disclosure | after a fix is released, coordinated with you; credit if you wish |
+| Step                                                               | Target                                                            |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Acknowledgement                                                    | within 3 working days                                             |
+| First assessment (accepted / need more info / not a vulnerability) | within 10 working days                                            |
+| Fix or mitigation for confirmed issues                             | depends on severity; critical issues first                        |
+| Public disclosure                                                  | after a fix is released, coordinated with you; credit if you wish |
 
 These are targets from a small volunteer team, not guarantees.
 

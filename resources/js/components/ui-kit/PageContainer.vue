@@ -1,8 +1,7 @@
 <script setup lang="ts">
-withDefaults(
-    defineProps<{ size?: 'narrow' | 'default' | 'wide' | 'full' }>(),
-    { size: 'default' },
-);
+withDefaults(defineProps<{ size?: 'narrow' | 'default' | 'wide' | 'full' }>(), {
+    size: 'default',
+});
 </script>
 
 <template>

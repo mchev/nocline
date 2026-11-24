@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { Copy, KeyRound, Pencil, Plus, Server, Trash2, Unplug } from '@lucide/vue';
+import {
+    Copy,
+    KeyRound,
+    Pencil,
+    Plus,
+    Server,
+    Trash2,
+    Unplug,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import HostController from '@/actions/App/Modules/Hosts/Http/Controllers/HostController';
 import GroupSelect from '@/components/GroupSelect.vue';
@@ -79,7 +87,10 @@ const filtered = computed(() => {
         if (
             !['all', 'none'].includes(groupFilter.value) &&
             (h.group_id === null ||
-                !groupWithDescendantIds(props.groups, Number(groupFilter.value)).includes(h.group_id))
+                !groupWithDescendantIds(
+                    props.groups,
+                    Number(groupFilter.value),
+                ).includes(h.group_id))
         ) {
             return false;
         }
@@ -99,7 +110,7 @@ const sections = computed(() => {
 
     for (const h of filtered.value) {
         const key = groupByGroup.value
-            ? (pathOf(h) || t('Ungrouped'))
+            ? pathOf(h) || t('Ungrouped')
             : t('All hosts');
         map.set(key, [...(map.get(key) ?? []), h]);
     }
@@ -117,7 +128,11 @@ const sections = computed(() => {
 const dialogOpen = ref(false);
 const editing = ref<Host | null>(null);
 const tagsInput = ref('');
-const form = useForm({ name: '', group_id: '' as string | number, tags: [] as string[] });
+const form = useForm({
+    name: '',
+    group_id: '' as string | number,
+    tags: [] as string[],
+});
 
 function openCreate() {
     router.visit('/monitor/new?kind=server');
@@ -126,7 +141,11 @@ function openCreate() {
 function openEdit(h: Host) {
     editing.value = h;
     form.clearErrors();
-    form.defaults({ name: h.name, group_id: h.group_id ?? '', tags: h.tags }).reset();
+    form.defaults({
+        name: h.name,
+        group_id: h.group_id ?? '',
+        tags: h.tags,
+    }).reset();
     tagsInput.value = h.tags.join(', ');
     dialogOpen.value = true;
 }
@@ -157,18 +176,26 @@ function copyCommand() {
 }
 
 function newToken(h: Host) {
-    router.post(HostController.enrollmentToken.url(h.id), {}, { preserveScroll: true });
+    router.post(
+        HostController.enrollmentToken.url(h.id),
+        {},
+        { preserveScroll: true },
+    );
 }
 
 function revoke(h: Host) {
     if (confirm(t('Revoke the agent token of ":name"?', { name: h.name }))) {
-        router.delete(HostController.revoke.url(h.id), { preserveScroll: true });
+        router.delete(HostController.revoke.url(h.id), {
+            preserveScroll: true,
+        });
     }
 }
 
 function remove(h: Host) {
     if (confirm(t('Delete the host ":name"?', { name: h.name }))) {
-        router.delete(HostController.destroy.url(h.id), { preserveScroll: true });
+        router.delete(HostController.destroy.url(h.id), {
+            preserveScroll: true,
+        });
     }
 }
 
@@ -189,7 +216,9 @@ const emptyMetrics = (): HostMetrics => ({
         <PageHeader
             :eyebrow="t('Servers')"
             :title="t('Servers')"
-            :description="t('Servers running phare-agent and pushing metrics to the hub.')"
+            :description="
+                t('Servers running phare-agent and pushing metrics to the hub.')
+            "
         >
             <Button v-if="canManage" @click="openCreate">
                 <Plus class="size-4" /> {{ t('Add a server') }}
@@ -210,15 +239,28 @@ const emptyMetrics = (): HostMetrics => ({
                 }}
             </p>
             <div class="mt-3 flex items-start gap-2">
-                <code class="surface-muted block flex-1 break-all p-3 select-all">{{ enrollCommand }}</code>
-                <Button size="icon" variant="outline" :title="t('Copy')" :aria-label="t('Copy')" @click="copyCommand">
+                <code
+                    class="block flex-1 surface-muted p-3 break-all select-all"
+                    >{{ enrollCommand }}</code
+                >
+                <Button
+                    size="icon"
+                    variant="outline"
+                    :title="t('Copy')"
+                    :aria-label="t('Copy')"
+                    @click="copyCommand"
+                >
                     <Copy class="size-4" />
                 </Button>
             </div>
         </div>
 
         <search v-if="hosts.length" class="surface p-4">
-            <form class="flex flex-wrap items-center gap-2" role="search" @submit.prevent>
+            <form
+                class="flex flex-wrap items-center gap-2"
+                role="search"
+                @submit.prevent
+            >
                 <Input
                     v-model="q"
                     class="w-56"
@@ -230,15 +272,29 @@ const emptyMetrics = (): HostMetrics => ({
                     autocapitalize="none"
                     spellcheck="false"
                 />
-                <select v-model="groupFilter" :class="select" :aria-label="t('Group')">
+                <select
+                    v-model="groupFilter"
+                    :class="select"
+                    :aria-label="t('Group')"
+                >
                     <option value="all">{{ t('All groups') }}</option>
                     <option value="none">{{ t('No group') }}</option>
-                    <option v-for="g in groups" :key="g.id" :value="String(g.id)">
+                    <option
+                        v-for="g in groups"
+                        :key="g.id"
+                        :value="String(g.id)"
+                    >
                         {{ g.path }}
                     </option>
                 </select>
-                <label class="ml-auto flex min-h-10 items-center gap-2 text-sm text-muted-foreground">
-                    <input v-model="groupByGroup" type="checkbox" class="size-4 accent-primary" />
+                <label
+                    class="ml-auto flex min-h-10 items-center gap-2 text-sm text-muted-foreground"
+                >
+                    <input
+                        v-model="groupByGroup"
+                        type="checkbox"
+                        class="size-4 accent-primary"
+                    />
                     {{ t('Show by group') }}
                 </label>
             </form>
@@ -254,7 +310,9 @@ const emptyMetrics = (): HostMetrics => ({
                 )
             "
         >
-            <Button v-if="canManage" @click="openCreate">{{ t('Add your first server') }}</Button>
+            <Button v-if="canManage" @click="openCreate">{{
+                t('Add your first server')
+            }}</Button>
         </EmptyState>
         <EmptyState
             v-else-if="!filtered.length"
@@ -266,10 +324,7 @@ const emptyMetrics = (): HostMetrics => ({
             :key="label"
             class="space-y-3"
         >
-            <header
-                v-if="groupByGroup"
-                class="flex items-center gap-2"
-            >
+            <header v-if="groupByGroup" class="flex items-center gap-2">
                 <h2 class="font-display text-sm font-semibold">{{ label }}</h2>
                 <span class="chip">{{ items.length }}</span>
             </header>
@@ -286,16 +341,42 @@ const emptyMetrics = (): HostMetrics => ({
                     :last-seen-at="h.last_seen_at"
                 >
                     <template v-if="canManage" #actions>
-                        <Button size="icon" variant="ghost" :title="t('New enrollment token')" :aria-label="t('New enrollment token')" @click="newToken(h)">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            :title="t('New enrollment token')"
+                            :aria-label="t('New enrollment token')"
+                            @click="newToken(h)"
+                        >
                             <KeyRound class="size-4" />
                         </Button>
-                        <Button v-if="h.enrolled" size="icon" variant="ghost" :title="t('Revoke agent')" :aria-label="t('Revoke agent')" @click="revoke(h)">
+                        <Button
+                            v-if="h.enrolled"
+                            size="icon"
+                            variant="ghost"
+                            :title="t('Revoke agent')"
+                            :aria-label="t('Revoke agent')"
+                            @click="revoke(h)"
+                        >
                             <Unplug class="size-4" />
                         </Button>
-                        <Button size="icon" variant="ghost" :title="t('Edit')" :aria-label="t('Edit')" @click="openEdit(h)">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            :title="t('Edit')"
+                            :aria-label="t('Edit')"
+                            @click="openEdit(h)"
+                        >
                             <Pencil class="size-4" />
                         </Button>
-                        <Button v-if="isAdmin" size="icon" variant="ghost" :title="t('Delete')" :aria-label="t('Delete')" @click="remove(h)">
+                        <Button
+                            v-if="isAdmin"
+                            size="icon"
+                            variant="ghost"
+                            :title="t('Delete')"
+                            :aria-label="t('Delete')"
+                            @click="remove(h)"
+                        >
                             <Trash2 class="size-4" />
                         </Button>
                     </template>
@@ -316,16 +397,33 @@ const emptyMetrics = (): HostMetrics => ({
                     </div>
                     <div class="field-stack">
                         <Label for="host-group">{{ t('Group') }}</Label>
-                        <GroupSelect id="host-group" v-model="form.group_id" :groups="groups" />
+                        <GroupSelect
+                            id="host-group"
+                            v-model="form.group_id"
+                            :groups="groups"
+                        />
                         <InputError :message="form.errors.group_id" />
                     </div>
                     <div class="field-stack">
-                        <Label for="host-tags">{{ t('Tags (comma separated)') }}</Label>
-                        <Input id="host-tags" v-model="tagsInput" :placeholder="t('prod, wordpress, eu')" />
+                        <Label for="host-tags">{{
+                            t('Tags (comma separated)')
+                        }}</Label>
+                        <Input
+                            id="host-tags"
+                            v-model="tagsInput"
+                            :placeholder="t('prod, wordpress, eu')"
+                        />
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="ghost" @click="dialogOpen = false">{{ t('Cancel') }}</Button>
-                        <Button type="submit" :disabled="form.processing">{{ t('Save') }}</Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            @click="dialogOpen = false"
+                            >{{ t('Cancel') }}</Button
+                        >
+                        <Button type="submit" :disabled="form.processing">{{
+                            t('Save')
+                        }}</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

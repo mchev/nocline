@@ -2,20 +2,22 @@
 
 Self-hosted NOC : checks (sondes type Kuma enrichies), métriques (agent Go), incidents, alertes, wallboard, coffre & renewals (phases ultérieures).
 
+**Identité UI :** wordmark **phare.** (minuscules, point Signal `#F4512A`), palette Signal / Nuit `#252B24` / Brume `#F7F6F2` — détail dans [`docs/guideline/SKILL.md`](docs/guideline/SKILL.md#identité-visuelle-2026).
+
 **Stack hub :** Laravel 13, Inertia, Vue 3, Fortify, PostgreSQL (prod), Redis + Horizon (à brancher).
 
 **Stack agent :** Go (`agent/`), binaire `phare-agent` — rôles `host` (métriques) et `probe` (checks réseau).
 
 ## Documentation
 
-| Fichier | Contenu |
-|---------|---------|
-| [`docs/guideline/SKILL.md`](docs/guideline/SKILL.md) | Guideline produit & technique (**versionnée git**) |
-| [`docs/guideline/reference.md`](docs/guideline/reference.md) | Schémas, APIs, stockage, sondes |
-| [`.cursor/skills/phare/`](.cursor/skills/phare/) | Même contenu pour Cursor (local) |
-| [`docs/index.md`](docs/index.md) | Index doc + liens |
-| [`docs/roadmap.md`](docs/roadmap.md) | Phases MVP → v3 |
-| [`AGENTS.md`](AGENTS.md) | Règles Cursor / Boost + Phare |
+| Fichier                                                      | Contenu                                            |
+| ------------------------------------------------------------ | -------------------------------------------------- |
+| [`docs/guideline/SKILL.md`](docs/guideline/SKILL.md)         | Guideline produit & technique (**versionnée git**) |
+| [`docs/guideline/reference.md`](docs/guideline/reference.md) | Schémas, APIs, stockage, sondes                    |
+| [`.cursor/skills/phare/`](.cursor/skills/phare/)             | Même contenu pour Cursor (local)                   |
+| [`docs/index.md`](docs/index.md)                             | Index doc + liens                                  |
+| [`docs/roadmap.md`](docs/roadmap.md)                         | Phases MVP → v3                                    |
+| [`AGENTS.md`](AGENTS.md)                                     | Règles Cursor / Boost + Phare                      |
 
 ## Arborescence cible
 
@@ -23,7 +25,6 @@ Self-hosted NOC : checks (sondes type Kuma enrichies), métriques (agent Go), in
 phare/
 ├── app/Modules/          # domaines Laravel (Checks, Hosts, …)
 ├── agent/                # phare-agent (Go)
-├── legacy/wallboard/     # wallboard Kuma HTML (référence UI)
 ├── docs/
 └── resources/js/         # console Inertia
 ```

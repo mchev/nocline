@@ -53,10 +53,12 @@ const adapterLabel = (key: string) =>
 
 const open = ref(false);
 const editing = ref<Channel | null>(null);
-const form = useForm<Record<string, any>>({ name: '', type: '', enabled: true });
-const adapter = computed(() =>
-    props.adapters.find((a) => a.key === form.type),
-);
+const form = useForm<Record<string, any>>({
+    name: '',
+    type: '',
+    enabled: true,
+});
+const adapter = computed(() => props.adapters.find((a) => a.key === form.type));
 
 function fill(type: string, values: Record<string, string | null> = {}) {
     const next: Record<string, any> = { ...form.data() };
@@ -154,7 +156,7 @@ function remove(c: Channel) {
             </Button>
         </EmptyState>
 
-        <ul v-else class="surface divide-y overflow-hidden reveal">
+        <ul v-else class="reveal divide-y overflow-hidden surface">
             <li
                 v-for="c in channels"
                 :key="c.id"
@@ -169,8 +171,12 @@ function remove(c: Channel) {
                     <div class="min-w-0">
                         <p class="font-medium">{{ c.name }}</p>
                         <div class="mt-1 flex flex-wrap gap-1.5">
-                            <span class="chip chip-info">{{ adapterLabel(c.type) }}</span>
-                            <span v-if="!c.enabled" class="chip">{{ t('Disabled') }}</span>
+                            <span class="chip chip-info">{{
+                                adapterLabel(c.type)
+                            }}</span>
+                            <span v-if="!c.enabled" class="chip">{{
+                                t('Disabled')
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -209,7 +215,9 @@ function remove(c: Channel) {
                 </DialogHeader>
                 <form class="grid gap-4" @submit.prevent="save">
                     <div class="field-stack">
-                        <Label for="ch-type" class="field-label">{{ t('Type') }}</Label>
+                        <Label for="ch-type" class="field-label">{{
+                            t('Type')
+                        }}</Label>
                         <select
                             id="ch-type"
                             :value="form.type"
@@ -230,7 +238,9 @@ function remove(c: Channel) {
                         <InputError :message="form.errors.type" />
                     </div>
                     <div class="field-stack">
-                        <Label for="ch-name" class="field-label">{{ t('Name') }}</Label>
+                        <Label for="ch-name" class="field-label">{{
+                            t('Name')
+                        }}</Label>
                         <Input id="ch-name" v-model="form.name" required />
                         <InputError :message="form.errors.name" />
                     </div>
@@ -253,7 +263,9 @@ function remove(c: Channel) {
                                     : (f.placeholder ?? '')
                             "
                             autocomplete="off"
-                            :aria-describedby="f.help ? `ch-${f.name}-help` : undefined"
+                            :aria-describedby="
+                                f.help ? `ch-${f.name}-help` : undefined
+                            "
                         />
                         <p
                             v-if="f.help"
@@ -269,7 +281,11 @@ function remove(c: Channel) {
                         {{ t('Enabled') }}
                     </label>
                     <DialogFooter>
-                        <Button type="button" variant="outline" @click="open = false">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="open = false"
+                        >
                             {{ t('Cancel') }}
                         </Button>
                         <Button type="submit" :disabled="form.processing">

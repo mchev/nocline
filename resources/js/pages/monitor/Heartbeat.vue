@@ -34,8 +34,12 @@ if (props.check.pinged) {
 }
 
 const token = computed(() => props.url.split('/').pop() ?? '');
-const unreachable = computed(() => /\/\/(localhost|127\.|\[::1\]|[^/]+\.(test|local)\b)/.test(props.url));
-const curl = computed(() => `curl -fsS -m 10 --retry 3 -o /dev/null ${props.url}`);
+const unreachable = computed(() =>
+    /\/\/(localhost|127\.|\[::1\]|[^/]+\.(test|local)\b)/.test(props.url),
+);
+const curl = computed(
+    () => `curl -fsS -m 10 --retry 3 -o /dev/null ${props.url}`,
+);
 
 const snippets = computed(() => [
     {
@@ -81,19 +85,29 @@ const snippets = computed(() => [
 
         <div
             v-if="check.pinged"
-            class="surface-hero flex flex-col gap-4 p-6 md:p-8"
+            class="flex flex-col gap-4 surface-hero p-6 md:p-8"
             role="status"
         >
-            <p class="flex items-center gap-2 font-display text-lg font-semibold">
-                <span class="grid size-10 place-items-center rounded-md bg-success/15 text-success">
+            <p
+                class="flex items-center gap-2 font-display text-lg font-semibold"
+            >
+                <span
+                    class="grid size-10 place-items-center rounded-md bg-success/15 text-success"
+                >
                     <Check class="size-5" aria-hidden="true" />
                 </span>
                 {{ t('First signal received!') }}
             </p>
             <p class="text-sm text-pretty text-muted-foreground">
-                {{ t('Your task is now watched. We warn you if it stops reporting.') }}
+                {{
+                    t(
+                        'Your task is now watched. We warn you if it stops reporting.',
+                    )
+                }}
             </p>
-            <Button class="w-fit" @click="router.visit(dashboard())">{{ t('Go to the dashboard') }}</Button>
+            <Button class="w-fit" @click="router.visit(dashboard())">{{
+                t('Go to the dashboard')
+            }}</Button>
         </div>
 
         <template v-else>
@@ -105,10 +119,18 @@ const snippets = computed(() => [
                         class="surface border-warning/40 bg-warning/10 p-4 text-sm"
                         role="status"
                     >
-                        {{ t('Warning: this address (localhost or .test) cannot be reached from another machine. Set the public address of Phare (APP_URL) first.') }}
+                        {{
+                            t(
+                                'Warning: this address (localhost or .test) cannot be reached from another machine. Set the public address of Phare (APP_URL) first.',
+                            )
+                        }}
                     </p>
                     <p class="field-hint">
-                        {{ t('Keep this address private: anyone who has it can send signals for this task.') }}
+                        {{
+                            t(
+                                'Keep this address private: anyone who has it can send signals for this task.',
+                            )
+                        }}
                     </p>
                 </div>
             </SectionCard>
@@ -125,9 +147,17 @@ const snippets = computed(() => [
                 </div>
             </SectionCard>
 
-            <p class="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
+            <p
+                class="flex items-center gap-2 text-sm text-muted-foreground"
+                role="status"
+                aria-live="polite"
+            >
                 <Loader2 class="size-4 animate-spin" aria-hidden="true" />
-                {{ t('Waiting for the first signal… This page updates by itself.') }}
+                {{
+                    t(
+                        'Waiting for the first signal… This page updates by itself.',
+                    )
+                }}
             </p>
         </template>
     </PageContainer>

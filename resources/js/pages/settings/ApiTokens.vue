@@ -106,7 +106,9 @@ function revoke(token: Token) {
             </div>
 
             <fieldset class="grid gap-2">
-                <legend class="field-label mb-1">{{ $t('What may it do?') }}</legend>
+                <legend class="field-label mb-1">
+                    {{ $t('What may it do?') }}
+                </legend>
                 <label
                     class="flex items-start gap-3 rounded-md border p-3 text-sm transition has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:ring-2 has-[:checked]:ring-primary/30"
                 >
@@ -153,7 +155,11 @@ function revoke(token: Token) {
                 <Label for="token-expiry" class="field-label">{{
                     $t('Valid for')
                 }}</Label>
-                <select id="token-expiry" name="expires_in_days" :class="select">
+                <select
+                    id="token-expiry"
+                    name="expires_in_days"
+                    :class="select"
+                >
                     <option value="">{{ $t('Until I revoke it') }}</option>
                     <option value="30">{{ $t('30 days') }}</option>
                     <option value="90">{{ $t('90 days') }}</option>
@@ -180,7 +186,7 @@ function revoke(token: Token) {
                     )
                 "
             />
-            <ul v-else class="surface divide-y overflow-hidden">
+            <ul v-else class="divide-y overflow-hidden surface">
                 <li
                     v-for="token in tokens"
                     :key="token.id"
@@ -225,11 +231,7 @@ function revoke(token: Token) {
                             </template>
                         </p>
                     </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="revoke(token)"
-                    >
+                    <Button variant="outline" size="sm" @click="revoke(token)">
                         {{ $t('Revoke') }}
                     </Button>
                 </li>

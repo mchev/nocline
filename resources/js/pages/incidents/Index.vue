@@ -37,7 +37,11 @@ const fmt = (d: string) => new Date(d).toLocaleString();
     <PageContainer>
         <PageHeader
             :title="$t('Incidents')"
-            :description="$t('Things that went wrong — acknowledge them so the team knows someone is on it.')"
+            :description="
+                $t(
+                    'Things that went wrong — acknowledge them so the team knows someone is on it.',
+                )
+            "
         />
 
         <EmptyState
@@ -51,13 +55,19 @@ const fmt = (d: string) => new Date(d).toLocaleString();
             <li
                 v-for="(i, idx) in incidents.data"
                 :key="i.id"
-                class="surface reveal flex flex-wrap items-start justify-between gap-4 p-5"
+                class="reveal flex flex-wrap items-start justify-between gap-4 surface p-5"
                 :class="idx < 3 ? `reveal-delay-${idx + 1}` : ''"
             >
                 <div class="flex min-w-0 items-start gap-3">
                     <StatusDot
                         class="mt-2"
-                        :status="i.resolved_at ? 'up' : i.acknowledged_at ? 'warning' : 'down'"
+                        :status="
+                            i.resolved_at
+                                ? 'up'
+                                : i.acknowledged_at
+                                  ? 'warning'
+                                  : 'down'
+                        "
                         :pulse="!i.resolved_at && !i.acknowledged_at"
                         :label="
                             i.resolved_at
@@ -68,7 +78,9 @@ const fmt = (d: string) => new Date(d).toLocaleString();
                         "
                     />
                     <div class="min-w-0">
-                        <h2 class="font-display text-base font-semibold">{{ i.title }}</h2>
+                        <h2 class="font-display text-base font-semibold">
+                            {{ i.title }}
+                        </h2>
                         <p
                             v-if="i.last_error"
                             class="text-sm break-words text-muted-foreground"
@@ -77,7 +89,9 @@ const fmt = (d: string) => new Date(d).toLocaleString();
                         </p>
                         <p class="mt-1 text-xs text-muted-foreground">
                             {{ $t('Started') }}
-                            <time :datetime="i.started_at">{{ fmt(i.started_at) }}</time>
+                            <time :datetime="i.started_at">{{
+                                fmt(i.started_at)
+                            }}</time>
                         </p>
                     </div>
                 </div>
@@ -85,10 +99,15 @@ const fmt = (d: string) => new Date(d).toLocaleString();
                     <span v-if="i.resolved_at" class="chip chip-success">
                         {{ $t('resolved :date', { date: fmt(i.resolved_at) }) }}
                     </span>
-                    <span v-else-if="i.acknowledged_at" class="chip chip-warning">
+                    <span
+                        v-else-if="i.acknowledged_at"
+                        class="chip chip-warning"
+                    >
                         {{ $t('ack :user', { user: i.acknowledged_by ?? '' }) }}
                     </span>
-                    <span v-else class="chip chip-danger">{{ $t('open') }}</span>
+                    <span v-else class="chip chip-danger">{{
+                        $t('open')
+                    }}</span>
                     <Form
                         v-if="canManage && !i.resolved_at && !i.acknowledged_at"
                         v-bind="IncidentController.acknowledge.form(i.id)"

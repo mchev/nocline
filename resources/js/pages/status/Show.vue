@@ -57,7 +57,10 @@ const banner = computed(
 );
 
 const when = (iso: string) =>
-    new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    new Date(iso).toLocaleString([], {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    });
 const accentStyle = computed(() =>
     props.accent_color ? { '--accent-color': props.accent_color } : {},
 );
@@ -98,7 +101,7 @@ const accentStyle = computed(() =>
                     </h1>
                     <p
                         v-if="description"
-                        class="max-w-prose text-base whitespace-pre-line text-pretty text-muted-foreground"
+                        class="max-w-prose text-base text-pretty whitespace-pre-line text-muted-foreground"
                     >
                         {{ description }}
                     </p>
@@ -108,7 +111,7 @@ const accentStyle = computed(() =>
 
         <main class="relative mx-auto flex max-w-3xl flex-col gap-8 p-6 pb-20">
             <div
-                class="surface-glass reveal flex items-center gap-4 border p-6"
+                class="reveal flex items-center gap-4 surface-glass border p-6"
                 :class="banner.cls"
                 role="status"
             >
@@ -121,7 +124,9 @@ const accentStyle = computed(() =>
                         aria-hidden="true"
                     />
                 </span>
-                <p class="font-display text-xl font-semibold text-balance md:text-2xl">
+                <p
+                    class="font-display text-xl font-semibold text-balance md:text-2xl"
+                >
                     {{ banner.text }}
                 </p>
             </div>
@@ -137,7 +142,7 @@ const accentStyle = computed(() =>
                 >
                     {{ t('Planned maintenance') }}
                 </h2>
-                <ul class="surface divide-y overflow-hidden text-sm">
+                <ul class="divide-y overflow-hidden surface text-sm">
                     <li
                         v-for="(m, i) in maintenance"
                         :key="i"
@@ -146,10 +151,7 @@ const accentStyle = computed(() =>
                         <span class="font-medium">{{ m.name }}</span>
                         <span class="text-muted-foreground">
                             {{ when(m.starts_at) }} → {{ when(m.ends_at) }}
-                            <span
-                                v-if="m.active"
-                                class="chip chip-info ml-1"
-                            >
+                            <span v-if="m.active" class="ml-1 chip chip-info">
                                 {{ t('In progress') }}
                             </span>
                         </span>
@@ -189,7 +191,7 @@ const accentStyle = computed(() =>
                 >
                     {{ t('No incident in the last 14 days.') }}
                 </p>
-                <ul v-else class="surface divide-y overflow-hidden text-sm">
+                <ul v-else class="divide-y overflow-hidden surface text-sm">
                     <li
                         v-for="(i, k) in incidents"
                         :key="k"
