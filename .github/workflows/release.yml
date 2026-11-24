@@ -1,0 +1,27 @@
+name: release
+
+# Push a tag like v0.2.0 (after bumping the VERSION file): builds the agent for Linux and publishes a GitHub release.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check VERSION matches the tag
+        run: test "v$(tr -d '[:space:]' < VERSION)" = "${GITHUB_REF_NAME}"
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: agent/go.mod
+      - name: Build the agent
+        run: PHARE_AGENT_BINARY_DIR="$PWD/dist" scripts/build-agent.sh
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --title "Phare $GITHUB_REF_NAME"

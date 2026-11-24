@@ -30,14 +30,14 @@ const handleRegisterSuccess = () => {
 </script>
 
 <template>
-    <div v-if="canManagePasskeys" class="space-y-6">
+    <section v-if="canManagePasskeys" class="surface space-y-6 p-6">
         <Heading
             variant="small"
-            title="Passkeys"
-            description="Manage your passkeys for passwordless sign-in"
+            :title="$t('Passkeys')"
+            :description="$t('Manage your passkeys for passwordless sign-in')"
         />
 
-        <div class="overflow-hidden rounded-lg border border-border">
+        <div class="overflow-hidden rounded-md border border-border">
             <template v-if="passkeys.length">
                 <PasskeyItem
                     v-for="passkey in passkeys"
@@ -49,17 +49,17 @@ const handleRegisterSuccess = () => {
 
             <div v-else class="p-8 text-center">
                 <div
-                    class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted"
+                    class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md bg-muted"
                 >
                     <KeyRound class="h-7 w-7 text-muted-foreground" />
                 </div>
-                <p class="font-medium">No passkeys yet</p>
+                <p class="font-medium">{{ $t('No passkeys yet') }}</p>
                 <p class="mt-1 text-sm text-muted-foreground">
-                    Add a passkey to sign in without a password
+                    {{ $t('Add a passkey to sign in without a password') }}
                 </p>
             </div>
         </div>
 
         <PasskeyRegister @success="handleRegisterSuccess" />
-    </div>
+    </section>
 </template>

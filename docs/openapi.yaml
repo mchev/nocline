@@ -1,0 +1,562 @@
+openapi: 3.1.0
+info:
+  title: Phare REST API
+  version: 1.0.0
+  description: >-
+    Personal-API-token REST API of a Phare hub. A token acts as its owner: the owner's role
+    (admin / tech / viewer) applies on top of the token abilities (read / write).
+    Human documentation: docs/api.md.
+servers:
+  - url: https://phare.example.com/api/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Account
+  - name: Checks
+  - name: Groups
+  - name: Hosts
+  - name: Monitors
+  - name: Heartbeat
+paths:
+  /me:
+    get:
+      tags: [Account]
+      summary: The user behind the token
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Me' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /checks:
+    get:
+      tags: [Checks]
+      summary: List checks
+      parameters:
+        - { name: group_id, in: query, schema: { type: integer } }
+        - { name: type, in: query, schema: { $ref: '#/components/schemas/CheckType' } }
+        - { name: enabled, in: query, schema: { type: boolean } }
+        - { $ref: '#/components/parameters/PerPage' }
+        - { $ref: '#/components/parameters/Page' }
+      responses:
+        '200':
+          description: A page of checks
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Check' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    post:
+      tags: [Checks]
+      summary: Create a check (needs write ability, admin or tech)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /checks/{id}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+    get:
+      tags: [Checks]
+      summary: Show a check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    patch:
+      tags: [Checks]
+      summary: Update a check (partial; PUT behaves the same)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckPatch' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    delete:
+      tags: [Checks]
+      summary: Delete a check (needs write ability, admin only)
+      responses:
+        '204': { description: Deleted }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /checks/{id}/status:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+    get:
+      tags: [Checks]
+      summary: Current state of a check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CheckStatus' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /groups:
+    get:
+      tags: [Groups]
+      summary: List groups (build the tree from parent_id)
+      parameters:
+        - { $ref: '#/components/parameters/PerPage' }
+        - { $ref: '#/components/parameters/Page' }
+      responses:
+        '200':
+          description: A page of groups
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Group' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    post:
+      tags: [Groups]
+      summary: Create a group (needs write ability, admin or tech)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GroupInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GroupEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /groups/{id}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+    get:
+      tags: [Groups]
+      summary: Show a group
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GroupEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    patch:
+      tags: [Groups]
+      summary: Update a group (partial; PUT behaves the same)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GroupPatch' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GroupEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    delete:
+      tags: [Groups]
+      summary: Delete a group (sub-groups move up, checks become ungrouped)
+      responses:
+        '204': { description: Deleted }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /hosts:
+    get:
+      tags: [Hosts]
+      summary: List hosts (read only)
+      parameters:
+        - { $ref: '#/components/parameters/PerPage' }
+        - { $ref: '#/components/parameters/Page' }
+      responses:
+        '200':
+          description: A page of hosts
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Host' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /monitors/website:
+    post:
+      tags: [Monitors]
+      summary: Monitor a website (same recipe as the guided UI)
+      description: HTTP check every 60 s, category website, 2 failures before down. Not idempotent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, maxLength: 500, description: 'http(s) URL; a bare domain gets https://' }
+                name: { type: [string, 'null'], maxLength: 255 }
+                group_id: { type: [integer, 'null'] }
+                group_name: { type: [string, 'null'], maxLength: 255, description: 'Top-level group, created if missing' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /heartbeat/{token}:
+    parameters:
+      - { $ref: '#/components/parameters/HeartbeatToken' }
+    get:
+      tags: [Heartbeat]
+      summary: Report a success (public, no authentication)
+      operationId: heartbeatPingGet
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/HeartbeatStatus' }
+        - { $ref: '#/components/parameters/HeartbeatMessage' }
+      responses:
+        '200': { $ref: '#/components/responses/HeartbeatOk' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    post:
+      tags: [Heartbeat]
+      summary: Report a success (public, no authentication)
+      operationId: heartbeatPingPost
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/HeartbeatStatus' }
+        - { $ref: '#/components/parameters/HeartbeatMessage' }
+      responses:
+        '200': { $ref: '#/components/responses/HeartbeatOk' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /heartbeat/{token}/fail:
+    parameters:
+      - { $ref: '#/components/parameters/HeartbeatToken' }
+    get:
+      tags: [Heartbeat]
+      summary: Report a failure (public, no authentication)
+      operationId: heartbeatFailGet
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/HeartbeatMessage' }
+      responses:
+        '200': { $ref: '#/components/responses/HeartbeatOk' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    post:
+      tags: [Heartbeat]
+      summary: Report a failure (public, no authentication)
+      operationId: heartbeatFailPost
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/HeartbeatMessage' }
+      responses:
+        '200': { $ref: '#/components/responses/HeartbeatOk' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Personal API token (phr_ + 40 characters), created in Settings → API tokens.
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: integer } }
+    Page: { name: page, in: query, schema: { type: integer, minimum: 1 } }
+    PerPage: { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 25 } }
+    HeartbeatToken:
+      name: token
+      in: path
+      required: true
+      description: Secret 40-character token of the heartbeat check.
+      schema: { type: string, minLength: 40, maxLength: 40 }
+    HeartbeatStatus:
+      name: status
+      in: query
+      description: '`fail` reports a failure instead of a success.'
+      schema: { type: string, enum: [fail] }
+    HeartbeatMessage:
+      name: msg
+      in: query
+      description: Error text shown in Phare on failure (max 200 characters).
+      schema: { type: string, maxLength: 200 }
+  responses:
+    HeartbeatOk:
+      description: Acknowledged (also returned, and ignored, for a paused check)
+      content:
+        text/plain:
+          schema: { type: string, const: ok }
+    Unauthenticated:
+      description: Missing, invalid, expired or revoked token (identical answers)
+      headers:
+        WWW-Authenticate: { schema: { type: string, const: Bearer } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Token ability or user role not sufficient
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Unknown resource (or unknown heartbeat token)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    TooManyRequests:
+      description: Rate limit exceeded (120/min per token; heartbeat 120/min per IP)
+      headers:
+        Retry-After: { schema: { type: integer }, description: 'Seconds before retrying' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Error'
+              - type: object
+                required: [errors]
+                properties:
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items: { type: string }
+  schemas:
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    Paginated:
+      type: object
+      properties:
+        links:
+          type: object
+          properties:
+            first: { type: [string, 'null'] }
+            last: { type: [string, 'null'] }
+            prev: { type: [string, 'null'] }
+            next: { type: [string, 'null'] }
+        meta:
+          type: object
+          properties:
+            current_page: { type: integer }
+            from: { type: [integer, 'null'] }
+            last_page: { type: integer }
+            path: { type: string }
+            per_page: { type: integer }
+            to: { type: [integer, 'null'] }
+            total: { type: integer }
+    Me:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [admin, tech, viewer] }
+        token:
+          type: object
+          properties:
+            name: { type: string }
+            abilities:
+              type: array
+              items: { type: string, enum: [read, write] }
+            expires_at: { type: [string, 'null'], format: date-time }
+    CheckType:
+      type: string
+      enum: [http, tcp, icmp, dns, agent, heartbeat]
+    CheckCategory:
+      type: string
+      enum: [website, server, mail, dns, network, other]
+    CheckStatusValue:
+      type: string
+      enum: [unknown, up, down]
+    CheckConfig:
+      type: object
+      properties:
+        keyword: { type: [string, 'null'], maxLength: 255 }
+        expected_status: { type: [integer, 'null'], minimum: 100, maximum: 599 }
+        grace_sec: { type: [integer, 'null'], minimum: 0, maximum: 2592000, description: 'Heartbeat tolerance after interval_sec (default: 10% of the interval, 60 s minimum)' }
+    CheckFields:
+      type: object
+      properties:
+        name: { type: string, maxLength: 255 }
+        type: { $ref: '#/components/schemas/CheckType' }
+        target: { type: [string, 'null'], maxLength: 500, description: Required except for agent and heartbeat }
+        group_id: { type: [integer, 'null'] }
+        host_id: { type: [integer, 'null'], description: Required for agent }
+        interval_sec: { type: integer, minimum: 30, maximum: 86400, description: Up to 2592000 for heartbeat }
+        timeout_sec: { type: integer, minimum: 1, maximum: 60 }
+        failure_threshold: { type: integer, minimum: 1, maximum: 10 }
+        config: { oneOf: [{ $ref: '#/components/schemas/CheckConfig' }, { type: 'null' }] }
+        category: { $ref: '#/components/schemas/CheckCategory' }
+        tags:
+          type: [array, 'null']
+          maxItems: 20
+          items: { type: string, maxLength: 50 }
+        enabled: { type: boolean }
+        execution: { type: string, enum: [hub, probe] }
+        quorum: { type: string, enum: [any, majority, all] }
+    CheckInput:
+      allOf:
+        - $ref: '#/components/schemas/CheckFields'
+        - type: object
+          required: [name, type]
+    CheckPatch:
+      $ref: '#/components/schemas/CheckFields'
+    Check:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/CheckType' }
+        category: { $ref: '#/components/schemas/CheckCategory' }
+        target: { type: string }
+        group_id: { type: [integer, 'null'] }
+        host_id: { type: [integer, 'null'] }
+        tags: { type: array, items: { type: string } }
+        interval_sec: { type: integer }
+        timeout_sec: { type: integer }
+        failure_threshold: { type: integer }
+        config: { oneOf: [{ $ref: '#/components/schemas/CheckConfig' }, { type: 'null' }] }
+        enabled: { type: boolean }
+        execution: { type: string, enum: [hub, probe] }
+        quorum: { type: string, enum: [any, majority, all] }
+        status: { $ref: '#/components/schemas/CheckStatusValue' }
+        since_at: { type: [string, 'null'], format: date-time }
+        heartbeat_url:
+          type: [string, 'null']
+          description: Heartbeat checks only, and only returned to admin / tech users (contains the secret ping token).
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    CheckEnvelope:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/Check' }
+    CheckStatus:
+      type: object
+      properties:
+        check_id: { type: integer }
+        status: { $ref: '#/components/schemas/CheckStatusValue' }
+        since_at: { type: [string, 'null'], format: date-time }
+        last_checked_at: { type: [string, 'null'], format: date-time }
+        last_ping_at: { type: [string, 'null'], format: date-time, description: Heartbeat checks only }
+        latency_ms: { type: [integer, 'null'] }
+        last_error: { type: [string, 'null'] }
+        consecutive_failures: { type: integer }
+    GroupFields:
+      type: object
+      properties:
+        name: { type: string, maxLength: 255 }
+        parent_id: { type: [integer, 'null'] }
+        color: { type: [string, 'null'], pattern: '^#[0-9A-Fa-f]{6}$' }
+        layout: { type: string, enum: [list, grid, compact] }
+        collapsed: { type: boolean }
+        position: { type: integer, minimum: 0, maximum: 100000 }
+    GroupInput:
+      allOf:
+        - $ref: '#/components/schemas/GroupFields'
+        - type: object
+          required: [name]
+    GroupPatch:
+      $ref: '#/components/schemas/GroupFields'
+    Group:
+      type: object
+      properties:
+        id: { type: integer }
+        parent_id: { type: [integer, 'null'] }
+        name: { type: string }
+        color: { type: [string, 'null'] }
+        layout: { type: string, enum: [list, grid, compact] }
+        collapsed: { type: boolean }
+        position: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    GroupEnvelope:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/Group' }
+    Host:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        group_id: { type: [integer, 'null'] }
+        tags: { type: array, items: { type: string } }
+        enrolled: { type: boolean }
+        online: { type: boolean }
+        last_seen_at: { type: [string, 'null'], format: date-time }
+        agent_version: { type: [string, 'null'] }
+        os: { type: [string, 'null'] }

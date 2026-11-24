@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest an idea or an improvement
+labels: ["needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Phare must stay usable by someone who knows nothing about IT. Tell us about the problem first; the solution can come after.
+        Want to add a notification channel? See `docs/contributing/notification-adapters.md` and use the `adapter` label.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the situation and why it is hard today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to see?
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Can you help?
+      options:
+        - label: I would be willing to send a pull request

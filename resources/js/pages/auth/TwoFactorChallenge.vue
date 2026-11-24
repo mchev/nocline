@@ -1,35 +1,40 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import { computed, ref, watchEffect } from 'vue';
-import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Form, Head, setLayoutProps } from "@inertiajs/vue3";
+import { computed, ref, watchEffect } from "vue";
+import InputError from "@/components/InputError.vue";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     InputOTP,
     InputOTPGroup,
     InputOTPSlot,
-} from '@/components/ui/input-otp';
-import { store } from '@/routes/two-factor/login';
-import type { TwoFactorConfigContent } from '@/types';
+} from "@/components/ui/input-otp";
+import { store } from "@/routes/two-factor/login";
+import { t } from "@/lib/i18n";
+import type { TwoFactorConfigContent } from "@/types";
 
 const showRecoveryInput = ref<boolean>(false);
-const code = ref<string>('');
+const code = ref<string>("");
 
 const authConfigContent = computed<TwoFactorConfigContent>(() => {
     if (showRecoveryInput.value) {
         return {
-            title: 'Recovery code',
+            title: t("Recovery code"),
             description:
-                'Please confirm access to your account by entering one of your emergency recovery codes.',
-            buttonText: 'login using an authentication code',
+                t(
+                "Please confirm access to your account by entering one of your emergency recovery codes.",
+            ),
+            buttonText: t("login using an authentication code"),
         };
     }
 
     return {
-        title: 'Authentication code',
+        title: t("Authentication code"),
         description:
-            'Enter the authentication code provided by your authenticator application.',
-        buttonText: 'login using a recovery code',
+            t(
+            "Enter the authentication code provided by your authenticator application.",
+        ),
+        buttonText: t("login using a recovery code"),
     };
 });
 
@@ -43,12 +48,12 @@ watchEffect(() => {
 const toggleRecoveryMode = (clearErrors: () => void): void => {
     showRecoveryInput.value = !showRecoveryInput.value;
     clearErrors();
-    code.value = '';
+    code.value = "";
 };
 </script>
 
 <template>
-    <Head title="Two-factor authentication" />
+    <Head :title="$t('Two-factor authentication')" />
 
     <div class="space-y-6">
         <template v-if="!showRecoveryInput">
@@ -60,9 +65,10 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                 #default="{ errors, processing, clearErrors }"
             >
                 <input type="hidden" name="code" :value="code" />
-                <div
-                    class="flex flex-col items-center justify-center space-y-3 text-center"
-                >
+                <div class="field-stack items-center text-center">
+                    <label for="otp" class="field-label sr-only">{{
+                        $t('Authentication code')
+                    }}</label>
                     <div class="flex w-full items-center justify-center">
                         <InputOTP
                             id="otp"
@@ -83,10 +89,10 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                     <InputError :message="errors.code" />
                 </div>
                 <Button type="submit" class="w-full" :disabled="processing"
-                    >Continue</Button
+                    >{{ $t('Continue') }}</Button
                 >
                 <div class="text-center text-sm text-muted-foreground">
-                    <span>or you can </span>
+                    <span>{{ $t('or you can') }} </span>
                     <button
                         type="button"
                         class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
@@ -105,20 +111,27 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                 reset-on-error
                 #default="{ errors, processing, clearErrors }"
             >
-                <Input
-                    name="recovery_code"
-                    type="text"
-                    placeholder="Enter recovery code"
-                    v-focus
-                    required
-                />
-                <InputError :message="errors.recovery_code" />
+                <div class="field-stack">
+                    <label for="recovery_code" class="field-label">{{
+                        $t('Recovery code')
+                    }}</label>
+                    <Input
+                        id="recovery_code"
+                        name="recovery_code"
+                        type="text"
+                        :placeholder="$t('Enter recovery code')"
+                        v-focus
+                        required
+                        autocomplete="one-time-code"
+                    />
+                    <InputError :message="errors.recovery_code" />
+                </div>
                 <Button type="submit" class="w-full" :disabled="processing"
-                    >Continue</Button
+                    >{{ $t('Continue') }}</Button
                 >
 
                 <div class="text-center text-sm text-muted-foreground">
-                    <span>or you can </span>
+                    <span>{{ $t('or you can') }} </span>
                     <button
                         type="button"
                         class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"

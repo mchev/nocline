@@ -1,49 +1,48 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { home } from '@/routes';
 
 defineProps<{
     title?: string;
     description?: string;
 }>();
+
+const name = usePage().props.name;
 </script>
 
 <template>
-    <div
-        class="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10"
-    >
-        <div class="flex w-full max-w-md flex-col gap-6">
+    <div class="flex min-h-svh flex-col justify-center px-6 py-10 md:px-12">
+        <div class="w-full max-w-sm space-y-6">
             <Link
                 :href="home()"
-                class="flex items-center gap-2 self-center font-medium"
+                class="flex w-fit items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
-                <div class="flex h-9 w-9 items-center justify-center">
-                    <AppLogoIcon
-                        class="size-9 fill-current text-black dark:text-white"
-                    />
-                </div>
+                <span
+                    class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground"
+                >
+                    <AppLogoIcon class="size-4 fill-current" />
+                </span>
+                <span class="font-display text-lg font-semibold tracking-tight">{{
+                    name
+                }}</span>
             </Link>
 
-            <div class="flex flex-col gap-6">
-                <Card class="rounded-xl">
-                    <CardHeader class="px-10 pt-8 pb-0 text-center">
-                        <CardTitle class="text-xl">{{ title }}</CardTitle>
-                        <CardDescription>
-                            {{ description }}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent class="px-10 py-8">
-                        <slot />
-                    </CardContent>
-                </Card>
+            <div class="space-y-6">
+                <header v-if="title" class="space-y-1.5">
+                    <h1
+                        class="font-display text-2xl font-semibold tracking-tight text-balance"
+                    >
+                        {{ $t(title) }}
+                    </h1>
+                    <p
+                        v-if="description"
+                        class="text-sm text-pretty text-muted-foreground"
+                    >
+                        {{ $t(description) }}
+                    </p>
+                </header>
+                <slot />
             </div>
         </div>
     </div>

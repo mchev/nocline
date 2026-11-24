@@ -31,6 +31,7 @@ declare module 'vue' {
     }
 
     interface ComponentCustomProperties {
+        $t: typeof import('@/lib/i18n').t;
         $inertia: typeof Router;
         $page: Page;
         $headManager: ReturnType<typeof createHeadManager>;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
+import { Activity, BellRing, ShieldCheck } from '@lucide/vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { home } from '@/routes';
 
@@ -10,38 +11,90 @@ defineProps<{
     title?: string;
     description?: string;
 }>();
+
+const points = [
+    { icon: Activity, text: 'Know when a site or server goes down' },
+    { icon: BellRing, text: 'Get warned before certificates expire' },
+    { icon: ShieldCheck, text: 'Self-hosted: your data stays with you' },
+];
 </script>
 
 <template>
-    <div
-        class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0"
-    >
-        <div
-            class="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r"
+    <div class="grid min-h-svh bg-background lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
+        <aside
+            class="relative hidden flex-col justify-between border-r bg-card p-8 lg:flex xl:p-10"
         >
-            <div class="absolute inset-0 bg-zinc-900" />
             <Link
                 :href="home()"
-                class="relative z-20 flex items-center text-lg font-medium"
+                class="relative flex w-fit items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
-                <AppLogoIcon class="mr-2 size-8 fill-current text-white" />
-                {{ name }}
+                <span
+                    class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground"
+                >
+                    <AppLogoIcon class="size-5 fill-current" />
+                </span>
+                <span class="font-display text-lg font-semibold tracking-tight">{{
+                    name
+                }}</span>
             </Link>
-        </div>
-        <div class="lg:p-8">
-            <div
-                class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
-            >
-                <div class="flex flex-col space-y-2 text-center">
-                    <h1 class="text-xl font-medium tracking-tight" v-if="title">
-                        {{ title }}
+
+            <div class="relative space-y-6">
+                <p
+                    class="font-display text-3xl leading-tight font-semibold tracking-tight text-balance xl:text-4xl"
+                >
+                    {{ $t('Keep watch, so you can sleep.') }}
+                </p>
+                <ul class="space-y-3 text-sm text-muted-foreground">
+                    <li
+                        v-for="p in points"
+                        :key="p.text"
+                        class="flex items-start gap-2.5"
+                    >
+                        <component
+                            :is="p.icon"
+                            class="mt-0.5 size-4 shrink-0 text-primary"
+                            aria-hidden="true"
+                        />
+                        {{ $t(p.text) }}
+                    </li>
+                </ul>
+            </div>
+
+            <p class="relative text-xs text-muted-foreground">{{ name }}</p>
+        </aside>
+
+        <main class="flex flex-col justify-center px-6 py-10 md:px-12 lg:px-16">
+            <div class="w-full max-w-sm space-y-7">
+                <Link
+                    :href="home()"
+                    class="flex items-center gap-2 lg:hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                    <span
+                        class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground"
+                    >
+                        <AppLogoIcon class="size-4 fill-current" />
+                    </span>
+                    <span class="font-display text-lg font-semibold tracking-tight">{{
+                        name
+                    }}</span>
+                </Link>
+
+                <header v-if="title" class="space-y-1.5">
+                    <h1
+                        class="font-display text-2xl font-semibold tracking-tight text-balance md:text-3xl"
+                    >
+                        {{ $t(title) }}
                     </h1>
-                    <p class="text-sm text-muted-foreground" v-if="description">
-                        {{ description }}
+                    <p
+                        v-if="description"
+                        class="text-sm text-pretty text-muted-foreground"
+                    >
+                        {{ $t(description) }}
                     </p>
-                </div>
+                </header>
+
                 <slot />
             </div>
-        </div>
+        </main>
     </div>
 </template>

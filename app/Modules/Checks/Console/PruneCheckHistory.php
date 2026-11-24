@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Modules\Checks\Console;
+
+use App\Modules\Alertes\Models\AlertDelivery;
+use App\Modules\Checks\Models\CheckEvent;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
+use Illuminate\Console\Command;
+
+#[Signature('phare:checks:prune {--event-days=400} {--delivery-days=180}')]
+#[Description('Purge old check events and alert deliveries (storage stays bounded)')]
+class PruneCheckHistory extends Command
+{
+    public function handle(): int
+    {
+        $events = CheckEvent::query()->where('at', '<', now()->subDays((int) $this->option('event-days')))->delete();
+        $deliveries = AlertDelivery::query()->where('created_at', '<', now()->subDays((int) $this->option('delivery-days')))->delete();
+
+        $this->components->info("{$events} event(s), {$deliveries} delivery record(s) deleted");
+
+        return self::SUCCESS;
+    }
+}

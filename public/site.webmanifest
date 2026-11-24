@@ -1,0 +1,23 @@
+{
+    "name": "phare.",
+    "short_name": "phare",
+    "description": "Self-hosted NOC : checks, métriques, incidents, wallboard.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#F7F6F2",
+    "theme_color": "#F4512A",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

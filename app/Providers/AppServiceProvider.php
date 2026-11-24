@@ -2,9 +2,22 @@
 
 namespace App\Providers;
 
+use App\Modules\Alertes\Listeners\SendIncidentAlerts;
+use App\Modules\Audit\Listeners\RecordAuthActivity;
+use App\Modules\Audit\Observers\AuditObserver;
+use App\Modules\Checks\Events\CheckCreated;
+use App\Modules\Checks\Events\CheckRecovered;
+use App\Modules\Checks\Events\CheckWentDown;
+use App\Modules\Incidents\Events\IncidentOpened;
+use App\Modules\Incidents\Events\IncidentResolved;
+use App\Modules\Incidents\Listeners\OpenIncidentOnCheckDown;
+use App\Modules\Incidents\Listeners\ResolveIncidentOnCheckRecovered;
+use App\Modules\Renewals\Services\RenewalSync;
+use App\Modules\Setup\Services\InstallState;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -15,7 +28,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Before the first setup there may be no database: keep the wizard DB-free.
+        if (! app()->runningInConsole() && ! app(InstallState::class)->isInstalled()) {
+            config([
+                'session.driver' => 'file',
+                'cache.default' => 'file',
+                'queue.default' => 'sync',
+            ]);
+        }
     }
 
     /**
@@ -24,6 +44,20 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->registerModuleListeners();
+    }
+
+    /**
+     * Wire modules together through events only.
+     */
+    protected function registerModuleListeners(): void
+    {
+        Event::listen(CheckWentDown::class, OpenIncidentOnCheckDown::class);
+        Event::listen(CheckRecovered::class, ResolveIncidentOnCheckRecovered::class);
+        Event::listen(CheckCreated::class, fn (CheckCreated $event) => RenewalSync::forCheck($event->check));
+        Event::listen([IncidentOpened::class, IncidentResolved::class], SendIncidentAlerts::class);
+        Event::subscribe(RecordAuthActivity::class);
+        AuditObserver::register();
     }
 
     /**

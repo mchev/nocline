@@ -1,4 +1,5 @@
 export type User = {
+    role: 'admin' | 'tech' | 'viewer';
     id: number;
     name: string;
     email: string;

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability (private)
+    url: https://github.com/mchev/phare/security/policy
+    about: Please do not open a public issue for security problems. Follow SECURITY.md.
+  - name: Documentation
+    url: https://github.com/mchev/phare/blob/main/docs/index.md
+    about: Installation, usage and deployment guides.

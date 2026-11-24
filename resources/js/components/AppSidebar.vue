@@ -1,46 +1,112 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import {
+    Activity,
+    BellRing,
+    CalendarClock,
+    FolderTree,
+    Globe,
+    KeyRound,
+    LayoutGrid,
+    Plus,
+    Radar,
+    Server,
+    Siren,
+    Tv,
+    Wrench,
+} from '@lucide/vue';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
-import NavFooter from '@/components/NavFooter.vue';
-import NavMain from '@/components/NavMain.vue';
+import NavMain, { type NavSection } from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
+    SidebarGroup,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { t } from '@/lib/i18n';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import { index as channelsIndex } from '@/routes/alertes/channels';
+import { index as checksIndex } from '@/routes/checks';
+import { index as coffreIndex } from '@/routes/coffre';
+import { index as groupsIndex } from '@/routes/groups';
+import { index as hostsIndex } from '@/routes/hosts';
+import { index as incidentsIndex } from '@/routes/incidents';
+import { index as maintenanceIndex } from '@/routes/maintenance';
+import { index as probesIndex } from '@/routes/probes';
+import { index as renewalsIndex } from '@/routes/renewals';
+import { index as statusPagesIndex } from '@/routes/status-pages';
+import { index as wallboardsIndex } from '@/routes/wallboards';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
+const page = usePage();
+const role = computed(() => page.props.auth.user.role);
+const canManage = computed(() => role.value !== 'viewer');
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
+const navSections = computed<NavSection[]>(() => {
+    const sections: NavSection[] = [
+        {
+            items: [
+                { title: t('Dashboard'), href: dashboard(), icon: LayoutGrid },
+                { title: t('Monitors'), href: checksIndex(), icon: Activity },
+                { title: t('Servers'), href: hostsIndex(), icon: Server },
+                { title: t('Incidents'), href: incidentsIndex(), icon: Siren },
+                {
+                    title: t('Renewals'),
+                    href: renewalsIndex(),
+                    icon: CalendarClock,
+                },
+            ],
+        },
+        {
+            title: t('Share'),
+            items: [
+                { title: t('Alerts'), href: channelsIndex(), icon: BellRing },
+                {
+                    title: t('Status pages'),
+                    href: statusPagesIndex(),
+                    icon: Globe,
+                },
+                {
+                    title: t('Wallboards'),
+                    href: wallboardsIndex(),
+                    icon: Tv,
+                },
+            ],
+        },
+        {
+            title: t('More'),
+            items: [
+                { title: t('Groups'), href: groupsIndex(), icon: FolderTree },
+                {
+                    title: t('Maintenance'),
+                    href: maintenanceIndex(),
+                    icon: Wrench,
+                },
+                { title: t('Probes'), href: probesIndex(), icon: Radar },
+                ...(canManage.value
+                    ? [
+                          {
+                              title: t('Vault'),
+                              href: coffreIndex(),
+                              icon: KeyRound,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+    ];
+
+    return sections;
+});
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon" variant="sidebar">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -54,11 +120,26 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <SidebarGroup v-if="canManage" class="pb-0">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            as-child
+                            class="justify-center bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                            :tooltip="t('Add a monitor')"
+                        >
+                            <Link href="/monitor/new">
+                                <Plus />
+                                <span>{{ t('Add a monitor') }}</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarGroup>
+            <NavMain :sections="navSections" />
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
             <NavUser />
         </SidebarFooter>
     </Sidebar>

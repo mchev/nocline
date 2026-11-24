@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Modules\Updates\Services\ReleaseChecker;
+use App\Support\Locales;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,6 +43,14 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'version' => config('phare.version'),
+            'update' => fn () => $request->user()?->isAdmin() ? app(ReleaseChecker::class)->available() : null,
+            'wallboardUrl' => fn () => $request->session()->get('wallboard_url'),
+            'enrollment' => fn () => $request->session()->get('enrollment'),
+            'kumaImport' => fn () => $request->session()->get('kuma_import'),
+            'locale' => fn () => app()->getLocale(),
+            'locales' => fn () => Locales::available(),
+            'translations' => fn () => Locales::translations(app()->getLocale()),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

@@ -10,23 +10,26 @@ export type UseAppearanceReturn = {
     updateAppearance: (value: Appearance) => void;
 };
 
+function applyResolvedTheme(isDark: boolean): void {
+    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+}
+
 export function updateTheme(value: Appearance): void {
     if (typeof window === 'undefined') {
         return;
     }
 
     if (value === 'system') {
-        const mediaQueryList = window.matchMedia(
+        const systemTheme = window.matchMedia(
             '(prefers-color-scheme: dark)',
-        );
-        const systemTheme = mediaQueryList.matches ? 'dark' : 'light';
+        ).matches
+            ? 'dark'
+            : 'light';
 
-        document.documentElement.classList.toggle(
-            'dark',
-            systemTheme === 'dark',
-        );
+        applyResolvedTheme(systemTheme === 'dark');
     } else {
-        document.documentElement.classList.toggle('dark', value === 'dark');
+        applyResolvedTheme(value === 'dark');
     }
 }
 

@@ -1,13 +1,16 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "phare/phare",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Phare — self-hosted NOC (checks, probes, metrics, incidents, wallboard).",
     "keywords": [
         "laravel",
-        "framework"
+        "monitoring",
+        "uptime",
+        "inertia",
+        "self-hosted"
     ],
-    "license": "MIT",
+    "license": "proprietary",
     "require": {
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^3.0",

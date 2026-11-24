@@ -1,0 +1,32 @@
+{
+    "name": "phare/laravel",
+    "description": "Phare client for Laravel: ping your Phare hub from the scheduler and from jobs (heartbeat / dead man's switch monitoring).",
+    "type": "library",
+    "keywords": ["laravel", "phare", "heartbeat", "cron", "monitoring", "scheduler"],
+    "require": {
+        "php": "^8.2",
+        "illuminate/console": "^11.0|^12.0|^13.0",
+        "illuminate/http": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^11.0|^12.0|^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phare\\Laravel\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Phare\\Laravel\\PhareServiceProvider"
+            ],
+            "aliases": {
+                "Phare": "Phare\\Laravel\\Facades\\Phare"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

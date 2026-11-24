@@ -1,71 +1,50 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import Heading from '@/components/Heading.vue';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { KeyRound, Palette, ShieldCheck, User } from '@lucide/vue';
+import PageContainer from '@/components/ui-kit/PageContainer.vue';
+import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
+import { index as apiTokens } from '@/routes/api-tokens';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
-import type { NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Profile',
-        href: editProfile(),
-    },
-    {
-        title: 'Security',
-        href: editSecurity(),
-    },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
-    },
+const sidebarNavItems = [
+    { title: 'Profile', href: editProfile(), icon: User },
+    { title: 'Security', href: editSecurity(), icon: ShieldCheck },
+    { title: 'Appearance', href: editAppearance(), icon: Palette },
+    { title: 'API tokens', href: apiTokens(), icon: KeyRound },
 ];
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="px-4 py-6">
-        <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
+    <PageContainer size="narrow">
+        <PageHeader
+            :title="$t('Settings')"
+            :description="$t('Manage your profile and account settings')"
         />
 
-        <div class="flex flex-col lg:flex-row lg:space-x-12">
-            <aside class="w-full max-w-xl lg:w-48">
-                <nav
-                    class="flex flex-col space-y-1 space-x-0"
-                    aria-label="Settings"
-                >
-                    <Button
-                        v-for="item in sidebarNavItems"
-                        :key="toUrl(item.href)"
-                        variant="ghost"
-                        :class="[
-                            'w-full justify-start',
-                            { 'bg-muted': isCurrentOrParentUrl(item.href) },
-                        ]"
-                        as-child
-                    >
-                        <Link :href="item.href">
-                            <component :is="item.icon" class="h-4 w-4" />
-                            {{ item.title }}
-                        </Link>
-                    </Button>
-                </nav>
-            </aside>
+        <nav
+            class="-mx-1 flex gap-1 overflow-x-auto px-1 py-1"
+            :aria-label="$t('Settings')"
+        >
+            <Link
+                v-for="item in sidebarNavItems"
+                :key="toUrl(item.href)"
+                :href="item.href"
+                :aria-current="isCurrentOrParentUrl(item.href) ? 'page' : undefined"
+                class="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-transparent px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aria-[current=page]:border-border aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
+            >
+                <component :is="item.icon" class="size-4" aria-hidden="true" />
+                {{ $t(item.title) }}
+            </Link>
+        </nav>
 
-            <Separator class="my-6 lg:hidden" />
-
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
-                    <slot />
-                </section>
-            </div>
+        <div class="flex flex-col gap-6">
+            <slot />
         </div>
-    </div>
+    </PageContainer>
 </template>

@@ -1,0 +1,57 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Security problem? Do not use this form: see [SECURITY.md](../blob/main/SECURITY.md).
+        Maintainers add labels such as `good first issue`, `help wanted`, `translation` and `adapter`.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead? Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Phare version
+      description: Shown in the footer, or in the VERSION file.
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Where does it happen?
+      options:
+        - Hub (web interface)
+        - Agent (phare-agent)
+        - Probe
+        - Notification channel (adapter)
+        - Installation / update
+        - Documentation / translation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, PHP version, database (SQLite / MySQL / PostgreSQL), browser.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant lines from `storage/logs/laravel.log` or the agent. Remove tokens, passwords and URLs you want to keep private.
+      render: text
