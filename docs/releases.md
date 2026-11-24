@@ -11,11 +11,11 @@ Repo officiel des binaires agent : **`mchev/phare`** (`PHARE_OFFICIAL_REPOSITORY
 
 ## Numérotation
 
-| Élément | Format | Exemple |
-|---------|--------|---------|
-| Fichier `VERSION` | `X.Y.Z` (sans préfixe `v`) | `0.1.0` |
-| Tag git / release GitHub | `vX.Y.Z` | `v0.1.0` |
-| Assets agent | `phare-agent-linux-amd64`, `phare-agent-linux-arm64` | sur la release du tag |
+| Élément                  | Format                                               | Exemple               |
+| ------------------------ | ---------------------------------------------------- | --------------------- |
+| Fichier `VERSION`        | `X.Y.Z` (sans préfixe `v`)                           | `0.1.0`               |
+| Tag git / release GitHub | `vX.Y.Z`                                             | `v0.1.0`              |
+| Assets agent             | `phare-agent-linux-amd64`, `phare-agent-linux-arm64` | sur la release du tag |
 
 Le workflow release vérifie que `v$(cat VERSION)` == tag poussé.
 
@@ -54,10 +54,10 @@ Workflow [`.github/workflows/release.yml`](../.github/workflows/release.yml), d�
 
 ### Dépannage release sans assets
 
-| Situation | Action |
-|-----------|--------|
-| Release créée à la main, pas de binaires | **Actions** → *release* → **Run workflow** → saisir `vX.Y.Z` |
-| Secours hors CI | `scripts/publish-agent-assets.sh vX.Y.Z` (Go + `gh` en local) |
+| Situation                                | Action                                                        |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| Release créée à la main, pas de binaires | **Actions** → _release_ → **Run workflow** → saisir `vX.Y.Z`  |
+| Secours hors CI                          | `scripts/publish-agent-assets.sh vX.Y.Z` (Go + `gh` en local) |
 
 Vérification :
 
@@ -112,7 +112,7 @@ Après un tag, déployer **le commit/tag** qui contient le nouveau `VERSION`. Au
 ## Mettre à jour les **agents** sur les serveurs
 
 - L’URL de téléchargement est dérivée du **`VERSION` du hub** (pas de `latest` implicite côté installateur).
-- Après upgrade du hub, **relancer** la commande d’installation depuis l’UI (*Generate a new command* si le jeton a expiré).
+- Après upgrade du hub, **relancer** la commande d’installation depuis l’UI (_Generate a new command_ si le jeton a expiré).
 - Les serveurs doivent atteindre **`github.com`** (HTTPS) et le hub (enrôlement).
 
 L’install one-liner ne cible que **Linux amd64/arm64** (voir [agent/README.md](../agent/README.md)).

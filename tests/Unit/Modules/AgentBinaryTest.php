@@ -1,8 +1,9 @@
 <?php
 
 use App\Modules\Hosts\Services\AgentBinary;
+use Tests\TestCase;
 
-uses(Tests\TestCase::class);
+uses(TestCase::class);
 
 it('builds a versioned download url from the official repository', function () {
     config([
