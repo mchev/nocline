@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
-import { audit, index } from '@/routes/coffre';
+import { index } from '@/routes/coffre';
 
 defineProps<{
     logs: {
@@ -19,15 +19,6 @@ defineProps<{
         }[];
     };
 }>();
-
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            { title: 'Vault', href: index() },
-            { title: 'Vault audit', href: audit() },
-        ],
-    },
-});
 
 const actionChip = (action: string) => {
     if (action.includes('reveal') || action.includes('copy')) {

@@ -35,6 +35,7 @@ class MonitorCreator
         return [
             'url' => ['required', 'url:http,https', 'max:500'],
             'name' => ['nullable', 'string', 'max:255'],
+            'interval_sec' => ['nullable', 'integer', 'min:30', 'max:86400'],
             'watch_health' => ['nullable', 'boolean'],
             'framework' => ['nullable', Rule::in(SiteFramework::taggable())],
             ...self::groupRules(),
@@ -72,7 +73,7 @@ class MonitorCreator
     }
 
     /**
-     * @param  array{url: string, name?: string|null, watch_health?: bool|null, framework?: string|null, group_id?: int|null, group_name?: string|null}  $data
+     * @param  array{url: string, name?: string|null, interval_sec?: int|null, watch_health?: bool|null, framework?: string|null, group_id?: int|null, group_name?: string|null}  $data
      */
     public function website(array $data): Check
     {
@@ -85,7 +86,7 @@ class MonitorCreator
             'target' => $data['url'],
             'group_id' => $this->resolveGroup($data),
             'tags' => $this->detected->tags($data['framework'] ?? null) ?: null,
-            'interval_sec' => 60,
+            'interval_sec' => (int) ($data['interval_sec'] ?? 60),
             'timeout_sec' => 10,
             'failure_threshold' => 2,
         ]);

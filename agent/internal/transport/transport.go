@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/phare/phare/agent/internal/collect"
+	"github.com/phare/phare/agent/internal/meta"
 )
 
 const (
@@ -34,6 +35,7 @@ type Batch struct {
 	AgentVersion string           `json:"agent_version"`
 	WindowSec    int              `json:"window_sec"`
 	Metrics      []collect.Metric `json:"metrics"`
+	HostMeta     *meta.Snapshot   `json:"host_meta,omitempty"`
 }
 
 // permanentError : rejet définitif (4xx hors 401/408/429) — inutile de réessayer.

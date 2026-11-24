@@ -23,10 +23,6 @@ const props = defineProps<{
     url: string;
 }>();
 
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Add a monitor', href: '/monitor/new' }] },
-});
-
 const { stop } = usePoll(3000, { only: ['check'] }, { autoStart: true });
 
 if (props.check.pinged) {

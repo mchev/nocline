@@ -15,10 +15,6 @@ const props = defineProps<{
     install_command: string | null;
 }>();
 
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Add a monitor', href: '/monitor/new' }] },
-});
-
 const { stop } = usePoll(3000, { only: ['host'] }, { autoStart: true });
 const ready = computed(() => props.host.connected);
 const unreachable = computed(() =>

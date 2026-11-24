@@ -19,7 +19,6 @@ import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/maintenance';
 import type { GroupOption } from '@/types/groups';
 
 type Recurrence = 'none' | 'daily' | 'weekly';
@@ -43,10 +42,6 @@ const props = defineProps<{
     groups: GroupOption[];
     checks: { id: number; name: string }[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Planned maintenance', href: index() }] },
-});
 
 const canManage = computed(() => usePage().props.auth.user.role !== 'viewer');
 const select =

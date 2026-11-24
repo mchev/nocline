@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, useHttp } from '@inertiajs/vue3';
-import { CircleCheck } from '@lucide/vue';
+import { CircleCheck, CircleHelp } from '@lucide/vue';
 import { onBeforeUnmount, ref, watch } from 'vue';
 import SiteDetectionController from '@/actions/App/Modules/Checks/Http/Controllers/SiteDetectionController';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,6 +27,7 @@ const framework = defineModel<string>('framework', { default: '' });
 const http = useHttp({ url: '' });
 const loading = ref(false);
 const result = ref<Detection | null>(null);
+const fetchFailed = ref(false);
 let timer: ReturnType<typeof setTimeout> | undefined;
 let lastInspected = '';
 
@@ -36,6 +37,7 @@ function looksLikeAddress(value: string): boolean {
 
 function reset(): void {
     result.value = null;
+    fetchFailed.value = false;
     watchHealth.value = false;
     framework.value = '';
 }
@@ -53,18 +55,23 @@ async function inspect(): Promise<void> {
         return;
     }
 
-    if (address === lastInspected) {
+    if (
+        address === lastInspected &&
+        (result.value !== null || fetchFailed.value)
+    ) {
         return;
     }
 
     http.cancel();
     lastInspected = address;
     loading.value = true;
+    fetchFailed.value = false;
+    result.value = null;
     http.url = address;
 
     try {
-        const response = (await http.post(
-            SiteDetectionController.url(),
+        const response = (await http.submit(
+            SiteDetectionController.post(),
         )) as Detection;
 
         if (address !== props.url.trim()) {
@@ -78,9 +85,11 @@ async function inspect(): Promise<void> {
             (s) => s.key === 'watch_health' && s.default,
         );
     } catch {
-        // Detection is optional: stay silent and let the user carry on.
         if (address === props.url.trim()) {
-            reset();
+            result.value = null;
+            fetchFailed.value = true;
+            watchHealth.value = false;
+            framework.value = '';
         }
     } finally {
         if (address === lastInspected) {
@@ -93,6 +102,7 @@ watch(
     () => props.url,
     () => {
         clearTimeout(timer);
+        lastInspected = '';
         timer = setTimeout(inspect, 600);
     },
 );
@@ -106,11 +116,15 @@ defineExpose({ inspect });
 </script>
 
 <template>
-    <div class="min-h-24" aria-live="polite">
+    <div
+        v-if="loading || result || fetchFailed"
+        class="site-detection"
+        aria-live="polite"
+    >
         <div
             v-if="loading"
             aria-hidden="true"
-            class="grid gap-2 surface-muted p-5"
+            class="grid gap-2 surface-muted rounded-md p-4"
         >
             <Skeleton class="h-4 w-2/3" />
             <Skeleton class="h-4 w-1/2" />
@@ -118,19 +132,52 @@ defineExpose({ inspect });
         </div>
 
         <div
-            v-else-if="result?.reachable"
-            class="grid gap-4 surface-muted p-5 text-sm"
+            v-else-if="fetchFailed"
+            class="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground"
         >
-            <p class="flex items-center gap-2 font-display font-semibold">
+            {{
+                t(
+                    'We could not check this address from here. You can still add it: we will keep trying.',
+                )
+            }}
+        </div>
+
+        <div
+            v-else-if="result"
+            class="grid gap-3 surface-muted rounded-md p-4 text-sm"
+        >
+            <p class="flex items-start gap-2 font-display font-semibold">
                 <span
-                    class="grid size-8 place-items-center rounded-md bg-success/15 text-success"
+                    class="grid size-8 shrink-0 place-items-center rounded-md"
+                    :class="
+                        result.reachable
+                            ? 'bg-success/15 text-success'
+                            : 'bg-muted text-muted-foreground'
+                    "
                 >
-                    <CircleCheck class="size-4" aria-hidden="true" />
+                    <CircleCheck
+                        v-if="result.reachable"
+                        class="size-4"
+                        aria-hidden="true"
+                    />
+                    <CircleHelp v-else class="size-4" aria-hidden="true" />
                 </span>
-                {{ result.summary }}
+                <span class="min-w-0 pt-1">{{ result.summary }}</span>
             </p>
 
-            <ul v-if="result.suggestions.length" class="grid gap-3">
+            <ul
+                v-if="result.reachable && result.reasons.length"
+                class="list-inside list-disc space-y-0.5 ps-10 text-xs text-muted-foreground"
+            >
+                <li v-for="(reason, i) in result.reasons" :key="i">
+                    {{ reason }}
+                </li>
+            </ul>
+
+            <ul
+                v-if="result.suggestions.length"
+                class="grid gap-3 border-t pt-3"
+            >
                 <li v-for="s in result.suggestions" :key="s.key">
                     <label
                         v-if="s.key === 'watch_health'"
@@ -166,7 +213,7 @@ defineExpose({ inspect });
 
             <p
                 v-if="result.framework === 'laravel'"
-                class="text-muted-foreground"
+                class="border-t pt-3 text-muted-foreground"
             >
                 {{ t('Using the Laravel scheduler?') }}
                 <Link

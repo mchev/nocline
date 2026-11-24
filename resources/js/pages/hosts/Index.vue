@@ -28,7 +28,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/hosts';
 import { groupWithDescendantIds } from '@/lib/groups';
 import type { GroupOption } from '@/types/groups';
 
@@ -36,6 +35,7 @@ type Host = {
     id: number;
     name: string;
     group_id: number | null;
+    color: string | null;
     tags: string[];
     enrolled: boolean;
     online: boolean;
@@ -43,16 +43,14 @@ type Host = {
     agent_version: string | null;
     agent_outdated: boolean;
     metrics: HostMetrics;
+    public_ipv4: string | null;
+    provider_label: string | null;
 };
 
 const props = defineProps<{
     hosts: Host[];
     groups: GroupOption[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Servers', href: index() }] },
-});
 
 const page = usePage();
 const role = computed(() => page.props.auth.user.role);
@@ -338,7 +336,13 @@ const emptyMetrics = (): HostMetrics => ({
                     :metrics="h.metrics ?? emptyMetrics()"
                     :agent-version="h.agent_version"
                     :agent-outdated="h.agent_outdated"
+                    :host-id="h.id"
+                    :update-command-enabled="canManage && h.enrolled"
                     :last-seen-at="h.last_seen_at"
+                    :detail-href="HostController.show.url(h.id)"
+                    :accent-color="h.color"
+                    :public-ipv4="h.public_ipv4"
+                    :provider-label="h.provider_label"
                 >
                     <template v-if="canManage" #actions>
                         <Button
@@ -363,9 +367,9 @@ const emptyMetrics = (): HostMetrics => ({
                         <Button
                             size="icon"
                             variant="ghost"
-                            :title="t('Edit')"
-                            :aria-label="t('Edit')"
-                            @click="openEdit(h)"
+                            :title="t('Settings')"
+                            :aria-label="t('Settings')"
+                            @click="router.visit(HostController.show.url(h.id))"
                         >
                             <Pencil class="size-4" />
                         </Button>

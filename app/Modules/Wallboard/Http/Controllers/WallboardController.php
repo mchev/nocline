@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -69,6 +70,20 @@ class WallboardController extends Controller
         return Inertia::render('wallboard/Show', [
             'token' => $token,
             'name' => $wallboard->name,
+        ]);
+    }
+
+    /**
+     * Wallboard for old browsers (kiosk TVs, Chromium before v111) without oklch / Tailwind v4.
+     */
+    public function compat(string $token): View
+    {
+        $wallboard = Wallboard::findByToken($token) ?? abort(404);
+
+        return view('wallboard.compat', [
+            'token' => $token,
+            'name' => $wallboard->name,
+            'apiUrl' => route('api.wallboard', $token),
         ]);
     }
 

@@ -7,6 +7,7 @@ use App\Modules\Checks\Enums\CheckExecution;
 use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Events\CheckCreated;
 use App\Modules\Checks\Policies\CheckPolicy;
+use App\Modules\Checks\Services\SiteFaviconSync;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
 use Carbon\CarbonInterface;
@@ -29,6 +30,9 @@ use Illuminate\Support\Str;
  * @property string $name
  * @property CheckType $type
  * @property string $target
+ * @property string|null $favicon_path
+ * @property string|null $favicon_hash
+ * @property CarbonInterface|null $favicon_fetched_at
  * @property int $interval_sec
  * @property int $timeout_sec
  * @property int $failure_threshold
@@ -69,6 +73,15 @@ class Check extends Model
             $check->state()->firstOrCreate([], ['next_run_at' => now()]);
             CheckCreated::dispatch($check);
         });
+
+        static::deleted(function (Check $check): void {
+            app(SiteFaviconSync::class)->purge($check);
+        });
+    }
+
+    public function faviconUrl(): ?string
+    {
+        return $this->favicon_path !== null ? route('checks.favicon', $this) : null;
     }
 
     protected function casts(): array

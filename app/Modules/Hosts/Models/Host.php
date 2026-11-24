@@ -2,6 +2,8 @@
 
 namespace App\Modules\Hosts\Models;
 
+use App\Modules\Checks\Enums\CheckType;
+use App\Modules\Checks\Models\Check;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Concerns\HasAgentToken;
 use App\Modules\Hosts\Policies\HostPolicy;
@@ -14,6 +16,8 @@ use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -27,8 +31,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonInterface|null $last_seen_at
  * @property string|null $agent_version
  * @property string|null $os
+ * @property string|null $color
+ * @property array<string, mixed>|null $agent_meta
+ * @property CarbonInterface|null $agent_meta_at
  */
-#[Fillable(['group_id', 'name', 'tags'])]
+#[Fillable(['group_id', 'name', 'tags', 'color'])]
 #[Hidden(['enrollment_token_hash', 'api_token_hash'])]
 #[UseFactory(HostFactory::class)]
 #[UsePolicy(HostPolicy::class)]
@@ -48,9 +55,11 @@ class Host extends Model
     {
         return [
             'tags' => 'array',
+            'agent_meta' => 'array',
             'enrollment_expires_at' => 'datetime',
             'enrolled_at' => 'datetime',
             'last_seen_at' => 'datetime',
+            'agent_meta_at' => 'datetime',
         ];
     }
 
@@ -66,5 +75,23 @@ class Host extends Model
     {
         return $this->last_seen_at !== null
             && $this->last_seen_at->gt(now()->subMinutes(self::OFFLINE_AFTER_MINUTES));
+    }
+
+    /**
+     * @return HasOne<Check, $this>
+     */
+    public function agentCheck(): HasOne
+    {
+        return $this->hasOne(Check::class)->where('type', CheckType::Agent);
+    }
+
+    /**
+     * Monitors explicitly linked to this server (sites, ports, etc.), excluding the agent presence check.
+     *
+     * @return HasMany<Check, $this>
+     */
+    public function linkedChecks(): HasMany
+    {
+        return $this->hasMany(Check::class)->where('type', '!=', CheckType::Agent);
     }
 }

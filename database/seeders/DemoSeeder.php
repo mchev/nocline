@@ -361,6 +361,8 @@ class DemoSeeder extends Seeder
                 'execution' => $def['execution'] ?? CheckExecution::Hub,
             ])->save();
 
+            $check->forceFill(['created_at' => now()->subDays(30)])->saveQuietly();
+
             if (isset($def['heartbeat_key']) && $check->heartbeat_token) {
                 $this->manifest['heartbeats'][$def['heartbeat_key']] = $check->heartbeat_token;
             }

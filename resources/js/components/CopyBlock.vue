@@ -4,11 +4,16 @@ import { onBeforeUnmount, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { t } from '@/lib/i18n';
 
-const props = defineProps<{
-    text: string;
-    /** Names the copied content for screen readers (several bare "Copy" buttons are indistinguishable). */
-    label: string;
-}>();
+const props = withDefaults(
+    defineProps<{
+        text: string;
+        /** Names the copied content for screen readers (several bare "Copy" buttons are indistinguishable). */
+        label: string;
+        /** Stack copy control under the text (modals, long one-liners). */
+        stacked?: boolean;
+    }>(),
+    { stacked: false },
+);
 
 const state = ref<'idle' | 'copied' | 'failed'>('idle');
 const message = ref('');
@@ -39,12 +44,23 @@ onBeforeUnmount(() => clearTimeout(timer));
 </script>
 
 <template>
-    <div class="flex items-start gap-2 surface-muted p-3">
+    <div
+        class="surface-muted p-3"
+        :class="stacked ? 'flex flex-col gap-3' : 'flex items-start gap-2'"
+    >
         <pre
-            class="min-w-0 flex-1 overflow-x-auto text-sm select-all"
+            class="min-w-0 text-sm select-all"
+            :class="
+                stacked
+                    ? 'max-h-32 overflow-y-auto break-all whitespace-pre-wrap'
+                    : 'flex-1 overflow-x-auto'
+            "
             tabindex="0"
         ><code>{{ text }}</code></pre>
-        <span class="relative flex shrink-0 items-center gap-2">
+        <span
+            class="relative flex shrink-0 items-center gap-2"
+            :class="stacked ? 'justify-end' : ''"
+        >
             <Button
                 type="button"
                 size="icon"

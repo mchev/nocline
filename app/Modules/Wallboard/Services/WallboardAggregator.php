@@ -2,8 +2,10 @@
 
 namespace App\Modules\Wallboard\Services;
 
+use App\Modules\Checks\Enums\CheckCategory;
 use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Models\Check;
+use App\Modules\Checks\Support\WebsiteMonitorRows;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Incidents\Models\Incident;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
@@ -18,7 +20,10 @@ class WallboardAggregator
 {
     public const CACHE_TTL_SECONDS = 10;
 
-    public function __construct(private MaintenanceChecker $maintenance) {}
+    public function __construct(
+        private MaintenanceChecker $maintenance,
+        private WebsiteMonitorRows $websiteRows,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -60,6 +65,15 @@ class WallboardAggregator
         $metrics = $this->recentMetrics($hosts->pluck('id')->all());
         $checkIds = $checks->pluck('id');
 
+        $sites = Check::query()
+            ->where('enabled', true)
+            ->where('category', CheckCategory::Website)
+            ->when($groupIds, fn ($q) => $q->whereIn('group_id', $groupIds))
+            ->with('state')
+            ->orderBy('name')
+            ->limit(40)
+            ->get();
+
         return [
             'name' => $wallboard->name,
             'generated_at' => now()->toIso8601String(),
@@ -96,6 +110,7 @@ class WallboardAggregator
                     'latency_ms' => $c->state->last_latency_ms,
                     'error' => $c->state->last_error,
                 ])->values()->all(),
+            'sites' => $this->websiteRows->rows($sites),
         ];
     }
 

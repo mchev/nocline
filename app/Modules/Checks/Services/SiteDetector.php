@@ -4,7 +4,6 @@ namespace App\Modules\Checks\Services;
 
 use App\Modules\Checks\Enums\SiteFramework;
 use App\Modules\Renewals\Services\CertificateInspector;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -34,6 +33,16 @@ class SiteDetector
         private readonly HostResolver $resolver,
         private readonly CertificateInspector $certificates,
     ) {}
+
+    /**
+     * Safe HTTP GET for other detectors (e.g. site favicon).
+     *
+     * @return array{url: string, status: int, headers: array<string, array<int, string>>, body: string}|null
+     */
+    public function fetchPage(string $url, int $maxRedirects = self::MAX_REDIRECTS): ?array
+    {
+        return $this->fetch($url, $maxRedirects);
+    }
 
     public function inspect(string $url): SiteInspection
     {
@@ -133,43 +142,32 @@ class SiteDetector
      */
     private function request(string $url, array $target): ?Response
     {
-        $curl = [CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS];
+        $options = ['allow_redirects' => false];
 
         if ($target['ip'] !== null) {
-            $curl[CURLOPT_RESOLVE] = ["{$target['host']}:{$target['port']}:{$target['ip']}"];
+            $options['curl'] = [
+                CURLOPT_RESOLVE => ["{$target['host']}:{$target['port']}:{$target['ip']}"],
+            ];
         }
 
         try {
             return Http::withUserAgent('Phare-Detect/'.config('phare.version'))
                 ->timeout(self::TIMEOUT_SECONDS)
                 ->connectTimeout(self::TIMEOUT_SECONDS)
-                ->withOptions(['allow_redirects' => false, 'stream' => true, 'curl' => $curl])
+                ->withOptions($options)
                 ->get($url);
-        } catch (ConnectionException) {
+        } catch (Throwable) {
             return null;
         }
     }
 
     private function readBody(Response $response): string
     {
-        $stream = $response->toPsrResponse()->getBody();
-        $body = '';
+        $body = $response->body();
 
-        try {
-            while (! $stream->eof() && strlen($body) < self::MAX_BODY_BYTES) {
-                $chunk = $stream->read(min(8192, self::MAX_BODY_BYTES - strlen($body)));
-
-                if ($chunk === '') {
-                    break;
-                }
-
-                $body .= $chunk;
-            }
-        } catch (Throwable) {
-            // A connection dropped mid-body: what we already read is enough to look at.
-        }
-
-        return $body;
+        return strlen($body) > self::MAX_BODY_BYTES
+            ? substr($body, 0, self::MAX_BODY_BYTES)
+            : $body;
     }
 
     /**

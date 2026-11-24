@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
+import type { MetricSparklineTone } from '@/lib/hostMetricTone';
 
 const props = withDefaults(
     defineProps<{
         values: (number | null)[];
         max?: number;
-        tone?: 'default' | 'success' | 'warning' | 'danger' | 'primary';
+        tone?: MetricSparklineTone | 'success' | 'primary';
         label?: string;
     }>(),
     {
@@ -16,76 +17,144 @@ const props = withDefaults(
 );
 
 const width = 120;
-const height = 32;
-const pad = 1;
+const height = 28;
+const padX = 2;
+const padY = 3;
+const uid = useId();
+const gradId = `sparkline-fill-${uid}`;
 
-const path = computed(() => {
-    const pts = props.values
+const points = computed(() => {
+    const n = Math.max(props.values.length - 1, 1);
+    const max = props.max || 100;
+
+    return props.values
         .map((v, i) =>
             v === null || Number.isNaN(v)
                 ? null
-                : { i, v: Math.min(props.max, Math.max(0, v)) },
+                : {
+                      i,
+                      x: padX + (i / n) * (width - padX * 2),
+                      y:
+                          height -
+                          padY -
+                          (Math.min(max, Math.max(0, v)) / max) *
+                              (height - padY * 2),
+                  },
         )
-        .filter((p): p is { i: number; v: number } => p !== null);
+        .filter((p): p is { i: number; x: number; y: number } => p !== null);
+});
+
+const linePath = computed(() => {
+    const pts = points.value;
 
     if (pts.length < 2) {
         return '';
     }
 
-    const n = Math.max(props.values.length - 1, 1);
-    const max = props.max || 100;
-
     return pts
-        .map((p, idx) => {
-            const x = pad + (p.i / n) * (width - pad * 2);
-            const y = height - pad - (p.v / max) * (height - pad * 2);
-
-            return `${idx === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`;
-        })
+        .map(
+            (p, idx) =>
+                `${idx === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`,
+        )
         .join(' ');
+});
+
+const areaPath = computed(() => {
+    const pts = points.value;
+    const line = linePath.value;
+
+    if (!line || pts.length < 2) {
+        return '';
+    }
+
+    const first = pts[0];
+    const last = pts[pts.length - 1];
+    const base = height - padY;
+
+    return `${line} L ${last.x.toFixed(1)} ${base} L ${first.x.toFixed(1)} ${base} Z`;
 });
 
 const stroke = computed(
     () =>
         ({
             default: 'var(--color-muted-foreground)',
+            neutral: 'var(--color-chart-2)',
             success: 'var(--color-success)',
             warning: 'var(--color-warning)',
             danger: 'var(--color-danger)',
             primary: 'var(--color-primary)',
         })[props.tone],
 );
+
+const hasSeries = computed(() => linePath.value !== '');
 </script>
 
 <template>
-    <svg
-        class="block h-8 w-full overflow-visible"
-        :viewBox="`0 0 ${width} ${height}`"
-        preserveAspectRatio="none"
+    <div
+        class="sparkline-track relative h-7 w-full overflow-hidden rounded-sm bg-muted/35 dark:bg-muted/25"
         role="img"
         :aria-label="label || undefined"
         :aria-hidden="label ? undefined : true"
     >
-        <path
-            v-if="path"
-            :d="path"
-            fill="none"
-            :stroke="stroke"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            vector-effect="non-scaling-stroke"
-        />
-        <line
-            v-else
-            :x1="pad"
-            :x2="width - pad"
-            :y1="height / 2"
-            :y2="height / 2"
-            :stroke="stroke"
-            stroke-width="1"
-            stroke-dasharray="2 3"
-            opacity="0.4"
-        />
-    </svg>
+        <svg
+            class="absolute inset-0 h-full w-full"
+            :viewBox="`0 0 ${width} ${height}`"
+            preserveAspectRatio="none"
+        >
+            <defs>
+                <linearGradient :id="gradId" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                        offset="0%"
+                        :stop-color="stroke"
+                        stop-opacity="0.38"
+                    />
+                    <stop
+                        offset="85%"
+                        :stop-color="stroke"
+                        stop-opacity="0.06"
+                    />
+                    <stop offset="100%" :stop-color="stroke" stop-opacity="0" />
+                </linearGradient>
+            </defs>
+            <line
+                :x1="padX"
+                :x2="width - padX"
+                :y1="height - padY"
+                :y2="height - padY"
+                stroke="var(--color-border)"
+                stroke-width="1"
+                vector-effect="non-scaling-stroke"
+                opacity="0.55"
+            />
+            <path
+                v-if="areaPath"
+                :d="areaPath"
+                :fill="`url(#${gradId})`"
+                stroke="none"
+            />
+            <path
+                v-if="hasSeries"
+                :d="linePath"
+                fill="none"
+                :stroke="stroke"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                vector-effect="non-scaling-stroke"
+            />
+            <line
+                v-else
+                :x1="padX"
+                :x2="width - padX"
+                :y1="height / 2"
+                :y2="height / 2"
+                :stroke="stroke"
+                stroke-width="1.25"
+                stroke-dasharray="3 4"
+                stroke-linecap="round"
+                opacity="0.45"
+                vector-effect="non-scaling-stroke"
+            />
+        </svg>
+    </div>
 </template>

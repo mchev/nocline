@@ -9,7 +9,7 @@ import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import StatTile from '@/components/ui-kit/StatTile.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import { t } from '@/lib/i18n';
-import { index, refresh } from '@/routes/renewals';
+import { refresh } from '@/routes/renewals';
 
 type Renewal = {
     id: number;
@@ -27,10 +27,6 @@ const props = defineProps<{
     renewals: Renewal[];
     can_refresh: boolean;
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Renewals', href: index() }] },
-});
 
 const refreshing = ref(false);
 

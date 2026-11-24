@@ -10,17 +10,12 @@ import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/wallboards';
 import type { GroupOption } from '@/types/groups';
 
 defineProps<{
     wallboards: { id: number; name: string; group: string | null }[];
     groups: GroupOption[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Wallboards', href: index() }] },
-});
 
 const page = usePage();
 const isAdmin = computed(() => page.props.auth.user.role === 'admin');

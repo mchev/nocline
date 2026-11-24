@@ -10,16 +10,22 @@ use App\Modules\Checks\Http\Requests\CheckRequest;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Services\CheckStatusHistory;
 use App\Modules\Checks\Services\KumaImporter;
+use App\Modules\Checks\Support\HistoryWindow;
+use App\Modules\Checks\Support\SiteFrameworkTag;
+use App\Modules\Checks\Support\WebsiteSslStatus;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
 use App\Modules\Metrics\Services\HostMetricsReader;
+use App\Modules\Renewals\Models\Renewal;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class CheckController extends Controller
 {
@@ -42,33 +48,50 @@ class CheckController extends Controller
                 $inMaintenance = array_flip($maintenance->activeCheckIds($checks));
                 $linkedHosts = $checks->pluck('host')->filter()->unique('id')->values();
                 $series = $metrics->forHosts($linkedHosts, 24);
-                $histories = $history->forChecks($checks, $maintenance);
+                $histories = $history->forChecks($checks, $maintenance, null, HistoryWindow::dashboard());
+                $sslRenewals = Renewal::query()
+                    ->where('kind', 'ssl')
+                    ->whereIn('check_id', $checks->pluck('id'))
+                    ->get()
+                    ->keyBy('check_id');
 
-                return $checks->map(fn (Check $c) => [
-                    'id' => $c->id,
-                    'name' => $c->name,
-                    'type' => $c->type->value,
-                    'category' => $c->category->value,
-                    'tags' => $c->tags ?? [],
-                    'target' => $c->target,
-                    'interval_sec' => $c->interval_sec,
-                    'timeout_sec' => $c->timeout_sec,
-                    'failure_threshold' => $c->failure_threshold,
-                    'execution' => $c->execution->value,
-                    'quorum' => $c->quorum,
-                    'enabled' => $c->enabled,
-                    'group_id' => $c->group_id,
-                    'host_id' => $c->host_id,
-                    'host_online' => $c->host?->isOnline(),
-                    'status' => $c->state?->status->value ?? 'unknown',
-                    'since_at' => $c->state?->since_at?->toIso8601String(),
-                    'latency_ms' => $c->state?->last_latency_ms,
-                    'last_error' => $c->state?->last_error,
-                    'in_maintenance' => isset($inMaintenance[$c->id]),
-                    'metrics' => $c->host_id ? ($series[$c->host_id] ?? null) : null,
-                    'history' => $histories[$c->id]['history'] ?? [],
-                    'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
-                ])->values();
+                return $checks->map(function (Check $c) use ($inMaintenance, $series, $histories, $sslRenewals) {
+                    $ssl = $sslRenewals->get($c->id);
+
+                    return [
+                        'id' => $c->id,
+                        'name' => $c->name,
+                        'type' => $c->type->value,
+                        'category' => $c->category->value,
+                        'tags' => $c->tags ?? [],
+                        'target' => $c->target,
+                        'interval_sec' => $c->interval_sec,
+                        'timeout_sec' => $c->timeout_sec,
+                        'failure_threshold' => $c->failure_threshold,
+                        'execution' => $c->execution->value,
+                        'quorum' => $c->quorum,
+                        'enabled' => $c->enabled,
+                        'group_id' => $c->group_id,
+                        'host_id' => $c->host_id,
+                        'host_name' => $c->host_id && $c->type !== CheckType::Agent ? $c->host?->name : null,
+                        'host_online' => $c->type === CheckType::Agent ? $c->host?->isOnline() : null,
+                        'status' => $c->state?->status->value ?? 'unknown',
+                        'since_at' => $c->state?->since_at?->toIso8601String(),
+                        'latency_ms' => $c->state?->last_latency_ms,
+                        'last_error' => $c->state?->last_error,
+                        'in_maintenance' => isset($inMaintenance[$c->id]),
+                        'metrics' => $c->type === CheckType::Agent && $c->host_id
+                            ? ($series[$c->host_id] ?? null)
+                            : null,
+                        'history' => $histories[$c->id]['history'] ?? [],
+                        'timeline' => $histories[$c->id]['timeline'] ?? [],
+                        'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
+                        'favicon_url' => $c->faviconUrl(),
+                        'ssl_status' => WebsiteSslStatus::forCheck($c, $ssl),
+                        'ssl_days_remaining' => $ssl !== null && $ssl->check_error === null ? $ssl->daysRemaining() : null,
+                        'site_framework' => SiteFrameworkTag::fromCheck($c)?->value,
+                    ];
+                })->values();
             }, $live),
             'groups' => Group::options(),
             'hosts' => Host::query()->orderBy('name')->get(['id', 'name']),
@@ -170,5 +193,27 @@ class CheckController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __(':count checks updated.', ['count' => $checks->count()])]);
 
         return back();
+    }
+
+    public function favicon(Check $check): BinaryFileResponse
+    {
+        $this->authorize('view', $check);
+        abort_unless($check->favicon_path !== null, 404);
+
+        $disk = Storage::disk('local');
+        abort_unless($disk->exists($check->favicon_path), 404);
+
+        $mime = match (strtolower((string) pathinfo($check->favicon_path, PATHINFO_EXTENSION))) {
+            'png' => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            default => 'image/x-icon',
+        };
+
+        return response()->file($disk->path($check->favicon_path), [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
     }
 }

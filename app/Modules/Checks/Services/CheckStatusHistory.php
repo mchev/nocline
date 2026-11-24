@@ -5,6 +5,7 @@ namespace App\Modules\Checks\Services;
 use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckEvent;
+use App\Modules\Checks\Support\HistoryWindow;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -23,19 +24,29 @@ class CheckStatusHistory
 
     /**
      * @param  Collection<int, Check>  $checks
-     * @return array<int, array{history: list<HistoryDot>, uptime_24h_pct: float|null}>
+     * @return array<int, array{
+     *     history: list<HistoryDot>,
+     *     timeline: list<array{s: HistoryDot, at: string, error: ?string}>,
+     *     uptime_24h_pct: float|null
+     * }>
      */
-    public function forChecks(Collection $checks, MaintenanceChecker $maintenance, ?CarbonInterface $now = null): array
-    {
+    public function forChecks(
+        Collection $checks,
+        MaintenanceChecker $maintenance,
+        ?CarbonInterface $now = null,
+        ?HistoryWindow $window = null,
+    ): array {
         if ($checks->isEmpty()) {
             return [];
         }
 
+        $window ??= HistoryWindow::standard();
         $checks->loadMissing('state');
 
         $now = CarbonImmutable::instance($now ?? now());
-        $windowStart = $now->subHours(self::HOURS);
-        $bucketSeconds = (int) (self::HOURS * 3600 / self::BUCKETS);
+        $windowStart = $now->subSeconds((int) round($window->hours * 3600));
+        $bucketSeconds = $window->bucketSeconds();
+        $bucketCount = $window->buckets;
         /** @var list<int> $ids */
         $ids = $checks->pluck('id')->all();
 
@@ -43,7 +54,7 @@ class CheckStatusHistory
             ->whereIn('check_id', $ids)
             ->where('at', '>=', $windowStart)
             ->orderBy('at')
-            ->get(['check_id', 'from_status', 'to_status', 'at'])
+            ->get(['check_id', 'from_status', 'to_status', 'at', 'metadata'])
             ->groupBy('check_id');
 
         $prior = CheckEvent::query()
@@ -55,7 +66,7 @@ class CheckStatusHistory
             ->map(fn (Collection $rows) => $rows->last());
 
         $maintenanceByBucket = [];
-        for ($i = 0; $i < self::BUCKETS; $i++) {
+        for ($i = 0; $i < $bucketCount; $i++) {
             $at = $windowStart->addSeconds(($i + 1) * $bucketSeconds);
             $maintenanceByBucket[$i] = array_flip($maintenance->activeCheckIds($checks, $at));
         }
@@ -69,6 +80,8 @@ class CheckStatusHistory
 
             /** @var list<HistoryDot> $dots */
             $dots = [];
+            /** @var list<array{s: HistoryDot, at: string, error: ?string}> $timeline */
+            $timeline = [];
             $observed = 0;
             $good = 0;
 
@@ -77,8 +90,9 @@ class CheckStatusHistory
             $eventCount = $events->count();
 
             $status = $this->statusAtWindowStart($check, $prior->get($check->id), $windowStart);
+            $lastError = null;
 
-            for ($i = 0; $i < self::BUCKETS; $i++) {
+            for ($i = 0; $i < $bucketCount; $i++) {
                 $bucketEnd = $windowStart->addSeconds(($i + 1) * $bucketSeconds);
 
                 while ($eventIndex < $eventCount) {
@@ -91,11 +105,36 @@ class CheckStatusHistory
                     }
 
                     $status = $event->to_status;
+
+                    if ($status === CheckStatus::Down) {
+                        $err = $event->metadata['error'] ?? null;
+                        $lastError = is_string($err) && $err !== '' ? $err : $lastError;
+                    } elseif ($status === CheckStatus::Up) {
+                        $lastError = null;
+                    }
+
                     $eventIndex++;
                 }
 
                 if ($bucketEnd <= $createdAt) {
-                    $dots[] = 'unknown';
+                    if ($window->imputePreCreation) {
+                        $dot = $this->historyDotFromStatus(
+                            $check->state->status ?? CheckStatus::Unknown,
+                        );
+                        $dots[] = $dot;
+                        $timeline[] = [
+                            's' => $dot,
+                            'at' => $bucketEnd->toIso8601String(),
+                            'error' => null,
+                        ];
+                    } else {
+                        $dots[] = 'unknown';
+                        $timeline[] = [
+                            's' => 'unknown',
+                            'at' => $bucketEnd->toIso8601String(),
+                            'error' => null,
+                        ];
+                    }
 
                     continue;
                 }
@@ -104,6 +143,11 @@ class CheckStatusHistory
 
                 if (isset($maintenanceByBucket[$i][$check->id])) {
                     $dots[] = 'maintenance';
+                    $timeline[] = [
+                        's' => 'maintenance',
+                        'at' => $bucketEnd->toIso8601String(),
+                        'error' => null,
+                    ];
                     $good++;
 
                     continue;
@@ -116,6 +160,18 @@ class CheckStatusHistory
                 };
                 $dots[] = $dot;
 
+                $error = null;
+                if ($dot === 'down') {
+                    $error = $lastError ?? $check->state?->last_error;
+                    $error = is_string($error) && $error !== '' ? $error : null;
+                }
+
+                $timeline[] = [
+                    's' => $dot,
+                    'at' => $bucketEnd->toIso8601String(),
+                    'error' => $error,
+                ];
+
                 if ($dot === 'up') {
                     $good++;
                 }
@@ -127,11 +183,24 @@ class CheckStatusHistory
 
             $out[$check->id] = [
                 'history' => $dots,
+                'timeline' => $timeline,
                 'uptime_24h_pct' => $pct,
             ];
         }
 
         return $out;
+    }
+
+    /**
+     * @return HistoryDot
+     */
+    private function historyDotFromStatus(CheckStatus $status): string
+    {
+        return match ($status) {
+            CheckStatus::Up => 'up',
+            CheckStatus::Down => 'down',
+            default => 'unknown',
+        };
     }
 
     private function statusAtWindowStart(Check $check, ?CheckEvent $lastBefore, CarbonImmutable $windowStart): CheckStatus

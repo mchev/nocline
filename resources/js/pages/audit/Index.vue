@@ -33,10 +33,6 @@ const props = defineProps<{
     retention_days: number;
 }>();
 
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Activity log', href: index() }] },
-});
-
 const form = reactive({
     user_id: props.filters.user_id ?? '',
     family: props.filters.family ?? '',

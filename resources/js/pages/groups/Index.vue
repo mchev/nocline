@@ -13,16 +13,11 @@ import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import { DEFAULT_GROUP_COLOR, groupWithDescendantIds } from '@/lib/groups';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/groups';
 import type { GroupLayout, GroupOption } from '@/types/groups';
 
 const props = defineProps<{
     groups: GroupOption[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Groups', href: index() }] },
-});
 
 const role = computed(() => usePage().props.auth.user.role);
 const canManage = computed(() => role.value !== 'viewer');

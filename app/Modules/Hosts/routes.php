@@ -6,9 +6,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('hosts')->name('hosts.')->group(function () {
     Route::get('/', [HostController::class, 'index'])->name('index');
+    Route::get('{host}', [HostController::class, 'show'])->name('show');
+    Route::post('{host}/checks', [HostController::class, 'attachCheck'])->name('attach-check');
+    Route::delete('{host}/checks/{check}', [HostController::class, 'detachCheck'])->name('detach-check');
     Route::post('/', [HostController::class, 'store'])->name('store');
     Route::patch('{host}', [HostController::class, 'update'])->name('update');
     Route::post('{host}/enrollment-token', [HostController::class, 'enrollmentToken'])->name('enrollment-token');
+    Route::post('{host}/agent-update-command', [HostController::class, 'agentUpdateCommand'])->name('agent-update-command');
     Route::delete('{host}/token', [HostController::class, 'revoke'])->name('revoke');
     Route::delete('{host}', [HostController::class, 'destroy'])->name('destroy');
 });

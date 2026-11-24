@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         __DIR__.'/../app/Console/Commands',
         __DIR__.'/../app/Modules/Metrics/Console',
-        __DIR__.'/../app/Modules/Checks/Console',
+        __DIR__.'/../app/Modules/Checks/Console', // includes RefreshCheckFavicons
         __DIR__.'/../app/Modules/Setup/Console',
         __DIR__.'/../app/Modules/Renewals/Console',
         __DIR__.'/../app/Modules/Updates/Console',

@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { Globe } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import WallboardSiteRow, {
+    type WallboardSite,
+} from '@/components/wallboard/WallboardSiteRow.vue';
+import { MONITOR_HISTORY_MINUTES } from '@/lib/monitorHistory';
+import { t } from '@/lib/i18n';
 
 type Payload = {
     name: string;
@@ -34,7 +40,10 @@ type Payload = {
         latency_ms: number | null;
         error: string | null;
     }[];
+    sites?: WallboardSite[];
 };
+
+const WALLBOARD_SITE_CAP = 24;
 
 const props = defineProps<{ token: string; name: string }>();
 
@@ -91,6 +100,16 @@ const level = (v: number | null, warn: number, crit: number) =>
           : v >= warn
             ? 'text-warning'
             : 'text-success';
+const visibleSites = computed(() =>
+    (data.value?.sites ?? []).slice(0, WALLBOARD_SITE_CAP),
+);
+const hiddenSiteCount = computed(() =>
+    Math.max(
+        0,
+        (data.value?.sites?.length ?? 0) - visibleSites.value.length,
+    ),
+);
+
 const since = (iso: string | null) => {
     if (!iso) {
         return '';
@@ -238,6 +257,39 @@ const since = (iso: string | null) => {
                                 ({{ $t('ack') }})
                             </span>
                         </li>
+                    </ul>
+                </section>
+
+                <section v-if="visibleSites.length" class="space-y-3">
+                    <div
+                        class="flex flex-wrap items-end justify-between gap-2"
+                    >
+                        <h2
+                            class="flex items-center gap-2 font-display text-3xl font-semibold"
+                        >
+                            <Globe
+                                class="size-8 text-primary"
+                                aria-hidden="true"
+                            />
+                            {{ $t('Websites') }}
+                        </h2>
+                        <p class="text-lg text-muted-foreground">
+                            {{
+                                t('Last :minutes minutes', {
+                                    minutes: MONITOR_HISTORY_MINUTES,
+                                })
+                            }}
+                            <span v-if="hiddenSiteCount" class="ml-2"
+                                >+{{ hiddenSiteCount }}</span
+                            >
+                        </p>
+                    </div>
+                    <ul class="space-y-2" role="list">
+                        <WallboardSiteRow
+                            v-for="site in visibleSites"
+                            :key="site.id"
+                            :site="site"
+                        />
                     </ul>
                 </section>
 

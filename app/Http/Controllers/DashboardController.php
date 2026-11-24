@@ -10,12 +10,16 @@ use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckState;
 use App\Modules\Checks\Services\CheckStatusHistory;
+use App\Modules\Checks\Support\HistoryWindow;
+use App\Modules\Checks\Support\WebsiteMonitorRows;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Hosts\Support\HostMetaPresenter;
 use App\Modules\Incidents\Models\Incident;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
 use App\Modules\Metrics\Services\HostMetricsReader;
 use App\Modules\Probes\Models\Probe;
 use App\Modules\Renewals\Models\Renewal;
+use App\Modules\Updates\Services\ReleaseChecker;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -59,7 +63,7 @@ class DashboardController extends Controller
                 fn () => Renewal::query()->where('expires_on', '<=', now()->addDays(30))->count(),
                 $live,
             ),
-            'overview' => Inertia::live(fn () => $this->overview($maintenance, $metrics, $history), $live),
+            'overview' => Inertia::live(fn () => $this->overview($maintenance, $metrics, $history, app(ReleaseChecker::class)), $live),
         ]);
     }
 
@@ -128,7 +132,7 @@ class DashboardController extends Controller
      *     renewals: list<array<string, mixed>>
      * }
      */
-    private function overview(MaintenanceChecker $maintenance, HostMetricsReader $metrics, CheckStatusHistory $history): array
+    private function overview(MaintenanceChecker $maintenance, HostMetricsReader $metrics, CheckStatusHistory $history, ReleaseChecker $releaseChecker): array
     {
         $sites = Check::query()
             ->with('state')
@@ -136,8 +140,6 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->limit(40)
             ->get();
-        $siteMaint = array_flip($maintenance->activeCheckIds($sites));
-
         $hosts = $this->enrolledHosts();
         $series = $metrics->forHosts($hosts, 24);
 
@@ -156,26 +158,11 @@ class DashboardController extends Controller
             ->get(['id', 'label', 'kind', 'expires_on']);
 
         $tracked = $sites->concat($heartbeats)->unique('id');
-        $histories = $history->forChecks($tracked, $maintenance);
+        $histories = $history->forChecks($tracked, $maintenance, null, HistoryWindow::dashboard());
 
-        $siteRows = $sites->map(fn (Check $c) => [
-            'id' => $c->id,
-            'name' => $c->name,
-            'target' => $c->target,
-            'status' => $c->state?->status->value ?? 'unknown',
-            'latency_ms' => $c->state?->last_latency_ms,
-            'in_maintenance' => isset($siteMaint[$c->id]),
-            'enabled' => $c->enabled,
-            'history' => $histories[$c->id]['history'] ?? [],
-            'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
-        ])->sortBy([
-            fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']),
-            fn (array $row) => $row['name'],
-        ])->values()->all();
+        $siteRows = app(WebsiteMonitorRows::class)->rows($sites);
 
-        $siteRows = array_values($siteRows);
-
-        $serverRows = $hosts->map(function (Host $h) use ($series) {
+        $serverRows = $hosts->map(function (Host $h) use ($series, $releaseChecker) {
             $m = $series[$h->id] ?? [
                 'cpu' => [], 'mem' => [], 'disk' => [],
                 'cpu_now' => null, 'mem_now' => null, 'disk_now' => null,
@@ -187,7 +174,9 @@ class DashboardController extends Controller
                 'online' => $h->isOnline(),
                 'last_seen_at' => $h->last_seen_at?->toIso8601String(),
                 'agent_version' => $h->agent_version,
+                'agent_outdated' => $releaseChecker->agentIsOutdated($h->agent_version),
                 'metrics' => $m,
+                ...HostMetaPresenter::forHost($h),
             ];
         })->sortBy([
             fn (array $row) => $row['online'] ? 1 : 0,
@@ -210,6 +199,7 @@ class DashboardController extends Controller
             'enabled' => $c->enabled,
             'grace_sec' => $c->heartbeatGraceSeconds(),
             'history' => $histories[$c->id]['history'] ?? [],
+            'timeline' => $histories[$c->id]['timeline'] ?? [],
             'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
         ])->sortBy([
             fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']),
@@ -233,18 +223,6 @@ class DashboardController extends Controller
 
     private function checkProblemRank(bool $enabled, bool $inMaintenance, string $status): int
     {
-        if (! $enabled) {
-            return 4;
-        }
-
-        if ($inMaintenance) {
-            return 3;
-        }
-
-        return match ($status) {
-            CheckStatus::Down->value => 0,
-            CheckStatus::Unknown->value => 1,
-            default => 2,
-        };
+        return WebsiteMonitorRows::problemRank($enabled, $inMaintenance, $status);
     }
 }

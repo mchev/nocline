@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/api-tokens';
 
 type Token = {
     id: number;
@@ -26,10 +25,6 @@ defineProps<{
     tokens: Token[];
     new_secret: string | null;
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'API tokens', href: index() }] },
-});
 
 const select =
     'h-10 w-full rounded-md border bg-transparent px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none';

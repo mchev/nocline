@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
     BellRing,
@@ -13,15 +13,22 @@ import {
     Wrench,
 } from '@lucide/vue';
 import { computed } from 'vue';
+import MonitorIdentityBadges from '@/components/MonitorIdentityBadges.vue';
+import HostController from '@/actions/App/Modules/Hosts/Http/Controllers/HostController';
 import HostCard, { type HostMetrics } from '@/components/HostCard.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import UptimeHistoryDots from '@/components/ui-kit/UptimeHistoryDots.vue';
 import type { UptimeHistoryDot } from '@/types/checks';
-import { Button } from '@/components/ui/button';
-import { useGridFit, useListFit } from '@/composables/useFitCapacity';
+import { useListFit } from '@/composables/useFitCapacity';
+
+import {
+    MONITOR_HISTORY_MINUTES,
+    MONITOR_HISTORY_SLOTS,
+    monitorUptimeHistoryProps,
+} from '@/lib/monitorHistory';
+import { checkMonitorHref, checksFilteredHref } from '@/lib/dashboardLinks';
 import { t } from '@/lib/i18n';
-import { dashboard } from '@/routes';
 import { index as channelsIndex } from '@/routes/alertes/channels';
 import { index as checksIndex } from '@/routes/checks';
 import { index as hostsIndex } from '@/routes/hosts';
@@ -38,7 +45,16 @@ type Overview = {
         in_maintenance: boolean;
         enabled: boolean;
         history?: UptimeHistoryDot[];
+        timeline?: {
+            s: UptimeHistoryDot;
+            at: string;
+            error?: string | null;
+        }[];
         uptime_24h_pct?: number | null;
+        favicon_url?: string | null;
+        ssl_status?: 'ok' | 'warning' | 'expired' | 'error' | 'unknown' | null;
+        ssl_days_remaining?: number | null;
+        site_framework?: string | null;
     }[];
     servers: {
         id: number;
@@ -46,7 +62,10 @@ type Overview = {
         online: boolean;
         last_seen_at: string | null;
         agent_version: string | null;
+        agent_outdated?: boolean;
         metrics: HostMetrics;
+        public_ipv4?: string | null;
+        provider_label?: string | null;
     }[];
     heartbeats: {
         id: number;
@@ -57,6 +76,11 @@ type Overview = {
         enabled: boolean;
         grace_sec: number;
         history?: UptimeHistoryDot[];
+        timeline?: {
+            s: UptimeHistoryDot;
+            at: string;
+            error?: string | null;
+        }[];
         uptime_24h_pct?: number | null;
     }[];
     renewals: {
@@ -88,9 +112,11 @@ const props = defineProps<{
     overview: Overview;
 }>();
 
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Dashboard', href: dashboard() }] },
-});
+const page = usePage();
+const canManageHosts = computed(
+    () =>
+        (page.props.auth as { user: { role: string } }).user.role !== 'viewer',
+);
 
 const addUrl = (kind: string) => `/monitor/new?kind=${kind}`;
 const since = (iso: string | null) =>
@@ -168,22 +194,17 @@ const { el: renewalsEl, count: renewalsCount } = useListFit({
     itemHeight: 40,
     max: 20,
 });
-const { el: problemsEl, count: problemsCountFit } = useListFit({
-    itemHeight: 56,
+const { el: serversEl, count: serverRows } = useListFit({
+    itemHeight: 148,
+    gap: 12,
     max: 8,
     min: 1,
 });
-const {
-    el: serversEl,
-    cols: serverCols,
-    capacity: serversCapacity,
-} = useGridFit({
-    itemMinWidth: 220,
-    itemMinHeight: 148,
-    gap: 12,
-    max: 40,
-    min: 1,
-});
+
+const hasSites = computed(() => props.overview.sites.length > 0);
+const hasHeartbeats = computed(() => props.overview.heartbeats.length > 0);
+const hasRenewals = computed(() => props.overview.renewals.length > 0);
+const hasServers = computed(() => props.overview.servers.length > 0);
 
 const visibleSites = computed(() =>
     props.overview.sites.slice(0, sitesCount.value),
@@ -194,12 +215,21 @@ const visibleHeartbeats = computed(() =>
 const visibleRenewals = computed(() =>
     props.overview.renewals.slice(0, renewalsCount.value),
 );
-const visibleProblems = computed(() =>
-    props.problems.slice(0, problemsCountFit.value),
-);
+const serverSlots = computed(() => Math.max(1, serverRows.value) * 2);
+
 const visibleServers = computed(() =>
-    props.overview.servers.slice(0, serversCapacity.value),
+    props.overview.servers.slice(0, serverSlots.value),
 );
+
+const serverGridCols = computed(() => {
+    const n = visibleServers.value.length;
+
+    if (n <= 1) {
+        return 1;
+    }
+
+    return 2;
+});
 
 const hiddenSites = computed(() =>
     Math.max(0, props.overview.sites.length - visibleSites.value.length),
@@ -216,9 +246,95 @@ const hiddenRenewals = computed(() =>
 const hiddenServers = computed(() =>
     Math.max(0, props.overview.servers.length - visibleServers.value.length),
 );
-const hiddenProblems = computed(() =>
-    Math.max(0, props.problems.length - visibleProblems.value.length),
+const primaryProblem = computed(() => props.problems[0] ?? null);
+
+const problemBannerHref = computed(() =>
+    primaryProblem.value
+        ? checkMonitorHref(primaryProblem.value.id)
+        : checksFilteredHref({ status: 'down' }),
 );
+
+const healthLine = computed(() => {
+    if (isWaiting.value) {
+        return t('Waiting for the first results');
+    }
+
+    if (isHealthy.value) {
+        return t('Everything is running smoothly');
+    }
+
+    if (props.problems.length > 0) {
+        return t(':count open issue(s)', { count: props.problems.length });
+    }
+
+    return t(':count thing(s) need your attention', {
+        count: problemCount.value,
+    });
+});
+
+const historyPanelHint = computed(() =>
+    t('Last :minutes minutes', { minutes: MONITOR_HISTORY_MINUTES }),
+);
+
+const renewalsInStrip = computed(
+    () => hasRenewals.value && props.overview.renewals.length <= 4,
+);
+
+const boardBodyClass = computed(() => ({
+    'board-body--servers-tall': hasServers.value,
+    'board-body--three-panels':
+        !renewalsInStrip.value &&
+        [
+            hasSites.value,
+            hasHeartbeats.value,
+            hasRenewals.value,
+            hasServers.value,
+        ].filter(Boolean).length === 3,
+}));
+
+function rowProblemClass(
+    status: string,
+    enabled: boolean,
+    inMaintenance: boolean,
+): string {
+    if (!enabled || inMaintenance) {
+        return '';
+    }
+
+    if (status === 'down') {
+        return 'board-row--down';
+    }
+
+    if (status === 'unknown') {
+        return 'board-row--unknown';
+    }
+
+    return '';
+}
+
+function latencyClass(ms: number | null): string {
+    if (ms === null) {
+        return '';
+    }
+
+    if (ms > 1500) {
+        return 'text-warning font-semibold';
+    }
+
+    return 'text-muted-foreground font-normal';
+}
+
+const healthTone = computed(() => {
+    if (isWaiting.value) {
+        return 'text-muted-foreground';
+    }
+
+    if (isHealthy.value) {
+        return 'text-success';
+    }
+
+    return 'text-danger';
+});
 
 const starts = [
     {
@@ -289,215 +405,205 @@ const starts = [
         v-else
         class="dashboard-board flex min-h-0 flex-1 flex-col gap-3 overflow-hidden p-3 md:gap-3 md:p-4"
     >
-        <header class="board-top shrink-0 space-y-2">
-            <section
-                class="grid items-center gap-3 surface-hero p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+        <header class="board-top shrink-0">
+            <div
+                class="board-top-bar flex flex-wrap items-center gap-x-3 gap-y-2 surface px-3 py-2"
                 role="status"
                 aria-live="polite"
             >
-                <template v-if="isWaiting">
-                    <span
-                        class="grid size-9 place-items-center rounded-md bg-muted text-muted-foreground"
-                    >
-                        <Hourglass class="size-4" aria-hidden="true" />
-                    </span>
-                    <div class="min-w-0">
-                        <p class="font-display text-lg font-semibold">
-                            {{ t('Waiting for the first results') }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">
-                            {{
-                                t(
-                                    'Checks run every minute. The first results appear shortly.',
-                                )
-                            }}
-                        </p>
-                    </div>
-                </template>
-                <template v-else-if="isHealthy">
-                    <span
-                        class="grid size-9 place-items-center rounded-md bg-success/15 text-success"
-                    >
-                        <CheckCircle2 class="size-4" aria-hidden="true" />
-                    </span>
-                    <div class="min-w-0">
-                        <p class="font-display text-lg font-semibold">
-                            {{ t('Everything is running smoothly') }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">
-                            {{
-                                t(':count things are being watched.', {
-                                    count: monitors_total,
-                                })
-                            }}
-                        </p>
-                    </div>
-                    <p
-                        class="numeric text-3xl font-semibold text-success"
+                <div
+                    class="flex max-w-full min-w-0 shrink-0 items-center gap-2 sm:max-w-[14rem]"
+                >
+                    <Hourglass
+                        v-if="isWaiting"
+                        class="size-4 shrink-0 text-muted-foreground"
                         aria-hidden="true"
-                    >
-                        {{ checks.up }}
-                    </p>
-                </template>
-                <template v-else>
-                    <span
-                        class="grid size-9 place-items-center rounded-md bg-danger/15 text-danger"
-                    >
-                        <TriangleAlert class="size-4" aria-hidden="true" />
-                    </span>
-                    <div class="min-w-0">
-                        <p class="font-display text-lg font-semibold">
-                            {{
-                                t(':count thing(s) need your attention', {
-                                    count: problemCount,
-                                })
-                            }}
-                        </p>
-                    </div>
-                    <p
-                        class="numeric text-3xl font-semibold text-danger"
+                    />
+                    <CheckCircle2
+                        v-else-if="isHealthy"
+                        class="size-4 shrink-0 text-success"
                         aria-hidden="true"
+                    />
+                    <TriangleAlert
+                        v-else
+                        class="size-4 shrink-0 text-danger"
+                        aria-hidden="true"
+                    />
+                    <p
+                        class="truncate font-display text-sm font-semibold"
+                        :class="healthTone"
                     >
-                        {{ problemCount }}
+                        {{ healthLine }}
                     </p>
-                </template>
-            </section>
+                </div>
 
-            <nav
-                class="board-stats flex flex-wrap gap-2"
-                :aria-label="t('Quick stats')"
-            >
-                <Link
-                    :href="checksIndex()"
-                    class="chip gap-1.5 px-3 py-1.5 chip-success hover:opacity-90"
+                <nav
+                    class="board-stats flex min-w-0 flex-1 flex-wrap items-center gap-1.5 border-border sm:border-l sm:pl-3"
+                    :aria-label="t('Quick stats')"
                 >
-                    <CheckCircle2 class="size-3.5" aria-hidden="true" />
-                    {{ t('Working') }} · {{ checks.up }}
-                </Link>
-                <Link
-                    :href="incidentsIndex()"
-                    class="chip gap-1.5 px-3 py-1.5 hover:opacity-90"
-                    :class="incidents_open ? 'chip-danger' : 'chip-success'"
-                >
-                    <ShieldAlert class="size-3.5" aria-hidden="true" />
-                    {{ t('Incidents') }} · {{ incidents_open }}
-                </Link>
-                <Link
-                    :href="hostsIndex()"
-                    class="chip gap-1.5 px-3 py-1.5 chip-info hover:opacity-90"
-                >
-                    <Server class="size-3.5" aria-hidden="true" />
-                    {{ t('Servers') }} · {{ hosts_online }}/{{ hosts_total }}
-                </Link>
-                <Link
-                    :href="renewalsIndex()"
-                    class="chip gap-1.5 px-3 py-1.5 hover:opacity-90"
-                    :class="renewals_soon ? 'chip-warning' : ''"
-                >
-                    <Hourglass class="size-3.5" aria-hidden="true" />
-                    {{ t('Renewals') }} · {{ renewals_soon }}
-                </Link>
-            </nav>
+                    <Link
+                        :href="checksIndex()"
+                        class="chip gap-1 px-2 py-0.5 text-xs chip-success hover:opacity-90"
+                    >
+                        <CheckCircle2 class="size-3" aria-hidden="true" />
+                        {{ t('Working') }} · {{ checks.up }}
+                    </Link>
+                    <Link
+                        :href="incidentsIndex()"
+                        class="chip gap-1 px-2 py-0.5 text-xs hover:opacity-90"
+                        :class="incidents_open ? 'chip-danger' : 'chip-success'"
+                    >
+                        <ShieldAlert class="size-3" aria-hidden="true" />
+                        {{ t('Incidents') }} · {{ incidents_open }}
+                    </Link>
+                    <Link
+                        :href="hostsIndex()"
+                        class="chip gap-1 px-2 py-0.5 text-xs chip-info hover:opacity-90"
+                    >
+                        <Server class="size-3" aria-hidden="true" />
+                        {{ t('Servers') }} · {{ hosts_online }}/{{
+                            hosts_total
+                        }}
+                    </Link>
+                    <Link
+                        :href="renewalsIndex()"
+                        class="chip gap-1 px-2 py-0.5 text-xs hover:opacity-90"
+                        :class="renewals_soon ? 'chip-warning' : ''"
+                    >
+                        <Hourglass class="size-3" aria-hidden="true" />
+                        {{ t('Renewals') }} · {{ renewals_soon }}
+                    </Link>
+                </nav>
+            </div>
 
-            <aside
-                v-if="channels_count === 0"
-                class="flex flex-wrap items-center gap-3 surface p-3"
+            <Link
+                v-if="primaryProblem"
+                :href="problemBannerHref"
+                class="problem-banner mt-2 flex min-h-11 w-full items-start gap-3 rounded-md border border-danger/30 bg-danger/8 px-3 py-2.5 text-left transition hover:bg-danger/12 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                :title="primaryProblem.error ?? primaryProblem.name"
             >
-                <BellRing
-                    class="size-4 shrink-0 text-warning"
+                <StatusDot
+                    status="down"
+                    pulse
+                    class="mt-0.5 shrink-0"
+                    :label="t('Down')"
+                />
+                <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-semibold text-foreground">
+                        {{ primaryProblem.name }}
+                        <span
+                            v-if="primaryProblem.group"
+                            class="font-normal text-muted-foreground"
+                        >
+                            · {{ primaryProblem.group }}</span
+                        >
+                    </span>
+                    <span
+                        v-if="primaryProblem.error"
+                        class="mt-0.5 line-clamp-2 text-sm text-pretty text-muted-foreground"
+                        >{{ primaryProblem.error }}</span
+                    >
+                    <span
+                        v-else-if="primaryProblem.since_at"
+                        class="mt-0.5 block text-xs text-muted-foreground"
+                    >
+                        {{ since(primaryProblem.since_at) }}
+                    </span>
+                </span>
+                <span
+                    v-if="problems.length > 1"
+                    class="chip shrink-0 px-1.5 py-0.5 numeric text-[0.65rem] chip-danger"
+                >
+                    +{{ problems.length - 1 }}
+                </span>
+                <ArrowRight
+                    class="mt-1 size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                 />
-                <p class="min-w-0 flex-1 text-sm">
-                    {{ t('Do you want to be warned when something breaks?') }}
-                </p>
-                <Button as-child size="sm">
-                    <Link :href="channelsIndex()">{{
-                        t('Set up alerts')
-                    }}</Link>
-                </Button>
-            </aside>
+            </Link>
 
-            <aside
-                v-if="maintenance.length"
-                class="flex items-start gap-2 rounded-md border border-info/30 bg-info/10 px-3 py-2 text-sm"
+            <div
+                v-if="channels_count === 0 || maintenance.length"
+                class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs text-muted-foreground"
             >
-                <Wrench
-                    class="mt-0.5 size-4 shrink-0 text-info"
-                    aria-hidden="true"
-                />
-                <p>
-                    <span class="font-medium">{{
-                        t(':count thing(s) in maintenance', {
-                            count: checks.maintenance,
-                        })
+                <p
+                    v-if="channels_count === 0"
+                    class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1"
+                >
+                    <BellRing
+                        class="size-3.5 shrink-0 text-warning"
+                        aria-hidden="true"
+                    />
+                    <span>{{
+                        t('Do you want to be warned when something breaks?')
                     }}</span>
-                    — {{ maintenance.map((m) => m.name).join(', ') }}
+                    <Link
+                        :href="channelsIndex()"
+                        class="text-primary hover:underline"
+                        >{{ t('Set up alerts') }}</Link
+                    >
                 </p>
-            </aside>
+                <p
+                    v-if="maintenance.length"
+                    class="flex min-w-0 items-center gap-1.5"
+                >
+                    <Wrench
+                        class="size-3.5 shrink-0 text-info"
+                        aria-hidden="true"
+                    />
+                    <span class="truncate">
+                        {{
+                            t(':count thing(s) in maintenance', {
+                                count: checks.maintenance,
+                            })
+                        }}
+                        — {{ maintenance.map((m) => m.name).join(', ') }}
+                    </span>
+                </p>
+            </div>
         </header>
 
         <section
-            v-if="problems.length"
-            class="flex min-h-0 shrink-0 flex-col overflow-hidden surface"
-            :style="{ maxHeight: 'min(22cqh, 11rem)' }"
-            :aria-label="t('Problems')"
+            v-if="renewalsInStrip"
+            class="renewals-strip flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 surface px-3 py-2"
+            :aria-label="t('Renewals')"
         >
-            <header
-                class="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2"
+            <h2
+                class="flex items-center gap-2 font-display text-sm font-semibold"
             >
-                <h2 class="font-display text-sm font-semibold text-danger">
-                    {{ t('Problems') }}
-                </h2>
-                <span
-                    v-if="hiddenProblems"
-                    class="text-xs text-muted-foreground"
-                    >+{{ hiddenProblems }}</span
-                >
-            </header>
+                <Hourglass class="size-3.5 text-warning" aria-hidden="true" />
+                {{ t('Renewals') }}
+            </h2>
             <ul
-                ref="problemsEl"
-                class="min-h-0 flex-1 divide-y overflow-hidden"
+                class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1"
+                role="list"
             >
                 <li
-                    v-for="p in visibleProblems"
-                    :key="p.id"
-                    class="flex items-start justify-between gap-3 px-3 py-2.5"
+                    v-for="r in overview.renewals"
+                    :key="r.id"
+                    class="flex max-w-xs min-w-0 items-baseline gap-2 text-sm"
                 >
-                    <div class="flex min-w-0 items-start gap-2">
-                        <StatusDot
-                            status="down"
-                            pulse
-                            class="mt-1"
-                            :label="t('Down')"
-                        />
-                        <div class="min-w-0">
-                            <p class="truncate text-sm font-medium">
-                                {{ p.name }}
-                                <span
-                                    v-if="p.group"
-                                    class="font-normal text-muted-foreground"
-                                >
-                                    · {{ p.group }}</span
-                                >
-                            </p>
-                            <p
-                                v-if="p.error"
-                                class="truncate text-xs text-muted-foreground"
-                            >
-                                {{ p.error }}
-                            </p>
-                        </div>
-                    </div>
-                    <span class="shrink-0 text-xs text-muted-foreground">{{
-                        since(p.since_at)
-                    }}</span>
+                    <span class="truncate font-medium">{{ r.name }}</span>
+                    <span
+                        class="shrink-0 text-xs text-muted-foreground tabular-nums"
+                        >{{ r.expires_on }}</span
+                    >
                 </li>
             </ul>
+            <Link
+                :href="renewalsIndex()"
+                class="shrink-0 text-xs text-primary hover:underline"
+                >{{ t('See all') }}</Link
+            >
         </section>
 
-        <div class="board-body grid min-h-0 flex-1 gap-3 overflow-hidden">
+        <div
+            class="board-body grid min-h-0 min-w-0 flex-1 gap-3 overflow-hidden"
+            :class="boardBodyClass"
+        >
             <section
-                class="panel flex min-h-0 flex-col overflow-hidden surface"
+                v-if="hasSites"
+                class="panel flex min-h-0 min-w-0 flex-col overflow-visible surface"
                 :aria-label="t('Websites')"
             >
                 <header
@@ -512,7 +618,12 @@ const starts = [
                         />
                         {{ t('Websites') }}
                     </h2>
-                    <div class="flex items-center gap-2 text-xs">
+                    <div
+                        class="flex flex-wrap items-center justify-end gap-x-2 gap-y-0.5 text-xs"
+                    >
+                        <span class="hidden text-muted-foreground sm:inline">{{
+                            historyPanelHint
+                        }}</span>
                         <span v-if="hiddenSites" class="text-muted-foreground"
                             >+{{ hiddenSites }}</span
                         >
@@ -524,55 +635,75 @@ const starts = [
                     </div>
                 </header>
                 <ul
-                    v-if="overview.sites.length"
                     ref="sitesEl"
-                    class="min-h-0 flex-1 divide-y overflow-hidden"
+                    class="min-h-0 flex-1 divide-y overflow-x-visible overflow-y-auto py-0.5"
                 >
                     <li
                         v-for="s in visibleSites"
                         :key="s.id"
-                        class="flex min-h-[3.25rem] items-center gap-2 px-3 py-2"
+                        class="relative z-0 focus-within:z-20 hover:z-20"
                     >
-                        <StatusDot
-                            class="shrink-0"
-                            :status="
-                                asDot(s.status, s.enabled, s.in_maintenance)
+                        <Link
+                            :href="checkMonitorHref(s.id)"
+                            class="board-row board-row-monitor min-h-[3.75rem] px-3 py-2.5 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                            :class="
+                                rowProblemClass(
+                                    s.status,
+                                    s.enabled,
+                                    s.in_maintenance,
+                                )
                             "
-                            :pulse="s.enabled && s.status === 'down'"
-                        />
-                        <p
-                            class="min-w-0 shrink-0 truncate text-sm font-medium sm:max-w-[35%]"
+                            :aria-label="s.name"
                         >
-                            {{ s.name }}
-                        </p>
-                        <UptimeHistoryDots
-                            v-if="s.history?.length"
-                            :history="s.history"
-                            :uptime-pct="s.uptime_24h_pct"
-                            show-percent
-                            dense
-                            class="min-w-0 flex-1"
-                        />
-                        <p
-                            v-if="s.latency_ms !== null"
-                            class="hidden shrink-0 numeric text-sm font-semibold sm:block"
-                            :class="s.latency_ms > 1500 ? 'text-warning' : ''"
-                        >
-                            {{ s.latency_ms
-                            }}<span
-                                class="ml-0.5 text-xs font-normal text-muted-foreground"
-                                >ms</span
+                            <StatusDot
+                                class="shrink-0"
+                                :status="
+                                    asDot(s.status, s.enabled, s.in_maintenance)
+                                "
+                                :pulse="s.enabled && s.status === 'down'"
+                            />
+                            <span
+                                class="board-row-main flex min-w-0 items-center gap-2"
                             >
-                        </p>
+                                <MonitorIdentityBadges
+                                    class="board-row-identity"
+                                    :name="s.name"
+                                    :favicon-url="s.favicon_url"
+                                    :ssl-status="s.ssl_status"
+                                    :ssl-days-remaining="s.ssl_days_remaining"
+                                    :site-framework="s.site_framework"
+                                />
+                                <span
+                                    class="min-w-0 truncate text-sm font-semibold text-foreground"
+                                    :title="s.name"
+                                >
+                                    {{ s.name }}
+                                </span>
+                            </span>
+                            <UptimeHistoryDots
+                                v-bind="monitorUptimeHistoryProps(s)"
+                                class="col-history"
+                            />
+                            <p
+                                v-if="s.latency_ms !== null"
+                                class="justify-self-end text-right numeric text-xs tabular-nums"
+                                :class="latencyClass(s.latency_ms)"
+                            >
+                                {{ s.latency_ms }}<span class="ml-0.5">ms</span>
+                            </p>
+                            <span
+                                v-else
+                                class="justify-self-end text-xs text-muted-foreground"
+                                >—</span
+                            >
+                        </Link>
                     </li>
                 </ul>
-                <p v-else class="px-3 py-4 text-sm text-muted-foreground">
-                    {{ t('No websites yet.') }}
-                </p>
             </section>
 
             <section
-                class="panel flex min-h-0 flex-col overflow-hidden surface"
+                v-if="hasHeartbeats"
+                class="panel flex min-h-0 min-w-0 flex-col overflow-hidden surface"
                 :aria-label="t('Heartbeats')"
             >
                 <header
@@ -587,7 +718,12 @@ const starts = [
                         />
                         {{ t('Heartbeats') }}
                     </h2>
-                    <div class="flex items-center gap-2 text-xs">
+                    <div
+                        class="flex flex-wrap items-center justify-end gap-x-2 gap-y-0.5 text-xs"
+                    >
+                        <span class="hidden text-muted-foreground sm:inline">{{
+                            historyPanelHint
+                        }}</span>
                         <span
                             v-if="hiddenHeartbeats"
                             class="text-muted-foreground"
@@ -601,50 +737,52 @@ const starts = [
                     </div>
                 </header>
                 <ul
-                    v-if="overview.heartbeats.length"
                     ref="heartbeatsEl"
-                    class="min-h-0 flex-1 divide-y overflow-hidden"
+                    class="min-h-0 flex-1 divide-y overflow-x-visible overflow-y-auto py-0.5"
                 >
-                    <li
-                        v-for="h in visibleHeartbeats"
-                        :key="h.id"
-                        class="flex min-h-[2.75rem] items-center gap-2 px-3 py-2"
-                    >
-                        <StatusDot
-                            class="shrink-0"
-                            :status="
-                                asDot(h.status, h.enabled, h.in_maintenance)
+                    <li v-for="h in visibleHeartbeats" :key="h.id">
+                        <Link
+                            :href="checkMonitorHref(h.id)"
+                            class="board-row board-row-monitor min-h-[2.75rem] px-3 py-2 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                            :class="
+                                rowProblemClass(
+                                    h.status,
+                                    h.enabled,
+                                    h.in_maintenance,
+                                )
                             "
-                            :pulse="h.enabled && h.status === 'down'"
-                        />
-                        <p
-                            class="min-w-0 shrink-0 truncate text-sm font-medium sm:max-w-[40%]"
+                            :aria-label="h.name"
                         >
-                            {{ h.name }}
-                        </p>
-                        <UptimeHistoryDots
-                            v-if="h.history?.length"
-                            :history="h.history"
-                            :uptime-pct="h.uptime_24h_pct"
-                            show-percent
-                            dense
-                            class="min-w-0 flex-1"
-                        />
-                        <p
-                            class="hidden shrink-0 text-xs text-muted-foreground md:block"
-                        >
-                            {{ relativeAgo(h.since_at) }}
-                        </p>
+                            <StatusDot
+                                class="shrink-0"
+                                :status="
+                                    asDot(h.status, h.enabled, h.in_maintenance)
+                                "
+                                :pulse="h.enabled && h.status === 'down'"
+                            />
+                            <span
+                                class="board-row-main min-w-0 truncate text-sm font-semibold text-foreground"
+                                :title="h.name"
+                            >
+                                {{ h.name }}
+                            </span>
+                            <UptimeHistoryDots
+                                v-bind="monitorUptimeHistoryProps(h)"
+                                class="col-history"
+                            />
+                            <p
+                                class="justify-self-end text-right text-xs text-muted-foreground tabular-nums"
+                            >
+                                {{ relativeAgo(h.since_at) }}
+                            </p>
+                        </Link>
                     </li>
                 </ul>
-                <p v-else class="px-3 py-4 text-sm text-muted-foreground">
-                    {{ t('No heartbeats yet.') }}
-                </p>
             </section>
 
             <section
-                v-if="overview.renewals.length"
-                class="panel flex min-h-0 flex-col overflow-hidden surface"
+                v-if="hasRenewals && !renewalsInStrip"
+                class="panel flex min-h-0 min-w-0 flex-col overflow-hidden surface"
                 :aria-label="t('Renewals')"
             >
                 <header
@@ -690,11 +828,12 @@ const starts = [
             </section>
 
             <section
-                class="servers-panel flex min-h-0 flex-col gap-2 overflow-hidden"
+                v-if="hasServers"
+                class="servers-panel panel flex min-h-0 min-w-0 flex-col overflow-hidden surface"
                 :aria-label="t('Servers')"
             >
                 <header
-                    class="flex shrink-0 items-center justify-between gap-2"
+                    class="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2"
                 >
                     <h2
                         class="flex items-center gap-2 font-display text-sm font-semibold"
@@ -720,31 +859,31 @@ const starts = [
                     </div>
                 </header>
                 <div
-                    v-if="overview.servers.length"
                     ref="serversEl"
-                    class="host-grid min-h-0 flex-1 overflow-hidden"
+                    class="host-grid min-h-0 flex-1 overflow-y-auto p-3"
                     :style="{
-                        gridTemplateColumns: `repeat(${serverCols}, minmax(0, 1fr))`,
+                        gridTemplateColumns: `repeat(${serverGridCols}, minmax(0, 1fr))`,
                     }"
                 >
                     <HostCard
                         v-for="server in visibleServers"
                         :key="server.id"
+                        class="min-w-0"
                         compact
                         :name="server.name"
                         :online="server.online"
                         :enrolled="true"
                         :metrics="server.metrics"
                         :agent-version="server.agent_version"
+                        :agent-outdated="server.agent_outdated"
+                        :host-id="server.id"
+                        :update-command-enabled="canManageHosts"
                         :last-seen-at="server.last_seen_at"
+                        :detail-href="HostController.show.url(server.id)"
+                        :public-ipv4="server.public_ipv4"
+                        :provider-label="server.provider_label"
                     />
                 </div>
-                <p
-                    v-else
-                    class="surface px-3 py-4 text-sm text-muted-foreground"
-                >
-                    {{ t('No servers enrolled yet.') }}
-                </p>
             </section>
         </div>
     </div>
@@ -757,27 +896,30 @@ const starts = [
 }
 
 .board-body {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1.35fr);
-    grid-template-areas:
-        'sites heartbeats renewals'
-        'servers servers servers';
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: stretch;
 }
 
-.board-body > .panel:nth-child(1) {
-    grid-area: sites;
+.board-body--servers-tall {
+    grid-template-rows: minmax(0, 1.2fr) minmax(0, 1.35fr);
 }
 
-.board-body > .panel:nth-child(2) {
-    grid-area: heartbeats;
+.board-body--three-panels {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
 }
 
-.board-body > .panel:nth-child(3) {
-    grid-area: renewals;
+.renewals-strip {
+    border-radius: var(--radius);
+}
+
+.board-body > .panel,
+.board-body > .servers-panel {
+    min-height: 0;
+    min-width: 0;
 }
 
 .servers-panel {
-    grid-area: servers;
     content-visibility: auto;
     contain-intrinsic-size: auto 12rem;
 }
@@ -787,10 +929,62 @@ const starts = [
     contain-intrinsic-size: auto 8rem;
 }
 
+/* status · name/identity · history · trailing */
+.board-row {
+    display: grid;
+    align-items: center;
+    column-gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.12s ease;
+}
+
+.board-row-monitor {
+    grid-template-columns:
+        auto
+        minmax(0, 1.05fr)
+        minmax(5.5rem, 1.85fr)
+        3.5rem;
+    overflow: visible;
+}
+
+.board-row:hover {
+    background: color-mix(in oklab, var(--muted) 55%, transparent);
+}
+
+.board-row--down {
+    border-left: 3px solid color-mix(in oklab, var(--danger) 70%, transparent);
+    background: color-mix(in oklab, var(--danger) 9%, transparent);
+}
+
+.board-row--down:hover {
+    background: color-mix(in oklab, var(--danger) 14%, transparent);
+}
+
+.board-row--unknown {
+    border-left: 3px solid
+        color-mix(in oklab, var(--muted-foreground) 35%, transparent);
+}
+
+.col-history {
+    width: 100%;
+    min-width: 0;
+}
+
+.board-row-identity :deep(img),
+.board-row-identity :deep(svg) {
+    flex-shrink: 0;
+}
+
 .host-grid {
     display: grid;
     gap: 0.75rem;
     align-content: start;
+}
+
+.servers-panel .host-card {
+    height: 100%;
+    min-width: 0;
 }
 
 @supports not (content-visibility: auto) {
@@ -800,33 +994,37 @@ const starts = [
     }
 }
 
-@container dashboard (max-width: 56rem) {
-    .board-body {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1.3fr);
-        grid-template-areas:
-            'sites heartbeats'
-            'renewals renewals'
-            'servers servers';
-    }
-}
-
-@container dashboard (max-width: 36rem) {
+@container dashboard (max-width: 40rem) {
     .board-body {
         grid-template-columns: 1fr;
-        grid-template-rows: repeat(3, minmax(0, 0.75fr)) minmax(0, 1.2fr);
-        grid-template-areas:
-            'sites'
-            'heartbeats'
-            'renewals'
-            'servers';
+        grid-template-rows: none;
+        grid-auto-rows: minmax(0, 12rem);
     }
-}
 
-/* When renewals panel is absent, let sites/heartbeats share the top row fully */
-.board-body:not(:has(> .panel:nth-child(3))) {
-    grid-template-areas:
-        'sites heartbeats heartbeats'
-        'servers servers servers';
+    .board-top-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .board-stats {
+        border-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .board-row-monitor {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        row-gap: 0.35rem;
+    }
+
+    .board-row-monitor .col-history {
+        grid-column: 1 / -1;
+    }
+
+    .board-row-monitor > :last-child {
+        justify-self: end;
+        grid-column: 2;
+        grid-row: 1;
+    }
 }
 </style>

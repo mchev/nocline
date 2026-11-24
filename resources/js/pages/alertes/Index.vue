@@ -19,7 +19,6 @@ import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/alertes/channels';
 
 type Field = {
     name: string;
@@ -40,10 +39,6 @@ type Channel = {
 };
 
 const props = defineProps<{ channels: Channel[]; adapters: Adapter[] }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Alerts', href: index() }] },
-});
 
 const isAdmin = computed(() => usePage().props.auth.user.role === 'admin');
 const select =

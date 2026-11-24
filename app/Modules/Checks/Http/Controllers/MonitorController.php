@@ -11,6 +11,7 @@ use App\Modules\Checks\Services\MonitorCreator;
 use App\Modules\Checks\Support\CheckRules;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Hosts\Support\AgentInstallCommand;
 use App\Modules\Probes\Models\Probe;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -182,7 +183,7 @@ class MonitorController extends Controller
         $token = $host->issueEnrollmentToken();
 
         return redirect()->route('monitor.install', $host)
-            ->with('install_command', 'curl -fsSL '.url("/install/{$token}").' | sudo sh');
+            ->with('install_command', AgentInstallCommand::curlSh($token));
     }
 
     /**

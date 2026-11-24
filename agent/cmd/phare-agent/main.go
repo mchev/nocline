@@ -14,13 +14,17 @@ import (
 	"github.com/phare/phare/agent/internal/collect"
 	"github.com/phare/phare/agent/internal/config"
 	"github.com/phare/phare/agent/internal/enroll"
+	"github.com/phare/phare/agent/internal/meta"
 	"github.com/phare/phare/agent/internal/probe"
 	"github.com/phare/phare/agent/internal/transport"
 )
 
-var version = "0.1.0"
+var version = "0.1.3"
 
-const sampleEvery = 5 * time.Second
+const (
+	sampleEvery   = 5 * time.Second
+	hostMetaEvery = time.Hour
+)
 
 func main() {
 	args := os.Args[1:]
@@ -134,6 +138,7 @@ func collectLoop(ctx context.Context, cfg config.Config, out chan<- transport.Ba
 	red := collect.NewReducer()
 	col.Sample() // amorce le delta CPU
 	windowStart := time.Now()
+	lastMeta := time.Time{}
 	tick := time.NewTicker(step)
 	defer tick.Stop()
 	for {
@@ -154,6 +159,11 @@ func collectLoop(ctx context.Context, cfg config.Config, out chan<- transport.Ba
 				continue
 			}
 			b := transport.Batch{AgentVersion: version, WindowSec: sec, Metrics: ms}
+			if lastMeta.IsZero() || now.Sub(lastMeta) >= hostMetaEvery {
+				snap := meta.Collect()
+				b.HostMeta = &snap
+				lastMeta = now
+			}
 			select {
 			case out <- b:
 			default:

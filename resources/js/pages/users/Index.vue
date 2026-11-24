@@ -10,16 +10,11 @@ import { Label } from '@/components/ui/label';
 import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
-import { index } from '@/routes/users';
 
 defineProps<{
     users: { id: number; name: string; email: string; role: string }[];
     roles: string[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Users', href: index() }] },
-});
 
 const meId = computed(() => usePage().props.auth.user.id);
 const select =

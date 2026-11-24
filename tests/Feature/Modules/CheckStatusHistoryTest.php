@@ -5,6 +5,7 @@ use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckEvent;
 use App\Modules\Checks\Services\CheckStatusHistory;
+use App\Modules\Checks\Support\HistoryWindow;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
 
 it('builds 24h history dots from status transitions', function () {
@@ -46,6 +47,33 @@ it('exposes history on the checks index', function () {
             ->component('checks/Index')
             ->has('checks', 1)
             ->where('checks.0.id', $check->id)
-            ->has('checks.0.history', CheckStatusHistory::BUCKETS)
+            ->has('checks.0.history', HistoryWindow::dashboard()->buckets)
+            ->has('checks.0.timeline', HistoryWindow::dashboard()->buckets)
             ->where('checks.0.uptime_24h_pct', 100));
+});
+
+it('fills several dashboard buckets for a recently added check', function () {
+    $check = Check::factory()->create(['created_at' => now()->subMinutes(5)]);
+    $check->state()->update(['status' => CheckStatus::Up]);
+
+    CheckEvent::create([
+        'check_id' => $check->id,
+        'from_status' => CheckStatus::Unknown,
+        'to_status' => CheckStatus::Up,
+        'at' => now()->subMinutes(4),
+    ]);
+
+    $checks = Check::query()->whereKey($check->id)->with('state')->get();
+
+    $history = app(CheckStatusHistory::class)->forChecks(
+        $checks,
+        app(MaintenanceChecker::class),
+        null,
+        HistoryWindow::dashboard(),
+    );
+
+    $up = count(array_filter($history[$check->id]['history'], fn (string $d) => $d === 'up'));
+
+    expect($history[$check->id]['history'])->toHaveCount(HistoryWindow::dashboard()->buckets)
+        ->and($up)->toBeGreaterThanOrEqual(4);
 });

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Metrics\Http\Requests;
 
+use App\Modules\Hosts\Support\HostMetadataRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class IngestRequest extends FormRequest
@@ -25,6 +26,7 @@ class IngestRequest extends FormRequest
             'metrics.*.min' => ['nullable', 'numeric'],
             'metrics.*.max' => ['nullable', 'numeric'],
             'metrics.*.p95' => ['nullable', 'numeric'],
+            ...HostMetadataRules::rules(),
         ];
     }
 }

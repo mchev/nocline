@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/phare/phare/agent/internal/meta"
 )
 
 // Result est la réponse 201 du hub.
@@ -25,11 +27,14 @@ func Enroll(ctx context.Context, httpClient *http.Client, hubURL, enrollmentToke
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: 15 * time.Second}
 	}
-	body, _ := json.Marshal(map[string]string{
+	snap := meta.Collect()
+	payload := map[string]any{
 		"token":         enrollmentToken,
 		"agent_version": agentVersion,
 		"os":            runtime.GOOS,
-	})
+		"host_meta":     snap,
+	}
+	body, _ := json.Marshal(payload)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(hubURL, "/")+"/api/v1/enroll", bytes.NewReader(body))
 	if err != nil {
 		return Result{}, err

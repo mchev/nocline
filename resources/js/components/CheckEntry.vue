@@ -1,12 +1,17 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { Pause, Pencil, Play, Trash2 } from '@lucide/vue';
 import { computed } from 'vue';
+import HostController from '@/actions/App/Modules/Hosts/Http/Controllers/HostController';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
+import MonitorIdentityBadges from '@/components/MonitorIdentityBadges.vue';
 import UptimeHistoryDots from '@/components/ui-kit/UptimeHistoryDots.vue';
+import { monitorUptimeHistoryProps } from '@/lib/monitorHistory';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { checkTypeLabel } from '@/lib/checks';
+import { hostMetricTone } from '@/lib/hostMetricTone';
 import { t } from '@/lib/i18n';
 import type { Check } from '@/types/checks';
 import type { GroupLayout } from '@/types/groups';
@@ -86,15 +91,16 @@ const freeDisk = computed(() => {
     return used === null ? null : Math.max(0, 100 - used);
 });
 
-const showHistory = computed(
+const supportsHistory = computed(
     () =>
-        (props.check.history?.length ?? 0) > 0 &&
-        (props.check.category === 'website' ||
-            props.check.type === 'heartbeat' ||
-            props.check.type === 'http' ||
-            props.check.type === 'tcp' ||
-            props.check.type === 'icmp'),
+        props.check.category === 'website' ||
+        props.check.type === 'heartbeat' ||
+        props.check.type === 'http' ||
+        props.check.type === 'tcp' ||
+        props.check.type === 'icmp',
 );
+
+const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
 </script>
 
 <template>
@@ -120,8 +126,8 @@ const showHistory = computed(
                 />
             </label>
         </td>
-        <td class="w-36 whitespace-nowrap">
-            <span class="inline-flex items-center gap-2">
+        <td class="w-36 px-3 py-3 whitespace-nowrap">
+            <span class="inline-flex items-center gap-3 p-1">
                 <StatusDot :status="dotStatus(check)" :pulse="check.enabled" />
                 <span
                     class="chip"
@@ -135,23 +141,45 @@ const showHistory = computed(
                 </span>
             </span>
         </td>
-        <td class="max-w-md py-3">
-            <div class="font-medium">{{ check.name }}</div>
+        <td class="max-w-md px-2 py-4">
+            <div class="flex min-w-0 items-center gap-2.5">
+                <MonitorIdentityBadges
+                    v-if="isWebsite"
+                    :name="check.name"
+                    :favicon-url="check.favicon_url"
+                    :ssl-status="check.ssl_status"
+                    :ssl-days-remaining="check.ssl_days_remaining"
+                    :site-framework="check.site_framework"
+                />
+                <span class="truncate font-semibold text-foreground">{{
+                    check.name
+                }}</span>
+            </div>
             <div class="max-w-80 truncate text-xs text-muted-foreground">
                 {{ checkTypeLabel(check.type)
                 }}<template v-if="check.target"> · {{ check.target }}</template>
+                <template
+                    v-if="
+                        check.host_name &&
+                        check.host_id &&
+                        check.type !== 'agent'
+                    "
+                >
+                    ·
+                    <Link
+                        :href="HostController.show.url(check.host_id)"
+                        class="text-primary hover:underline"
+                        >{{ check.host_name }}</Link
+                    >
+                </template>
                 <span v-if="check.last_error" class="text-danger">
                     — {{ check.last_error }}</span
                 >
             </div>
         </td>
-        <td v-if="showHistory" class="hidden w-44 py-3 lg:table-cell xl:w-56">
-            <UptimeHistoryDots
-                :history="check.history"
-                :uptime-pct="check.uptime_24h_pct"
-                show-percent
-                dense
-            />
+        <td class="hidden w-48 min-w-[11rem] py-3 md:table-cell">
+            <UptimeHistoryDots v-if="supportsHistory" v-bind="uptimeHistory" />
+            <span v-else class="text-xs text-muted-foreground">—</span>
         </td>
         <td class="hidden md:table-cell">
             <div class="flex flex-wrap gap-1">
@@ -259,6 +287,15 @@ const showHistory = computed(
                         :status="dotStatus(check)"
                         :pulse="check.enabled"
                     />
+                    <MonitorIdentityBadges
+                        v-if="isWebsite"
+                        :name="check.name"
+                        :favicon-url="check.favicon_url"
+                        :ssl-status="check.ssl_status"
+                        :ssl-days-remaining="check.ssl_days_remaining"
+                        :site-framework="check.site_framework"
+                        favicon-size-class="size-5"
+                    />
                     <span class="truncate">{{ check.name }}</span>
                 </h3>
                 <p class="mt-0.5 truncate text-xs text-muted-foreground">
@@ -302,10 +339,8 @@ const showHistory = computed(
         </p>
 
         <UptimeHistoryDots
-            v-if="showHistory"
-            :history="check.history"
-            :uptime-pct="check.uptime_24h_pct"
-            show-percent
+            v-if="supportsHistory"
+            v-bind="uptimeHistory"
             class="w-full"
         />
 
@@ -318,7 +353,7 @@ const showHistory = computed(
                 >
                 <Sparkline
                     :values="check.metrics.cpu"
-                    tone="primary"
+                    :tone="hostMetricTone(check.metrics.cpu_now)"
                     :label="`CPU ${pct(check.metrics.cpu_now)}`"
                 />
                 <span class="text-right numeric text-xs font-semibold">{{
@@ -332,7 +367,7 @@ const showHistory = computed(
                 >
                 <Sparkline
                     :values="check.metrics.mem"
-                    tone="primary"
+                    :tone="hostMetricTone(check.metrics.mem_now)"
                     :label="`RAM ${pct(check.metrics.mem_now)}`"
                 />
                 <span class="text-right numeric text-xs font-semibold">{{
@@ -350,7 +385,7 @@ const showHistory = computed(
                             v === null ? null : Math.max(0, 100 - v),
                         )
                     "
-                    tone="primary"
+                    :tone="hostMetricTone(freeDisk, true)"
                     :label="`${t('Disk free')} ${pct(freeDisk)}`"
                 />
                 <span class="text-right numeric text-xs font-semibold">{{
@@ -468,15 +503,22 @@ const showHistory = computed(
             :pulse="check.enabled"
             :label="label(check, statusText)"
         />
+        <MonitorIdentityBadges
+            v-if="isWebsite"
+            :name="check.name"
+            :favicon-url="check.favicon_url"
+            :ssl-status="check.ssl_status"
+            :ssl-days-remaining="check.ssl_days_remaining"
+            :site-framework="check.site_framework"
+            favicon-size-class="size-3.5"
+        />
         <span class="truncate font-medium text-foreground">{{
             check.name
         }}</span>
         <UptimeHistoryDots
-            v-if="showHistory"
-            :history="check.history"
-            :uptime-pct="check.uptime_24h_pct"
-            dense
-            class="hidden min-w-[6rem] sm:flex"
+            v-if="supportsHistory"
+            v-bind="uptimeHistory"
+            class="hidden min-w-[9rem] sm:flex"
         />
         <span v-if="isHeartbeat" class="text-muted-foreground">{{
             relativeAgo(check.since_at)

@@ -26,7 +26,6 @@ import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/status-pages';
 import type { GroupOption } from '@/types/groups';
 
 type Page = {
@@ -47,10 +46,6 @@ defineProps<{
     pages: Page[];
     groups: GroupOption[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Status pages', href: index() }] },
-});
 
 const canManage = computed(() => usePage().props.auth.user.role !== 'viewer');
 const DEFAULT_ACCENT = '#2563eb';

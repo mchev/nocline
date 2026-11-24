@@ -10,7 +10,7 @@ import {
     Trash2,
     Upload,
 } from '@lucide/vue';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import CheckController from '@/actions/App/Modules/Checks/Http/Controllers/CheckController';
 import GroupController from '@/actions/App/Modules/Groups/Http/Controllers/GroupController';
 import CheckEntry from '@/components/CheckEntry.vue';
@@ -32,9 +32,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { checkTypeLabel } from '@/lib/checks';
+import { MONITOR_HISTORY_MINUTES } from '@/lib/monitorHistory';
 import { groupWithDescendantIds } from '@/lib/groups';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/checks';
 import type { Check, CheckStatus } from '@/types/checks';
 import type { GroupLayout, GroupOption } from '@/types/groups';
 
@@ -45,10 +45,6 @@ const props = defineProps<{
     types: string[];
     categories: string[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Monitors', href: index() }] },
-});
 
 const role = computed(() => usePage().props.auth.user.role);
 const canManage = computed(() => role.value !== 'viewer');
@@ -120,6 +116,35 @@ function loadView(): View {
 }
 
 const view = ref<View>(loadView());
+
+function applyUrlViewHints(): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+
+    if (status === 'up' || status === 'down' || status === 'unknown') {
+        view.value.status = status;
+    }
+
+    const checkId = params.get('check');
+
+    if (!checkId) {
+        return;
+    }
+
+    const match = props.checks.find((c) => c.id === Number(checkId));
+
+    if (match) {
+        view.value.q = match.name;
+        view.value.status = 'all';
+        view.value.groupBy = 'none';
+    }
+}
+
+onMounted(applyUrlViewHints);
 
 /* a stale saved filter (deleted group / category) must not hide everything */
 if (
@@ -469,7 +494,8 @@ function save() {
     form.transform((d) => ({
         ...d,
         group_id: d.group_id === '' ? null : d.group_id,
-        host_id: d.type === 'agent' && d.host_id !== '' ? d.host_id : null,
+        host_id:
+            d.type === 'heartbeat' ? null : d.host_id !== '' ? d.host_id : null,
     }));
     const options = {
         preserveScroll: true,
@@ -884,6 +910,36 @@ function bulkDelete() {
                     v-if="s.items.length && layoutOf(s) === 'list'"
                     class="table-clean"
                 >
+                    <thead
+                        class="border-b text-left text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase"
+                    >
+                        <tr>
+                            <th v-if="canManage" class="w-10 py-2 pl-4">
+                                <span class="sr-only">{{ t('Select') }}</span>
+                            </th>
+                            <th class="w-36 py-2">{{ t('Status') }}</th>
+                            <th class="py-2">{{ t('Name') }}</th>
+                            <th class="hidden w-48 py-2 md:table-cell">
+                                {{
+                                    t('Last :minutes minutes', {
+                                        minutes: MONITOR_HISTORY_MINUTES,
+                                    })
+                                }}
+                            </th>
+                            <th class="hidden py-2 md:table-cell">
+                                {{ t('Tags') }}
+                            </th>
+                            <th class="w-24 py-2 text-right">
+                                {{ t('Metric') }}
+                            </th>
+                            <th
+                                v-if="canManage"
+                                class="w-36 py-2 pr-3 text-right"
+                            >
+                                {{ t('Actions') }}
+                            </th>
+                        </tr>
+                    </thead>
                     <tbody>
                         <CheckEntry
                             v-for="c in s.items"
@@ -1030,12 +1086,17 @@ function bulkDelete() {
                             </option>
                         </select>
                     </div>
-                    <div v-if="form.type === 'agent'" class="field-stack">
-                        <Label for="host_id">{{ t('Host') }}</Label>
+                    <div v-if="form.type !== 'heartbeat'" class="field-stack">
+                        <Label for="host_id">{{
+                            form.type === 'agent'
+                                ? t('Host')
+                                : t('Runs on server')
+                        }}</Label>
                         <select
                             id="host_id"
                             v-model="form.host_id"
                             :class="select"
+                            :required="form.type === 'agent'"
                         >
                             <option value="">—</option>
                             <option
@@ -1049,7 +1110,9 @@ function bulkDelete() {
                         <InputError :message="form.errors.host_id" />
                     </div>
                     <div
-                        v-else-if="form.type !== 'heartbeat'"
+                        v-if="
+                            form.type !== 'agent' && form.type !== 'heartbeat'
+                        "
                         class="field-stack"
                     >
                         <Label for="target">{{

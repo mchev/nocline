@@ -11,7 +11,7 @@ import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import { t } from '@/lib/i18n';
-import { audit, index } from '@/routes/coffre';
+import { audit } from '@/routes/coffre';
 import type { GroupOption } from '@/types/groups';
 
 type Entry = {
@@ -26,10 +26,6 @@ defineProps<{
     entries: Entry[];
     groups: GroupOption[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Vault', href: index() }] },
-});
 
 const isAdmin = computed(() => usePage().props.auth.user.role === 'admin');
 const select =

@@ -26,6 +26,8 @@ Quand vous saisissez l'adresse d'un site, Phare l'examine pour vous (quelques re
 
 La détection est facultative : si elle échoue, vous pouvez ajouter le site normalement.
 
+L’**icône du site** (favicon) est récupérée automatiquement à l’ajout (puis vérifiée chaque semaine). Si elle change, le tag `favicon-changed` apparaît sur le check — utile pour repérer un rebranding ou une page remplacée.
+
 **Sécurité.** Comme c'est le hub qui fait ces requêtes, il refuse les adresses privées (réseau local, `localhost`, adresses de métadonnées cloud, IPv6 locales, adresses écrites en décimal ou hexadécimal), vérifie l'adresse IP de chaque étape et n'accepte que les ports 80, 443, 8080 et 8443. Pour détecter un site hébergé sur votre propre réseau (`*.test`, `192.168.x.x`), définissez `PHARE_DETECT_ALLOW_PRIVATE=true` dans `.env` : à n'activer que si tous les utilisateurs qui peuvent ajouter des sites sont de confiance.
 
 ## Ranger dans des groupes

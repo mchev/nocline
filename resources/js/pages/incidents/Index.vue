@@ -8,7 +8,6 @@ import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
-import { index } from '@/routes/incidents';
 
 type Incident = {
     id: number;
@@ -22,10 +21,6 @@ type Incident = {
 };
 
 defineProps<{ incidents: { data: Incident[] } }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Incidents', href: index() }] },
-});
 
 const canManage = computed(() => usePage().props.auth.user.role !== 'viewer');
 const fmt = (d: string) => new Date(d).toLocaleString();

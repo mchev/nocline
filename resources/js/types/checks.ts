@@ -26,6 +26,7 @@ export type Check = {
     enabled: boolean;
     group_id: number | null;
     host_id: number | null;
+    host_name?: string | null;
     host_online?: boolean | null;
     status: CheckStatus;
     since_at: string | null;
@@ -34,5 +35,14 @@ export type Check = {
     in_maintenance: boolean;
     metrics?: CheckMetrics | null;
     history?: UptimeHistoryDot[];
+    timeline?: {
+        s: UptimeHistoryDot;
+        at: string;
+        error?: string | null;
+    }[];
     uptime_24h_pct?: number | null;
+    favicon_url?: string | null;
+    ssl_status?: 'ok' | 'warning' | 'expired' | 'error' | 'unknown' | null;
+    ssl_days_remaining?: number | null;
+    site_framework?: string | null;
 };

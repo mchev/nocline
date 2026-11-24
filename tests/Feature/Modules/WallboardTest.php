@@ -1,12 +1,14 @@
 <?php
 
 use App\Models\User;
+use App\Modules\Checks\Enums\CheckCategory;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Services\CheckResultRecorder;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Metrics\Models\MetricRollup;
 use App\Modules\Wallboard\Models\Wallboard;
+use App\Modules\Wallboard\Services\WallboardAggregator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -58,11 +60,23 @@ it('serves the kiosk page without authentication', function () {
         ->assertInertia(fn ($p) => $p->component('wallboard/Show')->where('name', 'NOC'));
 });
 
+it('serves a legacy-compatible wallboard without inertia', function () {
+    ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC TV']);
+
+    $this->get(route('wallboard.compat', $token))
+        ->assertOk()
+        ->assertSee('NOC TV', false)
+        ->assertSee($token, false)
+        ->assertSee('notranslate', false);
+});
+
 it('aggregates summary, incidents, failing checks and host metrics', function () {
     ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC']);
     $up = Check::factory()->create();
+    $site = Check::factory()->create(['category' => CheckCategory::Website, 'name' => 'Shop']);
     $down = Check::factory()->create(['failure_threshold' => 1]);
     app(CheckResultRecorder::class)->record($up, true, 40);
+    app(CheckResultRecorder::class)->record($site, true, 120);
     app(CheckResultRecorder::class)->record($down, false, null, 'HTTP 503');
     Check::factory()->create(['enabled' => false]);
 
@@ -73,10 +87,12 @@ it('aggregates summary, incidents, failing checks and host metrics', function ()
 
     $json = $this->getJson(route('api.wallboard', $token))->assertOk()->json();
 
-    expect($json['summary'])->toMatchArray(['up' => 1, 'down' => 1, 'unknown' => 0, 'hosts_online' => 1, 'hosts_total' => 1])
+    expect($json['summary'])->toMatchArray(['up' => 2, 'down' => 1, 'unknown' => 0, 'hosts_online' => 1, 'hosts_total' => 1])
         ->and($json['active_incidents'])->toHaveCount(1)
         ->and($json['checks_failing'][0]['error'])->toBe('HTTP 503')
-        ->and($json['hosts'][0])->toMatchArray(['cpu_avg_5m' => 20.0, 'mem_pct' => 50.0, 'disk_pct' => 70.0, 'online' => true]);
+        ->and($json['hosts'][0])->toMatchArray(['cpu_avg_5m' => 20.0, 'mem_pct' => 50.0, 'disk_pct' => 70.0, 'online' => true])
+        ->and(collect($json['sites'])->pluck('name'))->toContain('Shop')
+        ->and(collect($json['sites'])->firstWhere('name', 'Shop')['latency_ms'])->toBe(120);
 });
 
 it('filters by group, including sub-groups', function () {
@@ -90,17 +106,24 @@ it('filters by group, including sub-groups', function () {
     expect($this->getJson(route('api.wallboard', $token))->json('summary.unknown'))->toBe(2);
 });
 
-it('caches the payload and runs a bounded number of queries', function () {
+it('caches the wallboard payload between aggregator calls', function () {
     Cache::flush();
-    ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC']);
-    Check::factory()->count(30)->create();
-    Host::factory()->count(10)->create(['enrolled_at' => now()]);
+    ['wallboard' => $wallboard] = Wallboard::createWithToken(['name' => 'NOC']);
+    Check::factory()->count(5)->create();
+    Host::factory()->count(3)->create(['enrolled_at' => now()]);
 
-    $this->getJson(route('api.wallboard', $token))->assertOk(); // warm (lookup + build)
+    $aggregator = app(WallboardAggregator::class);
+    $cacheKey = "wallboard:{$wallboard->id}";
+
+    $first = $aggregator->payload($wallboard);
+    expect(Cache::has($cacheKey))->toBeTrue();
+
+    Check::factory()->create(['name' => 'Would skew a live rebuild']);
 
     DB::enableQueryLog();
-    $this->getJson(route('api.wallboard', $token))->assertOk();
-    $queries = count(DB::getQueryLog());
+    DB::flushQueryLog();
+    $second = $aggregator->payload($wallboard);
 
-    expect($queries)->toBeLessThanOrEqual(2); // token lookup only; payload from cache
+    expect($second)->toBe($first)
+        ->and(count(DB::getQueryLog()))->toBe(0);
 });

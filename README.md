@@ -1,14 +1,5 @@
 <p align="center">
   <img
-    src="https://raw.githubusercontent.com/mchev/phare/main/public/brand/phare-symbole-signal.png"
-    alt=""
-    width="96"
-    height="96"
-  />
-</p>
-
-<p align="center">
-  <img
     src="https://raw.githubusercontent.com/mchev/phare/main/public/brand/phare-logo-wordmark-light.png"
     alt="phare."
     width="200"
@@ -25,6 +16,7 @@
   · <a href="https://github.com/mchev/phare/releases">Releases</a>
   · <a href="docs/index.md">Documentation</a>
   · <a href="CONTRIBUTING.md">Contributing</a>
+  · <a href="https://github.com/sponsors/mchev">Sponsor</a>
 </p>
 
 ---

@@ -11,7 +11,6 @@ import PageContainer from '@/components/ui-kit/PageContainer.vue';
 import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import { t } from '@/lib/i18n';
-import { index } from '@/routes/probes';
 
 defineProps<{
     probes: {
@@ -24,10 +23,6 @@ defineProps<{
         capabilities: string[];
     }[];
 }>();
-
-defineOptions({
-    layout: { breadcrumbs: [{ title: 'Probes', href: index() }] },
-});
 
 const page = usePage();
 const isAdmin = computed(() => page.props.auth.user.role === 'admin');
