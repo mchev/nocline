@@ -101,19 +101,19 @@ const xLabels = computed(() => {
             aria-hidden="true"
         >
             <span class="inline-flex items-center gap-1.5">
-                <span
-                    class="inline-block size-2.5 rounded-full bg-primary"
-                />{{ t('CPU') }}
+                <span class="inline-block size-2.5 rounded-full bg-primary" />{{
+                    t('CPU')
+                }}
             </span>
             <span class="inline-flex items-center gap-1.5">
-                <span
-                    class="inline-block size-2.5 rounded-full bg-success"
-                />{{ t('RAM') }}
+                <span class="inline-block size-2.5 rounded-full bg-success" />{{
+                    t('RAM')
+                }}
             </span>
             <span class="inline-flex items-center gap-1.5">
-                <span
-                    class="inline-block size-2.5 rounded-full bg-warning"
-                />{{ t('Disk') }}
+                <span class="inline-block size-2.5 rounded-full bg-warning" />{{
+                    t('Disk')
+                }}
             </span>
         </div>
         <svg

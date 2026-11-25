@@ -11,6 +11,7 @@ use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Services\CheckLatencySeries;
 use App\Modules\Checks\Services\CheckStatusHistory;
 use App\Modules\Checks\Services\KumaImporter;
+use App\Modules\Checks\Support\CheckFaviconResponse;
 use App\Modules\Checks\Support\HistoryWindow;
 use App\Modules\Checks\Support\SiteFrameworkTag;
 use App\Modules\Checks\Support\SiteHealthCompanion;
@@ -25,7 +26,6 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -427,25 +427,10 @@ class CheckController extends Controller
         ];
     }
 
-    public function favicon(Check $check): BinaryFileResponse
+    public function favicon(Check $check, CheckFaviconResponse $favicons): BinaryFileResponse
     {
         $this->authorize('view', $check);
-        abort_unless($check->favicon_path !== null, 404);
 
-        $disk = Storage::disk('local');
-        abort_unless($disk->exists($check->favicon_path), 404);
-
-        $mime = match (strtolower((string) pathinfo($check->favicon_path, PATHINFO_EXTENSION))) {
-            'png' => 'image/png',
-            'jpg', 'jpeg' => 'image/jpeg',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            default => 'image/x-icon',
-        };
-
-        return response()->file($disk->path($check->favicon_path), [
-            'Content-Type' => $mime,
-            'Cache-Control' => 'private, max-age=86400',
-        ]);
+        return $favicons->file($check);
     }
 }

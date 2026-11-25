@@ -13,10 +13,10 @@ import { computed, ref } from 'vue';
 import HostController from '@/actions/App/Modules/Hosts/Http/Controllers/HostController';
 import GroupSelect from '@/components/GroupSelect.vue';
 import HostCard, { type HostMetrics } from '@/components/HostCard.vue';
+import HostDeleteDialog from '@/components/hosts/HostDeleteDialog.vue';
 import InputError from '@/components/InputError.vue';
 import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
-import PageHeader from '@/components/ui-kit/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -71,7 +71,7 @@ const enrollCommand = computed(() =>
         ? `phare-agent enroll --hub ${hubUrl} --token ${enrollment.value.token}`
         : '',
 );
-const select = 'h-10 rounded-md border bg-transparent px-3 text-sm';
+const select = 'h-9 rounded-md border bg-transparent px-2 text-sm';
 
 const q = ref('');
 const groupFilter = ref('all');
@@ -195,12 +195,31 @@ function revoke(h: Host) {
     }
 }
 
-function remove(h: Host) {
-    if (confirm(t('Delete the host ":name"?', { name: h.name }))) {
-        router.delete(HostController.destroy.url(h.id), {
-            preserveScroll: true,
-        });
+const deleteOpen = ref(false);
+const deleteTarget = ref<Host | null>(null);
+const deleteProcessing = ref(false);
+
+function openDelete(h: Host) {
+    deleteTarget.value = h;
+    deleteOpen.value = true;
+}
+
+function confirmDelete() {
+    if (deleteTarget.value === null) {
+        return;
     }
+
+    deleteProcessing.value = true;
+    router.delete(HostController.destroy.url(deleteTarget.value.id), {
+        preserveScroll: true,
+        onFinish: () => {
+            deleteProcessing.value = false;
+        },
+        onSuccess: () => {
+            deleteOpen.value = false;
+            deleteTarget.value = null;
+        },
+    });
 }
 
 const emptyMetrics = (): HostMetrics => ({
@@ -217,17 +236,26 @@ const emptyMetrics = (): HostMetrics => ({
     <Head :title="t('Servers')" />
 
     <PageContainer size="wide">
-        <PageHeader
-            :eyebrow="t('Servers')"
-            :title="t('Servers')"
-            :description="
-                t('Servers running phare-agent and pushing metrics to the hub.')
-            "
-        >
-            <Button v-if="canManage" @click="openCreate">
-                <Plus class="size-4" /> {{ t('Add a server') }}
+        <header class="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div class="min-w-0">
+                <h1
+                    class="font-display text-xl font-semibold tracking-tight md:text-2xl"
+                >
+                    {{ t('Servers') }}
+                </h1>
+                <p class="text-xs text-muted-foreground">
+                    {{
+                        t(
+                            'Servers running phare-agent and pushing metrics to the hub.',
+                        )
+                    }}
+                </p>
+            </div>
+            <Button v-if="canManage" size="sm" @click="openCreate">
+                <Plus class="size-4" aria-hidden="true" />
+                {{ t('Add a server') }}
             </Button>
-        </PageHeader>
+        </header>
 
         <div
             v-if="enrollment"
@@ -259,7 +287,7 @@ const emptyMetrics = (): HostMetrics => ({
             </div>
         </div>
 
-        <search v-if="hosts.length" class="surface p-4">
+        <search v-if="hosts.length" class="surface px-3 py-2">
             <form
                 class="flex flex-wrap items-center gap-2"
                 role="search"
@@ -388,7 +416,7 @@ const emptyMetrics = (): HostMetrics => ({
                             variant="ghost"
                             :title="t('Delete')"
                             :aria-label="t('Delete')"
-                            @click="remove(h)"
+                            @click="openDelete(h)"
                         >
                             <Trash2 class="size-4" />
                         </Button>
@@ -396,6 +424,15 @@ const emptyMetrics = (): HostMetrics => ({
                 </HostCard>
             </div>
         </section>
+
+        <HostDeleteDialog
+            v-if="deleteTarget"
+            v-model:open="deleteOpen"
+            :host-name="deleteTarget.name"
+            :enrolled="deleteTarget.enrolled"
+            :processing="deleteProcessing"
+            @confirm="confirmDelete"
+        />
 
         <Dialog v-model:open="dialogOpen">
             <DialogContent class="sm:max-w-lg">

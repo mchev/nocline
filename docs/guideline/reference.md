@@ -201,7 +201,7 @@ Kuma comparé : Kuma exécute tout depuis le conteneur unique ; nous **séparons
 
 ## Migration depuis stack actuelle
 
-- Uptime Kuma : import monitors (`phare:import-kuma` ou UI) — voir [migration-kuma.md](../migration-kuma.md).
+- Uptime Kuma : import monitors (`phare:import-kuma` ou UI) — voir [migration-kuma.md](/migration-kuma) (EN) · [/fr/migration-kuma](/fr/migration-kuma) (FR).
 - Wallboard : URL jeton + `GET /api/wallboard/{token}` (voir module Wallboards).
 
 ## Décisions actées (2026-11)

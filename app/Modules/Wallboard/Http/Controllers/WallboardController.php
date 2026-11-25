@@ -3,6 +3,8 @@
 namespace App\Modules\Wallboard\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Checks\Models\Check;
+use App\Modules\Checks\Support\CheckFaviconResponse;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Wallboard\Models\Wallboard;
 use App\Modules\Wallboard\Services\WallboardAggregator;
@@ -13,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class WallboardController extends Controller
 {
@@ -79,8 +82,22 @@ class WallboardController extends Controller
         $wallboard = Wallboard::findByToken($token) ?? abort(404);
 
         return response()->json([
-            ...$aggregator->payload($wallboard),
+            ...$aggregator->payload($wallboard, $token),
             'hub_revision' => app(HubRevision::class)->current(),
         ])->header('Cache-Control', 'no-store');
+    }
+
+    public function favicon(
+        string $token,
+        Check $check,
+        WallboardAggregator $aggregator,
+        CheckFaviconResponse $favicons,
+    ): BinaryFileResponse {
+        $wallboard = Wallboard::findByToken($token) ?? abort(404);
+
+        $visible = $aggregator->visibleSites($wallboard);
+        abort_unless($visible->contains('id', $check->id), 404);
+
+        return $favicons->file($check, publicCache: true);
     }
 }

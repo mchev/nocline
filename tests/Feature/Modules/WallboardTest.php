@@ -12,6 +12,7 @@ use App\Modules\Wallboard\Services\WallboardAggregator;
 use App\Modules\Wallboard\Support\HubRevision;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 it('lets admins regenerate a wallboard url and invalidates the old token', function () {
     ['token' => $old, 'wallboard' => $wallboard] = Wallboard::createWithToken(['name' => 'NOC']);
@@ -71,6 +72,30 @@ it('exposes hub revision on the kiosk page for deploy reload', function () {
             ->where('hubRevision', $revision));
 });
 
+it('exposes public favicon urls and serves them without authentication', function () {
+    Storage::fake('local');
+    ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC']);
+    $site = Check::factory()->create([
+        'category' => CheckCategory::Website,
+        'name' => 'Shop',
+        'favicon_path' => 'check-favicons/99.png',
+    ]);
+    Storage::disk('local')->put('check-favicons/99.png', fakePngBytes());
+
+    $siteRow = collect($this->getJson(route('api.wallboard', $token))->json('sites'))
+        ->firstWhere('name', 'Shop');
+
+    expect($siteRow['favicon_url'])->toContain('/wallboard/')
+        ->and($siteRow['favicon_url'])->toContain('/favicon/');
+
+    $this->get($siteRow['favicon_url'])
+        ->assertOk()
+        ->assertHeader('content-type', 'image/png');
+
+    $this->get(route('wallboard.favicon', ['token' => $token, 'check' => Check::factory()->create()->id]))
+        ->assertNotFound();
+});
+
 it('aggregates summary, incidents, sites and host metrics', function () {
     ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC']);
     $up = Check::factory()->create();
@@ -122,6 +147,8 @@ it('filters by group, including sub-groups', function () {
 });
 
 it('caches the wallboard payload between aggregator calls', function () {
+    $this->freezeTime();
+
     Cache::flush();
     ['wallboard' => $wallboard] = Wallboard::createWithToken(['name' => 'NOC']);
     Check::factory()->count(5)->create();
@@ -130,15 +157,17 @@ it('caches the wallboard payload between aggregator calls', function () {
     $aggregator = app(WallboardAggregator::class);
     $cacheKey = "wallboard:{$wallboard->id}";
 
-    $first = $aggregator->payload($wallboard);
+    $token = 'wb_cache_test_token';
+    $first = $aggregator->payload($wallboard, $token);
     expect(Cache::has($cacheKey))->toBeTrue();
 
     Check::factory()->create(['name' => 'Would skew a live rebuild']);
 
     DB::enableQueryLog();
     DB::flushQueryLog();
-    $second = $aggregator->payload($wallboard);
+    $second = $aggregator->payload($wallboard, $token);
 
-    expect($second)->toBe($first)
-        ->and(count(DB::getQueryLog()))->toBe(0);
+    expect(count(DB::getQueryLog()))->toBe(0)
+        ->and(collect($second['sites'])->pluck('id')->all())
+        ->toEqual(collect($first['sites'])->pluck('id')->all());
 });

@@ -26,6 +26,7 @@ Route::middleware(['auth', 'verified'])->prefix('monitor')->name('monitor.')->gr
     Route::post('website', [MonitorController::class, 'website'])->name('website');
     Route::post('server', [MonitorController::class, 'server'])->name('server');
     Route::post('service', [MonitorController::class, 'service'])->name('service');
+    Route::post('object-storage', [MonitorController::class, 'objectStorage'])->name('object-storage');
     Route::post('heartbeat', [MonitorController::class, 'heartbeat'])->name('heartbeat.store');
     Route::get('heartbeats/{check}', [MonitorController::class, 'heartbeatInstall'])->name('heartbeat');
     Route::get('servers/{host}/install', [MonitorController::class, 'install'])->name('install');

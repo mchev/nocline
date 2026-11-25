@@ -12,7 +12,49 @@ beforeEach(fn () => $this->actingAs(User::factory()->tech()->create()));
 
 it('renders the "what do you want to monitor" page', function () {
     $this->get(route('monitor.create'))
-        ->assertInertia(fn ($page) => $page->component('monitor/Create')->has('groups')->has('has_probe'));
+        ->assertInertia(fn ($page) => $page->component('monitor/Create')
+            ->has('groups')
+            ->has('has_probe')
+            ->has('object_storage_providers'));
+});
+
+it('adds an OVH object storage platform check', function () {
+    $this->post(route('monitor.object-storage'), [
+        'provider' => 'ovh',
+        'region' => 'gra',
+        'level' => 'platform',
+    ])->assertRedirect(route('dashboard'));
+
+    $check = Check::first();
+    expect($check->type)->toBe(CheckType::Tcp)
+        ->and($check->target)->toBe('s3.gra.io.cloud.ovh.net:443')
+        ->and($check->tags)->toContain('object-storage', 'ovh');
+});
+
+it('adds an object storage bucket HTTP check', function () {
+    $this->post(route('monitor.object-storage'), [
+        'provider' => 'ovh',
+        'region' => 'sbg',
+        'level' => 'bucket',
+        'bucket' => 'my-bucket',
+        'health_path' => 'health.txt',
+    ])->assertRedirect(route('dashboard'));
+
+    expect(Check::first()->type)->toBe(CheckType::Http)
+        ->and(Check::first()->target)->toBe('https://my-bucket.s3.sbg.io.cloud.ovh.net/health.txt');
+});
+
+it('routes object storage backup level to heartbeat setup', function () {
+    $response = $this->post(route('monitor.object-storage'), [
+        'provider' => 'ovh',
+        'region' => 'gra',
+        'level' => 'backup',
+        'name' => 'Nightly S3 backup',
+    ]);
+
+    $check = Check::first();
+    $response->assertRedirect(route('monitor.heartbeat', $check));
+    expect($check->type)->toBe(CheckType::Heartbeat);
 });
 
 it('adds a website from a bare domain and creates the group on the fly', function () {

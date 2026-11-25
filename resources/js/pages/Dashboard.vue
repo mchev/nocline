@@ -12,7 +12,8 @@ import {
     TriangleAlert,
     Wrench,
 } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
+import DashboardLayoutDialog from '@/components/dashboard/DashboardLayoutDialog.vue';
 import MonitorIdentityBadges from '@/components/MonitorIdentityBadges.vue';
 import HostController from '@/actions/App/Modules/Hosts/Http/Controllers/HostController';
 import HostCard, { type HostMetrics } from '@/components/HostCard.vue';
@@ -28,6 +29,11 @@ import {
     monitorUptimeHistoryProps,
 } from '@/lib/monitorHistory';
 import { checkMonitorHref, checksFilteredHref } from '@/lib/dashboardLinks';
+import {
+    loadDashboardLayout,
+    saveDashboardLayout,
+    type DashboardLayoutPrefs,
+} from '@/lib/dashboardLayout';
 import { t } from '@/lib/i18n';
 import { index as channelsIndex } from '@/routes/alertes/channels';
 import { index as checksIndex } from '@/routes/checks';
@@ -201,10 +207,29 @@ const { el: serversEl, count: serverRows } = useListFit({
     min: 1,
 });
 
+const layout = ref<DashboardLayoutPrefs>(loadDashboardLayout());
+
+watch(
+    layout,
+    (value) => {
+        saveDashboardLayout(value);
+    },
+    { deep: true },
+);
+
 const hasSites = computed(() => props.overview.sites.length > 0);
 const hasHeartbeats = computed(() => props.overview.heartbeats.length > 0);
 const hasRenewals = computed(() => props.overview.renewals.length > 0);
 const hasServers = computed(() => props.overview.servers.length > 0);
+
+const showSitesPanel = computed(() => layout.value.sites && hasSites.value);
+const showHeartbeatsPanel = computed(
+    () => layout.value.heartbeats && hasHeartbeats.value,
+);
+const showServersPanel = computed(
+    () => layout.value.servers && hasServers.value,
+);
+const showRenewalsUi = computed(() => layout.value.renewals);
 
 const visibleSites = computed(() =>
     props.overview.sites.slice(0, sitesCount.value),
@@ -277,25 +302,29 @@ const historyPanelHint = computed(() =>
 );
 
 const renewalsInStrip = computed(
-    () => hasRenewals.value && props.overview.renewals.length <= 4,
+    () =>
+        showRenewalsUi.value &&
+        hasRenewals.value &&
+        props.overview.renewals.length <= 4,
 );
 
 const hasRenewalsPanel = computed(
-    () => hasRenewals.value && !renewalsInStrip.value,
+    () => showRenewalsUi.value && hasRenewals.value && !renewalsInStrip.value,
 );
 
 const visiblePanelCount = computed(
     () =>
         [
-            hasSites.value,
-            hasHeartbeats.value,
+            showSitesPanel.value,
+            showHeartbeatsPanel.value,
             hasRenewalsPanel.value,
-            hasServers.value,
+            showServersPanel.value,
         ].filter(Boolean).length,
 );
 
 const boardBodyClass = computed(() => ({
-    'board-body--servers-tall': hasServers.value && visiblePanelCount.value > 2,
+    'board-body--servers-tall':
+        showServersPanel.value && visiblePanelCount.value > 2,
     'board-body--panels-1': visiblePanelCount.value === 1,
     'board-body--panels-2': visiblePanelCount.value === 2,
     'board-body--three-panels': visiblePanelCount.value === 3,
@@ -475,6 +504,7 @@ const starts = [
                         }}
                     </Link>
                     <Link
+                        v-if="showRenewalsUi"
                         :href="renewalsIndex()"
                         class="chip gap-1 px-2 py-0.5 text-xs hover:opacity-90"
                         :class="renewals_soon ? 'chip-warning' : ''"
@@ -483,6 +513,8 @@ const starts = [
                         {{ t('Renewals') }} · {{ renewals_soon }}
                     </Link>
                 </nav>
+
+                <DashboardLayoutDialog v-model="layout" />
             </div>
 
             <Link
@@ -606,12 +638,24 @@ const starts = [
             >
         </section>
 
+        <p
+            v-if="visiblePanelCount === 0"
+            class="flex flex-1 flex-col items-center justify-center gap-2 surface px-4 py-8 text-center text-sm text-muted-foreground"
+        >
+            {{
+                t(
+                    'No dashboard blocks selected. Use the customize button above.',
+                )
+            }}
+        </p>
+
         <div
+            v-else
             class="board-body grid min-h-0 min-w-0 flex-1 gap-3 overflow-hidden"
             :class="boardBodyClass"
         >
             <section
-                v-if="hasSites"
+                v-if="showSitesPanel"
                 class="panel flex min-h-0 min-w-0 flex-col overflow-visible surface"
                 :aria-label="t('Websites')"
             >
@@ -711,7 +755,7 @@ const starts = [
             </section>
 
             <section
-                v-if="hasHeartbeats"
+                v-if="showHeartbeatsPanel"
                 class="panel flex min-h-0 min-w-0 flex-col overflow-hidden surface"
                 :aria-label="t('Heartbeats')"
             >
@@ -837,7 +881,7 @@ const starts = [
             </section>
 
             <section
-                v-if="hasServers"
+                v-if="showServersPanel"
                 class="servers-panel panel flex min-h-0 min-w-0 flex-col overflow-hidden surface"
                 :aria-label="t('Servers')"
             >

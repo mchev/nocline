@@ -325,7 +325,7 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                         t('Disk')
                     }}</span>
                     <span
-                        class="truncate text-right text-sm font-normal tabular-nums text-muted-foreground"
+                        class="truncate text-right text-sm font-normal text-muted-foreground tabular-nums"
                     >
                         {{ diskParts.bytes ?? '' }}
                     </span>

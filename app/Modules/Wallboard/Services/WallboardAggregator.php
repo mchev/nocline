@@ -13,6 +13,8 @@ use App\Modules\Incidents\Models\Incident;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
 use App\Modules\Metrics\Services\HostMetricsReader;
 use App\Modules\Wallboard\Models\Wallboard;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -33,13 +35,48 @@ class WallboardAggregator
     /**
      * @return array<string, mixed>
      */
-    public function payload(Wallboard $wallboard): array
+    public function payload(Wallboard $wallboard, string $wallboardToken): array
     {
-        return Cache::remember(
+        $data = Cache::remember(
             "wallboard:{$wallboard->id}",
             self::CACHE_TTL_SECONDS,
             fn () => $this->build($wallboard),
         );
+
+        return [
+            ...$data,
+            'sites' => array_map(function (array $site) use ($wallboardToken) {
+                if ($site['favicon_url'] !== null) {
+                    $site['favicon_url'] = route('wallboard.favicon', [
+                        'token' => $wallboardToken,
+                        'check' => $site['id'],
+                    ]);
+                }
+
+                return $site;
+            }, $data['sites']),
+        ];
+    }
+
+    /**
+     * Website tiles shown on this wallboard (same filter as the payload).
+     *
+     * @return Collection<int, Check>
+     */
+    public function visibleSites(Wallboard $wallboard): EloquentCollection
+    {
+        $groupIds = $wallboard->group?->selfAndDescendantIds();
+
+        return Check::query()
+            ->where('enabled', true)
+            ->where('category', CheckCategory::Website)
+            ->when($groupIds, fn ($q) => $q->whereIn('group_id', $groupIds))
+            ->with('state')
+            ->orderBy('name')
+            ->limit(60)
+            ->get()
+            ->reject(fn (Check $c) => SiteHealthCompanion::looksLikeHealthCompanion($c))
+            ->values();
     }
 
     /**
@@ -72,16 +109,7 @@ class WallboardAggregator
         $metricSeries = $this->hostMetrics->forHosts($hosts, self::HOST_SPARKLINE_POINTS);
         $checkIds = $checks->pluck('id');
 
-        $sites = Check::query()
-            ->where('enabled', true)
-            ->where('category', CheckCategory::Website)
-            ->when($groupIds, fn ($q) => $q->whereIn('group_id', $groupIds))
-            ->with('state')
-            ->orderBy('name')
-            ->limit(60)
-            ->get()
-            ->reject(fn (Check $c) => SiteHealthCompanion::looksLikeHealthCompanion($c))
-            ->values();
+        $sites = $this->visibleSites($wallboard);
 
         return [
             'name' => $wallboard->name,

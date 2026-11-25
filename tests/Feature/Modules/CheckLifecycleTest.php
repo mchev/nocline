@@ -102,15 +102,25 @@ it('records a failed delivery without breaking the flow', function () {
 });
 
 it('acknowledges an open incident as a tech but not as a viewer', function () {
-    $incident = Incident::factory()->create();
+    $incident = Incident::factory()->create([
+        'resolved_at' => null,
+        'acknowledged_at' => null,
+        'acknowledged_by' => null,
+    ]);
 
     $this->actingAs(User::factory()->create())
         ->post(route('incidents.acknowledge', $incident))->assertForbidden();
 
     $tech = User::factory()->tech()->create();
-    $this->actingAs($tech)->post(route('incidents.acknowledge', $incident))->assertRedirect();
 
-    expect($incident->refresh()->acknowledged_by)->toBe($tech->id);
+    $this->actingAs($tech)
+        ->post(route('incidents.acknowledge', $incident))
+        ->assertRedirect();
+
+    $incident->refresh();
+
+    expect($incident->acknowledged_by)->toBe($tech->id)
+        ->and($incident->acknowledged_at)->not->toBeNull();
 });
 
 it('runs due http checks through the scheduler command', function () {

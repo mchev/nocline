@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
     {--db=sqlite : sqlite|mysql|pgsql}
     {--db-host=127.0.0.1} {--db-port=} {--db-name=} {--db-user=} {--db-password=}
     {--admin-name=} {--admin-email=} {--admin-password=}
-    {--name=Phare} {--url=http://localhost:8000} {--locale=fr} {--timezone=Europe/Paris}')]
+    {--name=Phare} {--url=http://localhost:8000} {--locale=en} {--timezone=UTC}')]
 #[Description('Non-interactive first setup (Docker / Forge): database, migrations, first admin')]
 class InstallCommand extends Command
 {

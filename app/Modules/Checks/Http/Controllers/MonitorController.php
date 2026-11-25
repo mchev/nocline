@@ -9,6 +9,7 @@ use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Services\MonitorCreator;
 use App\Modules\Checks\Support\CheckRules;
+use App\Modules\Checks\Support\ObjectStoragePresets;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Hosts\Services\HostResourceCheckProvisioner;
@@ -34,6 +35,7 @@ class MonitorController extends Controller
         return Inertia::render('monitor/Create', [
             'groups' => Group::options(),
             'has_probe' => Probe::query()->where('enabled', true)->get()->contains(fn (Probe $p) => $p->isOnline()),
+            'object_storage_providers' => ObjectStoragePresets::forFrontend(),
         ]);
     }
 
@@ -139,6 +141,29 @@ class MonitorController extends Controller
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Monitor added.')]);
+
+        return redirect()->route('dashboard');
+    }
+
+    public function objectStorage(Request $request): RedirectResponse
+    {
+        $this->authorize('create', Check::class);
+
+        $data = $request->validate(MonitorCreator::objectStorageRules());
+
+        $this->authorizeGroupCreation($data);
+
+        try {
+            $check = $this->monitors->objectStorage($data);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['bucket' => $e->getMessage()]);
+        }
+
+        if ($check->type === CheckType::Heartbeat) {
+            return redirect()->route('monitor.heartbeat', $check);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Object storage monitor added.')]);
 
         return redirect()->route('dashboard');
     }

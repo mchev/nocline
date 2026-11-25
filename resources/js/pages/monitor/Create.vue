@@ -14,9 +14,18 @@ import { Label } from '@/components/ui/label';
 import { t } from '@/lib/i18n';
 import type { GroupOption } from '@/types/groups';
 
-defineProps<{
+type ObjectStorageProviderOption = {
+    value: string;
+    label: string;
+    regions: { value: string; label: string }[];
+    needs_endpoint: boolean;
+    show_region_with_endpoint?: boolean;
+};
+
+const props = defineProps<{
     groups: GroupOption[];
     has_probe: boolean;
+    object_storage_providers: ObjectStorageProviderOption[];
 }>();
 
 type Kind = 'website' | 'server' | 'service';
@@ -84,7 +93,7 @@ function submitHeartbeat() {
 }
 
 const service = useForm({
-    kind: 'mail',
+    kind: 'object_storage',
     host: '',
     port: '' as string | number,
     name: '',
@@ -92,7 +101,27 @@ const service = useForm({
     group_name: '',
 });
 
+const objectStorage = useForm({
+    provider: 'ovh',
+    region: 'gra',
+    level: 'platform',
+    bucket: '',
+    health_path: 'health.txt',
+    endpoint_host: '',
+    name: '',
+    group_id: '' as string | number,
+    group_name: '',
+});
+
 const serviceKinds = computed(() => [
+    {
+        value: 'object_storage',
+        label: t('Object storage (S3)'),
+        hint: t(
+            'OVH, AWS, Scaleway… Check that the cloud storage endpoint or your bucket answers.',
+        ),
+        port: '',
+    },
     {
         value: 'mail',
         label: t('A mail server'),
@@ -129,13 +158,58 @@ const current = computed(() =>
 );
 const needsPort = computed(() => ['mail', 'port'].includes(service.kind));
 const isHeartbeat = computed(() => service.kind === 'heartbeat');
+const isObjectStorage = computed(() => service.kind === 'object_storage');
 const needsProbe = computed(() => ['ping', 'dns'].includes(service.kind));
+const storageProvider = computed(() =>
+    props.object_storage_providers.find((p) => p.value === objectStorage.provider),
+);
+const storageRegions = computed(() => storageProvider.value?.regions ?? []);
+const storageNeedsEndpoint = computed(
+    () => storageProvider.value?.needs_endpoint ?? false,
+);
+const storageShowsRegion = computed(
+    () =>
+        !storageNeedsEndpoint.value ||
+        (storageProvider.value?.show_region_with_endpoint ?? false),
+);
+const isBucketLevel = computed(() => objectStorage.level === 'bucket');
+const isBackupLevel = computed(() => objectStorage.level === 'backup');
 const select = 'h-10 rounded-md border bg-transparent px-3 text-sm';
 
 function pickServiceKind(value: string) {
     service.kind = value;
     service.port =
         serviceKinds.value.find((k) => k.value === value)?.port ?? '';
+    if (value === 'object_storage') {
+        const p = props.object_storage_providers.find(
+            (pr) => pr.value === objectStorage.provider,
+        );
+        if (p?.regions[0]) {
+            objectStorage.region = p.regions[0].value;
+        }
+    }
+}
+
+function submitObjectStorage() {
+    const payload = {
+        provider: objectStorage.provider,
+        region:
+            storageNeedsEndpoint.value && !storageProvider.value?.show_region_with_endpoint
+                ? null
+                : objectStorage.region,
+        level: objectStorage.level,
+        bucket: isBucketLevel.value ? objectStorage.bucket : null,
+        health_path: isBucketLevel.value ? objectStorage.health_path : null,
+        endpoint_host: storageNeedsEndpoint.value
+            ? objectStorage.endpoint_host
+            : null,
+        name: objectStorage.name || null,
+        group_id: objectStorage.group_id,
+        group_name: objectStorage.group_name,
+    };
+    objectStorage
+        .transform(() => payload)
+        .post(MonitorController.objectStorage.url());
 }
 
 function cards() {
@@ -161,7 +235,7 @@ function cards() {
             icon: Wrench,
             title: t('Something else'),
             text: t(
-                'A mail server, an application, a machine on your network, a domain name, a scheduled task…',
+                'Object storage, mail server, application, ping, DNS, scheduled task…',
             ),
         },
     ];
@@ -399,7 +473,177 @@ const containerSize = computed(() => (kind.value ? 'narrow' : 'default'));
                 </fieldset>
 
                 <form
-                    v-if="!isHeartbeat"
+                    v-if="isObjectStorage"
+                    class="form-panel"
+                    @submit.prevent="submitObjectStorage"
+                >
+                    <div class="field-stack">
+                        <Label for="os-provider">{{ t('Cloud provider') }}</Label>
+                        <select
+                            id="os-provider"
+                            v-model="objectStorage.provider"
+                            :class="select"
+                        >
+                            <option
+                                v-for="p in object_storage_providers"
+                                :key="p.value"
+                                :value="p.value"
+                            >
+                                {{ p.label }}
+                            </option>
+                        </select>
+                    </div>
+                    <div v-if="storageNeedsEndpoint" class="field-stack">
+                        <Label for="os-endpoint">{{ t('S3 endpoint (host only)') }}</Label>
+                        <Input
+                            id="os-endpoint"
+                            v-model="objectStorage.endpoint_host"
+                            :placeholder="
+                                objectStorage.provider === 'laravel_cloud'
+                                    ? 'xxxxxxxx.r2.cloudflarestorage.com'
+                                    : 's3.example.com'
+                            "
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="none"
+                        />
+                        <InputError :message="objectStorage.errors.endpoint_host" />
+                        <p
+                            v-if="objectStorage.provider === 'laravel_cloud'"
+                            class="field-hint"
+                        >
+                            {{
+                                t(
+                                    'Copy the endpoint from your Laravel Cloud bucket credentials (AWS_ENDPOINT_URL, host only).',
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <div v-if="storageShowsRegion" class="field-stack">
+                        <Label for="os-region">{{
+                            objectStorage.provider === 'laravel_cloud'
+                                ? t('App region (label only)')
+                                : t('Region')
+                        }}</Label>
+                        <select
+                            id="os-region"
+                            v-model="objectStorage.region"
+                            :class="select"
+                        >
+                            <option
+                                v-for="r in storageRegions"
+                                :key="r.value"
+                                :value="r.value"
+                            >
+                                {{ r.label }}
+                            </option>
+                        </select>
+                        <InputError :message="objectStorage.errors.region" />
+                    </div>
+                    <fieldset class="field-stack">
+                        <legend class="text-sm font-medium">
+                            {{ t('What should we check?') }}
+                        </legend>
+                        <label class="flex cursor-pointer gap-2 text-sm">
+                            <input
+                                v-model="objectStorage.level"
+                                type="radio"
+                                name="os-level"
+                                value="platform"
+                            />
+                            <span>{{
+                                t('The storage service answers (recommended first step)')
+                            }}</span>
+                        </label>
+                        <label class="flex cursor-pointer gap-2 text-sm">
+                            <input
+                                v-model="objectStorage.level"
+                                type="radio"
+                                name="os-level"
+                                value="bucket"
+                            />
+                            <span>{{
+                                t('A public file in my bucket is reachable')
+                            }}</span>
+                        </label>
+                        <label class="flex cursor-pointer gap-2 text-sm">
+                            <input
+                                v-model="objectStorage.level"
+                                type="radio"
+                                name="os-level"
+                                value="backup"
+                            />
+                            <span>{{
+                                t('My backup job still runs (heartbeat)')
+                            }}</span>
+                        </label>
+                    </fieldset>
+                    <div v-if="isBucketLevel" class="field-stack">
+                        <Label for="os-bucket">{{ t('Bucket name') }}</Label>
+                        <Input
+                            id="os-bucket"
+                            v-model="objectStorage.bucket"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="none"
+                        />
+                        <InputError :message="objectStorage.errors.bucket" />
+                        <Label for="os-health">{{ t('File to fetch') }}</Label>
+                        <Input
+                            id="os-health"
+                            v-model="objectStorage.health_path"
+                            placeholder="health.txt"
+                            autocomplete="off"
+                        />
+                        <p class="field-hint">
+                            {{
+                                t(
+                                    'Create this file in the bucket and allow public read (or use a stable public URL). Phare checks it returns HTTP success.',
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <p
+                        v-if="isBackupLevel"
+                        class="surface-muted p-4 text-sm text-muted-foreground"
+                    >
+                        {{
+                            t(
+                                'Next, we give you a secret URL. Call it from your backup script after a successful upload to S3.',
+                            )
+                        }}
+                    </p>
+                    <GroupPicker
+                        v-model:group-id="objectStorage.group_id"
+                        v-model:group-name="objectStorage.group_name"
+                        :groups="groups"
+                        :error="objectStorage.errors.group_id"
+                        id="object-storage-group"
+                    />
+                    <details class="text-sm">
+                        <summary class="cursor-pointer text-muted-foreground">
+                            {{ t('Name it yourself (optional)') }}
+                        </summary>
+                        <Input
+                            v-model="objectStorage.name"
+                            class="mt-2"
+                            :placeholder="t('Object storage (S3)')"
+                        />
+                    </details>
+                    <Button
+                        type="submit"
+                        size="lg"
+                        :disabled="
+                            objectStorage.processing ||
+                            (storageNeedsEndpoint && !objectStorage.endpoint_host) ||
+                            (isBucketLevel && !objectStorage.bucket)
+                        "
+                        >{{ isBackupLevel ? t('Continue') : t('Start monitoring') }}</Button
+                    >
+                </form>
+
+                <form
+                    v-else-if="!isHeartbeat"
                     class="form-panel"
                     @submit.prevent="
                         service.post(MonitorController.service.url())

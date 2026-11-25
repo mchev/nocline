@@ -1,46 +1,47 @@
-# Roadmap Phare
+# Roadmap
 
-Alignée sur la [skill produit Phare](guideline/SKILL).
+Aligned with the [product guideline](/guideline/SKILL).
 
 ## Phase 1 — MVP
 
-- [x] Auth Fortify + rôles `admin` / `tech` / `viewer`
-- [x] Module **Groups** (dossiers imbriquables, options d'affichage par groupe : liste/grille/compact, couleur, replié)
-- [x] Module **Hosts** + enrôlement agent
-- [x] Module **Checks** + planification
-- [x] Module **Incidents** (events up/down, ack)
-- [x] Module **Alertes** (mail + 1 canal)
-- [x] API ingest métriques (`POST /api/v1/ingest`)
-- [x] Agent Go : collecte CPU/RAM/disk minimale (vet/test/build OK)
-- [x] **First setup** (assistant au premier déploiement) : choix BDD SQLite/MySQL (PostgreSQL recommandé en prod), test de connexion + migrations, création du premier admin, langue (fr/en), nom d'instance / URL du hub / fuseau horaire, config mail ; verrouillé une fois installé
+- [x] Fortify auth + `admin` / `tech` / `viewer` roles
+- [x] **Groups** (nested folders, list/grid/compact, colour, collapsed)
+- [x] **Servers** + agent enrollment
+- [x] **Checks** + scheduling
+- [x] **Incidents** (up/down events, ack)
+- [x] **Alerts** (mail + pluggable channels)
+- [x] Metrics ingest API (`POST /api/v1/ingest`)
+- [x] Go agent: CPU/RAM/disk
+- [x] **First setup** wizard (DB, admin, locale, URL, mail) — locked after install
 
 ## Phase 1.5
 
-- [x] **Wallboard** Inertia (TV / kiosque, API token)
-- [x] **Sondes** (hub + agent Go validés) `role=probe` + quorum
-- [x] API wallboard agrégée + cache Redis
+- [x] **Wallboard** (TV / kiosk, token URL)
+- [x] **Probes** (`role=probe`) + quorum
+- [x] Wallboard aggregate API + Redis cache
 
 ## Phase 2
 
-- [x] **Coffre** (libsodium, audit, re-auth)
-- [x] **Journal d'activité** (qui a fait quoi, admin, rétention 365 j) + en-têtes de sécurité + SECURITY/CONTRIBUTING
-- [x] **Renewals** automatiques (SSL, domaines via RDAP, rappels), page en lecture seule
+- [x] **Vault** (libsodium, audit, re-auth)
+- [x] **Activity log** + security headers + SECURITY/CONTRIBUTING
+- [x] **Renewals** (SSL, domain via RDAP, reminders)
 
 ## Phase 3
 
-- [ ] **WordPress** (plugin minimal)
-- [ ] Intégrations hébergeurs (API)
-- [x] **Maintenance planifiée** (fenêtres ponctuelles / quotidiennes / hebdomadaires, portée tout / groupe / sonde : pas d'incident ni d'alerte, badge « Maintenance »)
-- [x] **Pages de statut publiques** par client (`/status/{slug}`, marque, disponibilité 90 j, incidents 14 j, aucune donnée technique)
+- [ ] **WordPress** (minimal plugin)
+- [ ] Hosting provider integrations
+- [x] **Scheduled maintenance**
+- [x] **Public status pages** (`/status/{slug}`)
 
-## Transverse
+## Cross-cutting
 
-- [ ] Doc utilisateur `docs/user/` tenue à jour à chaque feature (en cours)
-- [x] i18n ouverte aux contributeurs (`lang/<code>.json`, EN par défaut, FR ; `phare:lang:missing`)
-- [x] Assistant d'installation pas à pas (langue d'abord)
-- [x] Organisation des checks : groupe / catégorie / tags, groupement, filtres, actions groupées, édition
-- [x] Détection automatique à l'ajout d'un site (Laravel / WordPress, page `/up`, garde SSRF)
-- [x] API REST v1 (tokens personnels hachés, `docs/api.md` + OpenAPI), heartbeat / tâches planifiées (dead man's switch), package `phare/laravel` (non publié)
-- [x] Pas d'inscription publique ; gestion des utilisateurs par l'admin
-- [x] Mises à jour : check des releases GitHub, bannière admin, `scripts/update.sh` + `phare:update` (sauvegarde, migrations), release automatisée (agent Linux)
-- [ ] Plus tard : image Docker officielle (non prioritaire), mise à jour de l'agent en un clic
+- [x] User documentation (`docs/`, EN default + FR)
+- [x] i18n (`lang/*.json`, EN default)
+- [x] Setup wizard (language first)
+- [x] Check organisation (group, category, tags, bulk actions)
+- [x] Auto-detection on website add (Laravel/WordPress, SSRF-safe)
+- [x] REST API v1 + heartbeats + `phare/laravel` package (unpublished)
+- [x] No public registration
+- [x] GitHub release checks + `scripts/update.sh` + `phare:update`
+- [x] Official **Docker Compose** stack
+- [ ] One-click agent upgrade from UI (later)

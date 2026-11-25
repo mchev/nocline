@@ -12,6 +12,7 @@ use App\Modules\Hosts\Models\Host;
 use App\Modules\Hosts\Support\AgentInstallCommand;
 use App\Modules\Hosts\Support\HostMetaPresenter;
 use App\Modules\Hosts\Support\HostMetricAlerts;
+use App\Modules\Incidents\Models\Incident;
 use App\Modules\Metrics\Services\HostMetricAlertEvaluator;
 use App\Modules\Metrics\Services\HostMetricsReader;
 use App\Modules\Updates\Services\ReleaseChecker;
@@ -73,6 +74,14 @@ class HostController extends Controller
         $metricsChart = $metrics->chart($host, $chartHours);
         $agent = $host->agentCheck;
 
+        $checkIds = Check::query()->where('host_id', $host->id)->pluck('id');
+        $recentIncidents = Incident::query()
+            ->with(['check:id,name'])
+            ->whereIn('check_id', $checkIds)
+            ->orderByDesc('started_at')
+            ->limit(20)
+            ->get();
+
         return Inertia::render('hosts/Show', [
             'host' => [
                 'id' => $host->id,
@@ -126,6 +135,16 @@ class HostController extends Controller
                 ])->values(),
             'groups' => Group::options(),
             'metrics_chart' => $metricsChart,
+            'recent_incidents' => $recentIncidents->map(fn (Incident $i) => [
+                'id' => $i->id,
+                'check_id' => $i->check_id,
+                'title' => $i->title,
+                'check' => $i->check?->name,
+                'started_at' => $i->started_at->toIso8601String(),
+                'resolved_at' => $i->resolved_at?->toIso8601String(),
+                'acknowledged_at' => $i->acknowledged_at?->toIso8601String(),
+                'last_error' => $i->last_error,
+            ])->values(),
         ]);
     }
 
@@ -265,6 +284,11 @@ class HostController extends Controller
 
         $host->delete();
 
-        return back();
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Server deleted.'),
+        ]);
+
+        return to_route('hosts.index');
     }
 }

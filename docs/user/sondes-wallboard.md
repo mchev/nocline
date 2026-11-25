@@ -1,26 +1,26 @@
-# Sondes et wallboard
+# Probes and wallboard
 
-## Sondes
+## Probes
 
-Une sonde est le même binaire `phare-agent` avec `role: probe`. Elle exécute les checks depuis un autre point du réseau (ex. un VPS externe) : http, tcp, dns et icmp (icmp nécessite `CAP_NET_RAW` : `setcap cap_net_raw+ep` ou `cap_add: NET_RAW` sous Docker). Le hub ne fait jamais d'ICMP lui-même.
+A probe is the same `phare-agent` binary with `role: probe`. It runs checks from another network point (e.g. an external VPS): http, tcp, dns, and icmp (icmp needs `CAP_NET_RAW`: `setcap cap_net_raw+ep` or Docker `cap_add: NET_RAW`). The hub never runs ICMP itself.
 
-1. Menu **Sondes** (admin) > nom + rôle (`primary` : même réseau que le hub, `external` : vue Internet) > _Ajouter_.
-2. Sur la machine : `phare-agent enroll --hub https://votre-hub --token <jeton prb_…>`, puis lancez `phare-agent`.
-3. Dans un check, choisissez **Exécution : sondes** (obligatoire pour icmp/dns) et un **quorum** :
-    - _majorité_ (défaut) : down si plus de la moitié des sondes voient une panne ;
-    - _une seule_ : down dès qu'une sonde voit une panne (détection rapide) ;
-    - _toutes_ : down seulement si toutes les sondes voient une panne.
+1. **Probes** menu (admin) → name + role (`primary`: same network as the hub, `external`: Internet view) → _Add_.
+2. On the machine: `phare-agent enroll --hub https://your-hub --token <prb_… token>`, then run `phare-agent`.
+3. On a check, choose **Execution: probes** (required for icmp/dns) and a **quorum**:
+    - _majority_ (default): down if more than half of probes see a failure;
+    - _any_: down as soon as one probe sees a failure (fast detection);
+    - _all_: down only if every probe sees a failure.
 
-Seules les sondes actives, ayant répondu récemment, comptent dans le quorum. Chaque sonde ne garde que son dernier résultat par check ; l'historique reste « état + événements ».
+Only active probes that responded recently count in the quorum. Each probe keeps only its latest result per check; history remains “state + events”.
 
 ## Wallboard
 
-Menu **Wallboards** (admin) : créer un écran (optionnellement limité à un groupe, sous-groupes compris). L'URL `…/wallboard/wb_…` est affichée **une seule fois** à la création (ou après _Nouvelle URL_) — conservez-la ; elle sert de secret. **Nouvelle URL** régénère le jeton si vous l'avez perdu ; l'ancien lien cesse de fonctionner tout de suite. **Révoquer** = supprimer l'écran. Ouvrez l'URL en plein écran sur la TV ou Raspberry : aucune connexion n'est nécessaire (navigateur Chromium récent conseillé pour le kiosk).
+**Wallboards** menu (admin): create a screen (optionally scoped to one group, sub-groups included). The `…/wallboard/wb_…` URL is shown **once** on create (or after _New URL_) — keep it; it acts as the secret. **New URL** regenerates the token if you lost it; the old link stops immediately. **Revoke** deletes the screen. Open the URL fullscreen on a TV or Raspberry Pi — no login (recent Chromium recommended for kiosk).
 
-Sur une borne tactile, masquez le curseur système (`unclutter -idle 0.01 -root`) et, si besoin, ajustez `--force-device-scale-factor` dans le lanceur Chromium.
+On a touch kiosk, hide the system cursor (`unclutter -idle 0.01 -root`) and tweak Chromium’s `--force-device-scale-factor` if needed.
 
-- Rafraîchissement toutes les 15 s ; la page lit une API agrégée mise en cache 10 s (`/api/wallboard/<jeton>`). Après un déploiement (nouveau build front ou bump `VERSION`), l'API expose `hub_revision` : si elle change, l'écran se **recharge tout seul** (kiosk inclus). Optionnel : `PHARE_DEPLOY_REVISION` dans `.env` pour forcer la valeur au déploiement.
-- Si plus aucune donnée n'arrive pendant 90 s, un bandeau **« Données périmées »** s'affiche et les dernières valeurs restent visibles.
-- Contenu : bandeau **TOUT VA BIEN / ATTENTION** (pulsation si problème), **liste des noms en panne** en gros quand il y a une alerte, grille de tuiles **sites** (jusqu’à ~60) et bande **serveurs** en bas — typo et colonnes adaptées à la taille de l’écran (10″ → TV).
+- Refreshes every 15s; the page reads a cached aggregate API (10s, `/api/wallboard/<token>`). After a deploy (new front build or `VERSION` bump), the API exposes `hub_revision`; when it changes, the screen **reloads itself** (kiosk included). Optional: `PHARE_DEPLOY_REVISION` in `.env` to force the marker.
+- If no data arrives for 90s, a **stale data** banner appears and the last values stay visible.
+- Content: **ALL GOOD / ATTENTION** header, problem list when needed, website rows with 24-minute history, server band at the bottom — layout adapts from small screens to TV.
 
-Pour de meilleures performances en production, utilisez Redis comme cache (`CACHE_STORE=redis`).
+Use Redis for cache in production (`CACHE_STORE=redis`).

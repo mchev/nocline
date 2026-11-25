@@ -1,18 +1,18 @@
-# Migration depuis Uptime Kuma
+# Migrate from Uptime Kuma
 
 ## Wallboard
 
-Le wallboard Phare (URL jeton, rafraîchissement ~15 s, bandeau _stale_) est documenté dans [user/sondes-wallboard.md](user/sondes-wallboard.md). API : `GET /api/wallboard/{token}` (spec dans [guideline/reference.md](guideline/reference.md)).
+Phare wallboards use a token URL, ~15s refresh, and a _stale data_ banner. See [Probes and wallboard](user/sondes-wallboard). API: `GET /api/wallboard/{token}` ([technical reference](/guideline/reference)).
 
-## Importer ses monitors Kuma
+## Import monitors
 
-Deux sources acceptées : la **sauvegarde JSON** (Kuma 1.x : Paramètres → Sauvegarde) ou directement le fichier **`kuma.db`** (SQLite, `data/kuma.db`, utile pour Kuma 2.x qui n'exporte plus en JSON).
+Two sources: Kuma **JSON backup** (1.x: Settings → Backup) or **`kuma.db`** (SQLite, `data/kuma.db` — useful for 2.x without JSON export).
 
-- Interface : page **Checks → Importer depuis Uptime Kuma** (aperçu puis import).
-- CLI : `php artisan phare:import-kuma chemin/kuma.db --dry-run`, puis sans `--dry-run`.
+- UI: **Checks → Import from Uptime Kuma** (preview, then import).
+- CLI: `php artisan phare:import-kuma path/kuma.db --dry-run`, then without `--dry-run`.
 
-Correspondance : `http`/`keyword`/`json-query` → http (catégorie sites web, mot-clé conservé) ; `port` → tcp (serveurs) ; `ping` → icmp (réseau, exécuté par les sondes) ; `dns` → dns ; `push` → **tâche planifiée** (heartbeat : Phare génère une nouvelle URL de ping à brancher sur vos tâches). Les tags Kuma deviennent des tags Phare ; les groupes Kuma deviennent des **groupes Phare imbriqués** (la hiérarchie est conservée). Les retries Kuma + 1 deviennent le seuil d'échecs ; les monitors en pause sont importés désactivés. Les autres types (docker, mqtt…) et les canaux de notification ne sont pas importés (liste affichée). L'import est idempotent (même nom + même cible = ignoré).
+Mapping: `http`/`keyword`/`json-query` → http; `port` → tcp; `ping` → icmp (probes); `dns` → dns; `push` → **scheduled task** (Phare generates a new heartbeat URL). Kuma tags → Phare tags; Kuma groups → nested Phare groups. Retries + 1 → failure threshold; paused monitors import disabled. Types like docker/mqtt and notification channels are not imported (listed in the UI). Idempotent: same name + target = skipped.
 
-## Coexistence
+## Run in parallel
 
-Tu peux faire tourner Kuma en parallèle jusqu’à couverture checks + wallboard Phare.
+You can keep Kuma until Phare covers your checks and wallboard needs.

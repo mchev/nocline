@@ -10,6 +10,10 @@ Les **groupes** (voir [Surveiller](surveiller.md#ranger-dans-des-groupes)) perme
 
 _Révoquer_ invalide le jeton permanent (l'agent reçoit 401). Aucun port entrant n'est nécessaire : l'agent envoie vers le hub (HTTPS).
 
+## Supprimer un serveur (admin)
+
+Liste **Hosts** ou fiche serveur → **Supprimer le serveur** (modale). Effets côté hub : enregistrement et jeton API supprimés, historique métriques effacé ; les moniteurs liés restent mais ne sont plus rattachés à ce serveur. L'agent **continue de tourner** sur la machine tant que vous ne l'arrêtez pas : la modale propose des commandes `systemd` pour désinstaller le service, le binaire (`/usr/local/bin/phare-agent`) et la config (`/etc/phare-agent/`).
+
 ## Mettre à jour l'agent
 
 ### Mise à jour automatique (recommandée)

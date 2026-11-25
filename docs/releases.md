@@ -1,149 +1,38 @@
-# Versions et releases
+# Releases and upgrades
 
-Phare a **une version produit** (fichier [`VERSION`](https://github.com/mchev/phare/blob/main/VERSION) à la racine du repo). Elle sert à :
+Product version lives in [`VERSION`](https://github.com/mchev/phare/blob/main/VERSION). It drives hub update checks (`phare:update:check`) and **`phare-agent` downloads** (`vX.Y.Z` = `VERSION`).
 
-- comparer le hub avec les releases GitHub (`phare:update:check`) ;
-- construire l’URL de téléchargement de **`phare-agent`** (`vX.Y.Z` = contenu de `VERSION`).
+Official agent repo: **`mchev/phare`** (`PHARE_OFFICIAL_REPOSITORY`). Forks: set `PHARE_REPOSITORY` for banners.
 
-Repo officiel des binaires agent : **`mchev/phare`** (`PHARE_OFFICIAL_REPOSITORY`). Le hub peut suivre un fork pour les mises à jour via `PHARE_REPOSITORY`.
+## Versioning
 
----
+| Item              | Format                                               | Example    |
+| ----------------- | ---------------------------------------------------- | ---------- |
+| `VERSION` file    | `X.Y.Z`                                              | `0.1.4`    |
+| Git tag / release | `vX.Y.Z`                                             | `v0.1.4`   |
+| Assets            | `phare-agent-linux-amd64`, `phare-agent-linux-arm64` | on the tag |
 
-## Numérotation
+Tag must match `VERSION` (CI).
 
-| Élément                  | Format                                               | Exemple               |
-| ------------------------ | ---------------------------------------------------- | --------------------- |
-| Fichier `VERSION`        | `X.Y.Z` (sans préfixe `v`)                           | `0.1.0`               |
-| Tag git / release GitHub | `vX.Y.Z`                                             | `v0.1.0`              |
-| Assets agent             | `phare-agent-linux-amd64`, `phare-agent-linux-arm64` | sur la release du tag |
+## Publish (maintainers)
 
-Le workflow release vérifie que `v$(cat VERSION)` == tag poussé.
+1. Green CI, bump `VERSION`, push `main`.
+2. `git tag vX.Y.Z && git push origin vX.Y.Z` — workflow attaches agent binaries.
 
----
+Do not create empty releases in the GitHub UI. Recovery: re-run workflow or `scripts/publish-agent-assets.sh vX.Y.Z`.
 
-## Publier une release (mainteneur)
-
-### Checklist avant le tag
-
-- [ ] Fonctionnalités mergées sur `main`, CI verte (`composer ci:check` en local).
-- [ ] Migrations présentes si le schéma change.
-- [ ] **`VERSION` incrémenté** et commité.
-- [ ] Notes de version prêtes (le workflow peut générer des release notes GitHub).
-
-### Commandes
+## Upgrade hub
 
 ```bash
-# 1. VERSION déjà bumpé et commité sur main
-git push origin main
-
-# 2. Tag aligné sur VERSION
-git tag v0.1.1
-git push origin v0.1.1
+cd /path/to/phare && scripts/update.sh    # or scripts/update.sh v0.1.4
 ```
 
-### Ce que fait GitHub Actions
+Forge: `git pull`, `composer install --no-dev`, `npm ci && npm run build`, `migrate --force`, `queue:restart`.
 
-Workflow [`.github/workflows/release.yml`](https://github.com/mchev/phare/blob/main/.github/workflows/release.yml), déclenché par le **push du tag** `v*` :
+`PHARE_UPDATE_CHECK=false` disables daily GitHub checks.
 
-1. Checkout du tag.
-2. Vérification `VERSION` ↔ tag.
-3. Build Go : `phare-agent-linux-amd64` et `arm64`.
-4. Création ou **mise à jour** de la release GitHub avec ces fichiers joint.
+## Upgrade agents
 
-**À ne pas faire** : créer une release vide dans l’UI GitHub (tag sans binaires) → les installs `curl | sh` répondent 404.
+Re-run the install or update line from the server page after the hub matches a new `VERSION`. Servers need HTTPS to `github.com` and the hub.
 
-### Dépannage release sans assets
-
-| Situation                                | Action                                                        |
-| ---------------------------------------- | ------------------------------------------------------------- |
-| Release créée à la main, pas de binaires | **Actions** → _release_ → **Run workflow** → saisir `vX.Y.Z`  |
-| Secours hors CI                          | `scripts/publish-agent-assets.sh vX.Y.Z` (Go + `gh` en local) |
-
-Vérification :
-
-```bash
-curl -fsSI "https://github.com/mchev/phare/releases/download/v0.1.0/phare-agent-linux-amd64" | head -3
-```
-
----
-
-## Mettre à jour un **hub** déjà en production
-
-### Installation par `git clone` (VPS)
-
-```bash
-cd /chemin/vers/phare
-scripts/update.sh           # dernier tag v*
-# ou version précise :
-scripts/update.sh v0.1.1
-```
-
-Le script :
-
-- refuse s’il reste des modifications locales non commitées ;
-- `git fetch` + checkout du tag ;
-- `composer install --no-dev`, `npm ci && npm run build` ;
-- `php artisan phare:update` (sauvegarde BDD si SQLite, maintenance, `migrate --force`, caches, `queue:restart`).
-
-### Laravel Forge (deploy script typique)
-
-Sans necessarily `scripts/update.sh` :
-
-```bash
-cd /home/forge/votre-site
-git pull origin main   # ou checkout du tag vX.Y.Z
-composer install --no-dev --optimize-autoloader --no-interaction
-npm ci && npm run build
-php artisan migrate --force
-php artisan queue:restart
-php artisan config:cache   # si vous utilisez la config cache
-```
-
-Après un tag, déployer **le commit/tag** qui contient le nouveau `VERSION`. Aucun Go sur le serveur hub.
-
-### Bannière « mise à jour disponible »
-
-- Commande planifiée : `phare:update:check` (quotidien).
-- Compare `VERSION` local au dernier tag GitHub (`PHARE_REPOSITORY`, souvent `mchev/phare`).
-- Désactiver les appels sortants : `PHARE_UPDATE_CHECK=false`.
-
----
-
-## Mettre à jour les **agents** sur les serveurs
-
-- L’URL de téléchargement est dérivée du **`VERSION` du hub** (pas de `latest` implicite côté installateur).
-- Après upgrade du hub, **relancer** la commande d’installation depuis l’UI (_Generate a new command_ si le jeton a expiré).
-- Les serveurs doivent atteindre **`github.com`** (HTTPS) et le hub (enrôlement).
-
-L’install one-liner ne cible que **Linux amd64/arm64** (voir [agent/README.md](https://github.com/mchev/phare/blob/main/agent/README.md)).
-
----
-
-## Schéma récapitulatif
-
-```mermaid
-flowchart LR
-  subgraph maintainer
-    A[VERSION bump] --> B[commit main]
-    B --> C["tag vX.Y.Z + push"]
-  end
-  subgraph github
-    C --> D[release.yml]
-    D --> E["Release + agent binaries"]
-  end
-  subgraph ops
-    E --> F["curl install on servers"]
-    C --> G["scripts/update.sh on hub"]
-    G --> H[phare:update migrate]
-  end
-```
-
----
-
-## Voir aussi
-
-- [deploy/hub.md](deploy/hub.md) — prérequis prod, Forge, variables d’environnement
-- [user/installation.md](user/installation.md) — premier install hub
-- [user/hosts-agent.md](user/hosts-agent.md) — enrôlement serveur
-- [CONTRIBUTING.md](https://github.com/mchev/phare/blob/main/CONTRIBUTING.md) — releases (résumé mainteneur)
-- [README.md](https://github.com/mchev/phare/blob/main/README.md) — vue d’ensemble (anglais)
+See [deploy/hub](deploy/hub), [installation](user/installation), [servers and agent](user/servers-and-agent).

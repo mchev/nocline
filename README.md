@@ -37,11 +37,20 @@
 
 ## Installation
 
-Needs **PHP 8.3+**, **PostgreSQL** (recommended), **Redis**, and a **queue worker** + **scheduler** in production. Full checklist: [docs/deploy/hub.md](docs/deploy/hub.md).
+**PHP 8.3+** only. SQLite is enough to try Phare; use **PostgreSQL + Redis** when you scale checks and the wallboard. Full guide: [installation](https://mchev.github.io/phare/user/installation).
 
-### Linux server (VPS)
+<!-- GitHub README has no real tabs — anchor bar below is the usual pattern. -->
+<table>
+<tr>
+<td align="center" width="33%"><a href="#custom-host--vps"><strong>Custom Host / VPS</strong></a></td>
+<td align="center" width="33%"><a href="#laravel-forge"><strong>Laravel Forge</strong></a></td>
+<td align="center" width="33%"><a href="#docker"><strong>Docker</strong></a></td>
+</tr>
+</table>
 
-Web root → `public/`.
+### Custom Host / VPS
+
+Point the web server at `public/`.
 
 ```bash
 git clone https://github.com/mchev/phare.git
@@ -54,20 +63,18 @@ php artisan key:generate
 
 Open `https://your-domain/setup` and finish the wizard (database, admin, public URL).
 
-Then keep a worker and the scheduler running, for example:
+Keep a **queue worker** and the **scheduler** running (Supervisor or systemd in production):
 
 ```bash
 php artisan queue:work --tries=3
 php artisan schedule:work
 ```
 
-(Use Supervisor or systemd in production — see [deploy/hub.md](docs/deploy/hub.md).)
-
-Headless install instead of the wizard: `php artisan phare:install` — [installation.md](docs/user/installation.md).
+Checklist: [deploy/hub.md](docs/deploy/hub.md). Headless install: `php artisan phare:install` — [installation.md](docs/user/installation.md).
 
 ### Laravel Forge
 
-PHP **8.3** site, **PostgreSQL** + **Redis**. In the environment: `QUEUE_CONNECTION=redis`, `CACHE_STORE=redis`.
+PHP **8.3** site. **PostgreSQL + Redis** recommended at scale; SQLite works for small teams. Environment: `QUEUE_CONNECTION=redis`, `CACHE_STORE=redis` (or `database` for light use).
 
 **Deploy script:**
 
@@ -84,16 +91,18 @@ php artisan queue:restart
 
 First visit: `https://your-domain/setup` (or `phare:install` once).
 
-### Local try
+### Docker
+
+Hub + PostgreSQL + Redis + worker + scheduler in one Compose file.
 
 ```bash
 git clone https://github.com/mchev/phare.git
 cd phare
-composer run setup
-composer run dev
+cp .env.docker.example .env
+docker compose up -d --build
 ```
 
-Open the URL shown in the terminal → `/setup` (SQLite is fine).
+Open `http://localhost:8080/setup` (or set `PHARE_AUTO_INSTALL=true` in `.env`). Details: [docs/deploy/docker.md](docs/deploy/docker.md).
 
 ---
 
@@ -101,10 +110,10 @@ Open the URL shown in the terminal → `/setup` (SQLite is fine).
 
 1. **Sign in** with the account you created in setup.
 2. **Add a monitor** → _website_, _server_, or _something else_ ([guide](docs/user/surveiller.md)). For a server, the app shows the install command when you need it.
-3. **Alerts** — set up a channel when prompted ([alerts & incidents](docs/user/checks-incidents-alertes.md)).
+3. **Alerts** — set up a channel when prompted ([alerts & incidents](docs/user/checks-incidents-alerts.md)).
 4. **Wallboard** — optional TV link under _Wallboards_ ([sondes & wallboard](docs/user/sondes-wallboard.md)).
 
-User guides (mostly **French**): **[docs/user/README.md](docs/user/README.md)** · UI defaults to **English**.
+Full walkthrough: **[Your first hour](https://mchev.github.io/phare/user/getting-started)** · all guides on [GitHub Pages](https://mchev.github.io/phare/user/installation) (English default, **Français** in the language menu).
 
 ---
 

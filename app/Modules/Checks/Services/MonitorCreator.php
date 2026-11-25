@@ -4,8 +4,11 @@ namespace App\Modules\Checks\Services;
 
 use App\Modules\Checks\Enums\CheckCategory;
 use App\Modules\Checks\Enums\CheckType;
+use App\Modules\Checks\Enums\ObjectStorageLevel;
+use App\Modules\Checks\Enums\ObjectStorageProvider;
 use App\Modules\Checks\Enums\SiteFramework;
 use App\Modules\Checks\Models\Check;
+use App\Modules\Checks\Support\ObjectStoragePresets;
 use App\Modules\Groups\Models\Group;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -110,6 +113,84 @@ class MonitorCreator
             'target' => '',
             'group_id' => $this->resolveGroup($data),
             'interval_sec' => $data['interval_sec'],
+        ]);
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public static function objectStorageRules(): array
+    {
+        return [
+            'provider' => ['required', Rule::enum(ObjectStorageProvider::class)],
+            'level' => ['required', Rule::enum(ObjectStorageLevel::class)],
+            'region' => ['nullable', 'string', 'max:32', 'required_unless:provider,custom', 'required_unless:provider,laravel_cloud'],
+            'endpoint_host' => ['nullable', 'string', 'max:255', 'required_if:provider,custom', 'required_if:provider,laravel_cloud'],
+            'bucket' => ['nullable', 'string', 'max:63', 'required_if:level,bucket'],
+            'health_path' => ['nullable', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'interval_sec' => ['nullable', 'integer', 'min:60', 'max:86400'],
+            ...self::groupRules(),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function objectStorage(array $data): Check
+    {
+        $provider = ObjectStorageProvider::from((string) $data['provider']);
+        $level = ObjectStorageLevel::from((string) $data['level']);
+        $region = (string) ($data['region'] ?? '');
+        $endpoint = isset($data['endpoint_host']) ? (string) $data['endpoint_host'] : null;
+        $groupId = $this->resolveGroup($data);
+        $tags = ['object-storage', $provider->value];
+        $interval = (int) ($data['interval_sec'] ?? 60);
+        $bucket = isset($data['bucket']) ? (string) $data['bucket'] : null;
+        $healthPath = (string) ($data['health_path'] ?? 'health.txt');
+
+        if ($level === ObjectStorageLevel::Backup) {
+            return Check::create([
+                'name' => ($data['name'] ?? null) ?: ObjectStoragePresets::defaultMonitorName($provider, $region ?: '—', $level),
+                'type' => CheckType::Heartbeat,
+                'category' => CheckCategory::Other,
+                'target' => '',
+                'group_id' => $groupId,
+                'tags' => array_merge($tags, ['s3-backup']),
+                'interval_sec' => $interval >= 3600 ? $interval : 86400,
+            ]);
+        }
+
+        $name = ($data['name'] ?? null) ?: ObjectStoragePresets::defaultMonitorName($provider, $region ?: ($endpoint ?? 'custom'), $level, $bucket);
+
+        if ($level === ObjectStorageLevel::Platform) {
+            $host = ObjectStoragePresets::endpointHost($provider, $region, $endpoint);
+
+            return Check::create([
+                'name' => $name,
+                'type' => CheckType::Tcp,
+                'category' => CheckCategory::Other,
+                'target' => "{$host}:443",
+                'group_id' => $groupId,
+                'tags' => $tags,
+                'interval_sec' => $interval,
+                'timeout_sec' => 10,
+                'failure_threshold' => 2,
+            ]);
+        }
+
+        $url = ObjectStoragePresets::bucketObjectUrl($provider, $region, $bucket ?? '', $healthPath, $endpoint);
+
+        return Check::create([
+            'name' => $name,
+            'type' => CheckType::Http,
+            'category' => CheckCategory::Other,
+            'target' => $url,
+            'group_id' => $groupId,
+            'tags' => array_merge($tags, ['s3-bucket']),
+            'interval_sec' => $interval,
+            'timeout_sec' => 10,
+            'failure_threshold' => 2,
         ]);
     }
 }

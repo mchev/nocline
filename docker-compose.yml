@@ -1,0 +1,72 @@
+services:
+    app:
+        build: .
+        image: phare-hub:local
+        restart: unless-stopped
+        ports:
+            - '${APP_PORT:-8080}:8080'
+        env_file:
+            - .env
+        environment:
+            APP_ENV: production
+            APP_DEBUG: 'false'
+        volumes:
+            - phare-storage:/var/www/html/storage
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_started
+
+    worker:
+        image: phare-hub:local
+        restart: unless-stopped
+        command: ['worker']
+        env_file:
+            - .env
+        environment:
+            APP_ENV: production
+            APP_DEBUG: 'false'
+        volumes:
+            - phare-storage:/var/www/html/storage
+        depends_on:
+            app:
+                condition: service_started
+
+    scheduler:
+        image: phare-hub:local
+        restart: unless-stopped
+        command: ['scheduler']
+        env_file:
+            - .env
+        environment:
+            APP_ENV: production
+            APP_DEBUG: 'false'
+        volumes:
+            - phare-storage:/var/www/html/storage
+        depends_on:
+            app:
+                condition: service_started
+
+    postgres:
+        image: postgres:16-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: phare
+            POSTGRES_USER: phare
+            POSTGRES_PASSWORD: phare
+        volumes:
+            - phare-postgres:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U phare -d phare']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+    redis:
+        image: redis:7-alpine
+        restart: unless-stopped
+
+volumes:
+    phare-storage:
+    phare-postgres:

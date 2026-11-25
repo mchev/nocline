@@ -1,31 +1,50 @@
-# Installation et premier démarrage
+# Installation
 
-## Prérequis
+## Requirements
 
-PHP 8.3+, Composer, Node (build des assets), une base SQLite, MySQL ou PostgreSQL. Un worker de file (`php artisan queue:work`) et le scheduler (`php artisan schedule:work` ou cron `* * * * * php artisan schedule:run`) doivent tourner : ils exécutent les checks, envoient les alertes et purgent les métriques.
+| Layer         | Try it            | Production                      |
+| ------------- | ----------------- | ------------------------------- |
+| **PHP**       | 8.3+              | 8.3+                            |
+| **Database**  | **SQLite**        | PostgreSQL or MySQL             |
+| **Queues**    | `database` driver | **Redis** + worker              |
+| **Cache**     | `file`            | **Redis** (wallboard)           |
+| **Scheduler** | required          | required (checks, SSL, rollups) |
 
-## Assistant de premier démarrage
+PostgreSQL and Redis are **not** required for a first look. For the fastest path, use **[Docker](../deploy/docker)**.
 
-À la première visite, Phare redirige vers `/setup`. Six étapes (indicateur de progression, validation à chaque étape, retour possible) :
+## Pick a deployment path
 
-0. **Langue** (en premier, anglais par défaut ; le reste de l'assistant bascule immédiatement). Voir [traductions.md](traductions.md) pour en ajouter.
-1. **Base de données** : SQLite (essai, petite instance), MySQL ou PostgreSQL (recommandé en production). Un bouton « Tester la connexion » est proposé ; la connexion est aussi testée avant de passer à l'étape suivante ; les migrations sont appliquées sans jamais effacer de données existantes.
-2. **Administrateur** : nom, e-mail, mot de passe (12 caractères minimum, majuscules, minuscules, chiffres, symboles).
-3. **Instance** : nom, URL publique du hub (reprise dans les commandes d'enrôlement), fuseau horaire.
-4. **E-mail (optionnel, ignorable)** : serveur SMTP utilisé pour les alertes.
-5. **Récapitulatif** puis installation.
+| Path                                | When to use                                                                   |
+| ----------------------------------- | ----------------------------------------------------------------------------- |
+| [Docker](../deploy/docker)          | Try Phare or run the full stack (Postgres + Redis + workers) with one command |
+| [Custom VPS / Forge](../deploy/hub) | You already run PHP sites and want Supervisor + your own TLS                  |
+| Setup wizard (`/setup`)             | Always — first visit configures DB, admin, URL, optional mail                 |
 
-Une fois terminé, l'assistant est **verrouillé** (`/setup` renvoie 404) et vous êtes redirigé vers la connexion. Les réglages sont écrits dans `.env` ; le marqueur d'installation est `storage/app/phare-installed` (gardez `storage/` persistant, notamment sous Docker).
+After install, continue with **[Your first hour with Phare](getting-started)**.
 
-## Installation non interactive (Docker, Forge)
+## Setup wizard
+
+First visit → `/setup` (database with SQLite option, admin, public URL, optional SMTP). When done, `/setup` is locked; keep `storage/` persistent (`storage/app/phare-installed`).
+
+## Non-interactive install
+
+SQLite:
 
 ```bash
-php artisan phare:install --db=pgsql --db-host=127.0.0.1 --db-name=phare \
-  --db-user=phare --db-password=*** \
-  --admin-name="Admin" --admin-email=admin@example.com --admin-password='***' \
-  --name="Mon NOC" --url=https://noc.example.com --locale=fr --timezone=Europe/Paris
+php artisan phare:install --db=sqlite \
+  --admin-name="Admin" --admin-email=admin@example.com --admin-password='ChangeMe-Secret1!' \
+  --name="My NOC" --url=http://localhost:8080 --locale=en --timezone=UTC
 ```
 
-La commande refuse de s'exécuter si l'instance est déjà installée. `PHARE_FORCE_INSTALLED=true` désactive l'assistant (déploiements préprovisionnés).
+PostgreSQL (Docker or VPS):
 
-Il n'y a **pas d'inscription publique** : les comptes sont créés par un administrateur.
+```bash
+php artisan phare:install --db=pgsql --db-host=postgres --db-name=phare \
+  --db-user=phare --db-password=phare \
+  --admin-name="Admin" --admin-email=admin@example.com --admin-password='ChangeMe-Secret1!' \
+  --name="My NOC" --url=http://localhost:8080 --locale=en
+```
+
+Already installed → command aborts. `PHARE_FORCE_INSTALLED=true` skips the wizard for pre-provisioned images.
+
+No public sign-up — administrators create accounts. Locales: [Translations](translations).

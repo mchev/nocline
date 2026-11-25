@@ -35,7 +35,8 @@ it('shows host detail with linked monitors', function () {
             ->where('linked_checks.0.id', $site->id)
             ->has('metrics_chart')
             ->where('metrics_chart.hours', 24)
-            ->has('metrics_chart.points'));
+            ->has('metrics_chart.points')
+            ->has('recent_incidents'));
 });
 
 it('returns metrics chart json for a viewer', function () {

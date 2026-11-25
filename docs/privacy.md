@@ -1,23 +1,23 @@
-# Données personnelles & coffre (self-hosted)
+# Privacy and vault data (self-hosted)
 
-Phare est **self-hosted** : l’instance que tu déploies fait de toi le **responsable de traitement** au sens RGPD.
+Phare is **self-hosted**: the instance you operate makes **you** the data controller (GDPR sense).
 
-## Données traitées
+## Data processed
 
-| Donnée                            | Finalité                                       | Durée indicative              |
-| --------------------------------- | ---------------------------------------------- | ----------------------------- |
-| Comptes utilisateurs (email, nom) | Accès console                                  | Tant que le compte est actif  |
-| Journaux d’accès coffre           | Audit sécurité                                 | 12–24 mois (configurable)     |
-| Métriques & checks                | Supervision infra                              | Rollups (voir `reference.md`) |
-| Secrets coffre                    | Exploitation (accès hébergeurs, back-offices…) | Jusqu’à suppression manuelle  |
+| Data                        | Purpose                   | Typical retention                           |
+| --------------------------- | ------------------------- | ------------------------------------------- |
+| User accounts (email, name) | Console access            | While account is active                     |
+| Vault access logs           | Security audit            | 12–24 months (configurable)                 |
+| Metrics and checks          | Infrastructure monitoring | Rollups ([reference](/guideline/reference)) |
+| Vault secrets               | Operations (panels, SSH…) | Until manual deletion                       |
 
-## Coffre
+## Vault
 
-- Secrets **chiffrés** en base ; clé maître `VAULT_MASTER_KEY` **hors** dépôt git.
-- **Perte de la clé maître = perte irréversible** des secrets.
-- Export JSON par **groupe** et droit à l’effacement : à implémenter avec le module Coffre (phase 2).
+- Secrets **encrypted** at rest; master key `VAULT_MASTER_KEY` **outside** git.
+- **Losing the master key = irreversible loss** of vault contents.
+- Per-group export and erasure rights: ship with vault module expectations.
 
-## Sauvegardes
+## Backups
 
-- Traiter les dumps BDD comme **données sensibles** (chiffrement au repos recommandé).
-- Ne pas activer `APP_DEBUG=true` en production ; ne pas logger le corps des requêtes sur les routes coffre / ingest.
+- Treat database dumps as **sensitive** (encrypt at rest).
+- Never run `APP_DEBUG=true` in production; do not log request bodies on vault or ingest routes.

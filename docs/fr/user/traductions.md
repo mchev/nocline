@@ -35,4 +35,4 @@ Le site public est **bilingue** : **français** (URLs à la racine, ex. `/user/i
 4. Certaines pages techniques restent en anglais à la racine (`api.md`, `security.md`, …) et sont liées depuis les deux sidebars.
 5. Vérifier : `npm run docs:build`.
 
-Pour une **troisième langue** plus tard : nouveau bloc `locales` dans `config.ts` + dossier `docs/<code>/` (voir le détail côté anglais dans [en/user/translations.md](/en/user/translations)).
+Pour une **troisième langue** plus tard : nouveau bloc `locales` dans `config.ts` + dossier `docs/<code>/` (voir le détail côté anglais dans [user/translations.md](/user/translations)).

@@ -1,14 +1,16 @@
-# Documentation (sources)
+# Documentation sources
 
-- **Site public** : [https://mchev.github.io/phare/](https://mchev.github.io/phare/) (VitePress + GitHub Pages, workflow `docs.yml`).
-- **Local** : `npm run docs:dev` puis ouvrir `http://localhost:5173/phare/` dans le navigateur
-- **Preview build** : `npm run docs:build` puis `npm run docs:preview`
+- **Published**: [mchev.github.io/phare](https://mchev.github.io/phare/user/installation) (VitePress + GitHub Pages, workflow `docs.yml`).
+- **Local**: `npm run docs:dev` → `http://localhost:5173/phare/`
+- **Build**: `npm run docs:build`
 
-## Contribuer à la doc
+## Layout
 
-1. Contenu : Markdown dans `docs/` (**français**, racine) et `docs/en/` (**anglais**). Voir [traductions.md](user/traductions.md#documentation-site-vitepress).
-2. Navigation : mettre à jour `docs/.vitepress/config.ts` (`locales.root` et `locales.en`) pour une **nouvelle section** ou une page hors sidebar.
-3. Après une **feature produit** : guide utilisateur + API / déploiement si le comportement change (voir skill Phare).
-4. Avant une PR qui touche la structure : `npm run docs:build` doit réussir.
+| Locale            | Path       | Entry                   |
+| ----------------- | ---------- | ----------------------- |
+| English (default) | `docs/`    | `/user/installation`    |
+| Français          | `docs/fr/` | `/fr/user/installation` |
 
-Le `base` VitePress suit le nom du repo GitHub (`/phare/`). Fork : définir `VITEPRESS_BASE=/mon-repo/` en local si besoin.
+Update `docs/.vitepress/config.ts` when adding sidebar pages. Run `npm run docs:build` before merging.
+
+`VITEPRESS_BASE=/my-fork/` for local fork previews.

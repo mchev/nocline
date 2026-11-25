@@ -3,110 +3,116 @@ import { defineConfig, type DefaultTheme } from 'vitepress';
 const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'phare';
 const base = process.env.VITEPRESS_BASE ?? `/${repo}/`;
 
-/** Shared path to operator docs that stay locale-neutral or are already in English. */
 const enApiSidebar: DefaultTheme.SidebarItem = {
     text: 'REST API v1',
     link: '/api',
 };
 
-const frSidebar: DefaultTheme.SidebarItem[] = [
+const rootSidebar: DefaultTheme.SidebarItem[] = [
     {
-        text: 'Introduction',
-        items: [
-            { text: 'Aperçu', link: '/apercu' },
-            { text: 'Roadmap', link: '/roadmap' },
-            { text: 'Migration Kuma', link: '/migration-kuma' },
-        ],
-    },
-    {
-        text: 'Guides utilisateur',
+        text: 'Get started',
         collapsed: false,
         items: [
-            { text: 'Sommaire', link: '/user/' },
             { text: 'Installation', link: '/user/installation' },
-            { text: 'Surveiller', link: '/user/surveiller' },
-            { text: 'Comptes et rôles', link: '/user/utilisateurs' },
-            { text: 'Serveurs et agent', link: '/user/hosts-agent' },
-            {
-                text: 'Checks, incidents, alertes',
-                link: '/user/checks-incidents-alertes',
-            },
-            { text: 'Sondes et wallboard', link: '/user/sondes-wallboard' },
-            {
-                text: 'Coffre et renouvellements',
-                link: '/user/coffre-renouvellements',
-            },
-            {
-                text: 'Maintenance et statut',
-                link: '/user/maintenance-statut',
-            },
-            {
-                text: 'Heartbeat et API',
-                link: '/user/taches-planifiees-api',
-            },
-            { text: 'Traductions (app et doc)', link: '/user/traductions' },
+            { text: 'Your first hour', link: '/user/getting-started' },
+            { text: 'Docker', link: '/deploy/docker' },
+            { text: 'VPS / Forge', link: '/deploy/hub' },
+            { text: 'Migrate from Uptime Kuma', link: '/migration-kuma' },
         ],
     },
     {
-        text: 'Déploiement et ops',
+        text: 'Day to day',
+        collapsed: false,
         items: [
-            { text: 'Hub (VPS / Forge)', link: '/deploy/hub' },
-            { text: 'Releases et mises à jour', link: '/releases' },
-            { text: 'Sécurité', link: '/security' },
-            { text: 'Confidentialité (RGPD)', link: '/privacy' },
+            { text: 'Add monitors', link: '/user/surveiller' },
+            { text: 'Servers and agent', link: '/user/servers-and-agent' },
+            {
+                text: 'Checks, incidents, alerts',
+                link: '/user/checks-incidents-alerts',
+            },
+            { text: 'Probes and wallboard', link: '/user/sondes-wallboard' },
+            {
+                text: 'Scheduled tasks and API',
+                link: '/user/scheduled-tasks-and-api',
+            },
+            { text: 'Vault and renewals', link: '/user/vault-and-renewals' },
+            {
+                text: 'Maintenance and status pages',
+                link: '/user/maintenance-and-status',
+            },
+            { text: 'Accounts and roles', link: '/user/accounts-and-roles' },
+            { text: 'Translations', link: '/user/translations' },
         ],
     },
     {
-        text: 'Référence',
+        text: 'Project',
         items: [
+            { text: 'Overview (screenshots)', link: '/apercu' },
+            { text: 'Roadmap', link: '/roadmap' },
+            { text: 'Releases', link: '/releases' },
+            { text: 'Security', link: '/security' },
+            { text: 'Privacy', link: '/privacy' },
             enApiSidebar,
-            { text: 'Guideline produit', link: '/guideline/SKILL' },
-            { text: 'Référence technique', link: '/guideline/reference' },
+            { text: 'Technical reference', link: '/guideline/reference' },
             {
-                text: 'Adapters de notification',
+                text: 'Notification adapters',
                 link: '/contributing/notification-adapters',
             },
         ],
     },
 ];
 
-const enSidebar: DefaultTheme.SidebarItem[] = [
+const frSidebar: DefaultTheme.SidebarItem[] = [
     {
-        text: 'Introduction',
-        items: [
-            { text: 'Overview', link: '/apercu' },
-            { text: 'Roadmap', link: '/roadmap' },
-        ],
-    },
-    {
-        text: 'User guides',
+        text: 'Démarrer',
         collapsed: false,
         items: [
-            { text: 'Index', link: '/user/' },
-            { text: 'Installation', link: '/user/installation' },
+            { text: 'Installation', link: '/fr/user/installation' },
+            { text: 'Première heure', link: '/fr/user/getting-started' },
+            { text: 'Docker', link: '/deploy/docker' },
+            { text: 'VPS / Forge', link: '/fr/deploy/hub' },
+            { text: 'Migration Kuma', link: '/fr/migration-kuma' },
+        ],
+    },
+    {
+        text: 'Au quotidien',
+        collapsed: false,
+        items: [
+            { text: 'Surveiller', link: '/fr/user/surveiller' },
+            { text: 'Serveurs et agent', link: '/fr/user/hosts-agent' },
             {
-                text: 'Monitoring (sites, servers…)',
-                link: '/user/surveiller',
+                text: 'Checks, incidents, alertes',
+                link: '/fr/user/checks-incidents-alertes',
             },
-            { text: 'Probes and wallboard', link: '/user/sondes-wallboard' },
-            { text: 'Translations (app and docs)', link: '/user/translations' },
-        ],
-    },
-    {
-        text: 'Deploy and ops',
-        items: [
-            { text: 'Hub (VPS / Forge)', link: '/deploy/hub' },
-            { text: 'Releases and upgrades', link: '/releases' },
-            { text: 'Security', link: '/security' },
-        ],
-    },
-    {
-        text: 'Reference',
-        items: [
-            enApiSidebar,
-            { text: 'Technical reference', link: '/guideline/reference' },
+            { text: 'Sondes et wallboard', link: '/fr/user/sondes-wallboard' },
             {
-                text: 'Notification adapters',
+                text: 'Tâches planifiées et API',
+                link: '/fr/user/taches-planifiees-api',
+            },
+            {
+                text: 'Coffre et renouvellements',
+                link: '/fr/user/coffre-renouvellements',
+            },
+            {
+                text: 'Maintenance et statut',
+                link: '/fr/user/maintenance-statut',
+            },
+            { text: 'Comptes et rôles', link: '/fr/user/utilisateurs' },
+            { text: 'Traductions', link: '/fr/user/traductions' },
+        ],
+    },
+    {
+        text: 'Projet',
+        items: [
+            { text: 'Aperçu', link: '/fr/apercu' },
+            { text: 'Roadmap', link: '/fr/roadmap' },
+            { text: 'Releases', link: '/fr/releases' },
+            { text: 'Sécurité', link: '/fr/security' },
+            { text: 'Confidentialité', link: '/fr/privacy' },
+            enApiSidebar,
+            { text: 'Référence technique', link: '/guideline/reference' },
+            {
+                text: 'Adapters de notification',
                 link: '/contributing/notification-adapters',
             },
         ],
@@ -141,45 +147,23 @@ export default defineConfig({
     ],
     locales: {
         root: {
-            label: 'Français',
-            lang: 'fr-FR',
-            title: 'phare.',
-            description:
-                'Documentation Phare — centre d’opérations self-hosted',
-            themeConfig: {
-                ...sharedTheme,
-                nav: [
-                    { text: 'Accueil', link: '/' },
-                    { text: 'Guides', link: '/user/' },
-                    { text: 'Déploiement', link: '/deploy/hub' },
-                    { text: 'API', link: '/api' },
-                    {
-                        text: 'GitHub',
-                        link: 'https://github.com/mchev/phare',
-                    },
-                ],
-                sidebar: frSidebar,
-            },
-        },
-        en: {
             label: 'English',
             lang: 'en-US',
-            link: '/en/',
             title: 'phare.',
             description: 'Phare documentation — self-hosted operations center',
             themeConfig: {
                 ...sharedTheme,
                 nav: [
-                    { text: 'Home', link: '/' },
-                    { text: 'Guides', link: '/user/' },
-                    { text: 'Deploy', link: '/deploy/hub' },
+                    { text: 'Install', link: '/user/installation' },
+                    { text: 'Guides', link: '/user/getting-started' },
+                    { text: 'Docker', link: '/deploy/docker' },
                     { text: 'API', link: '/api' },
                     {
                         text: 'GitHub',
                         link: 'https://github.com/mchev/phare',
                     },
                 ],
-                sidebar: enSidebar,
+                sidebar: rootSidebar,
                 outline: { label: 'On this page' },
                 docFooter: {
                     prev: 'Previous',
@@ -192,6 +176,28 @@ export default defineConfig({
                         timeStyle: 'short',
                     },
                 },
+            },
+        },
+        fr: {
+            label: 'Français',
+            lang: 'fr-FR',
+            link: '/fr/',
+            title: 'phare.',
+            description:
+                'Documentation Phare — centre d’opérations self-hosted',
+            themeConfig: {
+                ...sharedTheme,
+                nav: [
+                    { text: 'Installation', link: '/fr/user/installation' },
+                    { text: 'Guides', link: '/fr/user/getting-started' },
+                    { text: 'Docker', link: '/deploy/docker' },
+                    { text: 'API', link: '/api' },
+                    {
+                        text: 'GitHub',
+                        link: 'https://github.com/mchev/phare',
+                    },
+                ],
+                sidebar: frSidebar,
             },
         },
     },

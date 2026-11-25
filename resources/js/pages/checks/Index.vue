@@ -18,8 +18,6 @@ import GroupSelect from '@/components/GroupSelect.vue';
 import InputError from '@/components/InputError.vue';
 import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
-import PageHeader from '@/components/ui-kit/PageHeader.vue';
-import StatTile from '@/components/ui-kit/StatTile.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,7 +48,8 @@ const props = defineProps<{
 const role = computed(() => usePage().props.auth.user.role);
 const canManage = computed(() => role.value !== 'viewer');
 const isAdmin = computed(() => role.value === 'admin');
-const select = 'h-10 rounded-md border bg-transparent px-3 text-sm';
+const select = 'h-9 max-w-full rounded-md border bg-transparent px-2 text-sm';
+const selectNarrow = `${select} max-w-[9.5rem]`;
 
 const categoryLabel = (c: string) =>
     ({
@@ -589,116 +588,130 @@ function bulkDelete() {
     <Head :title="t('Monitors')" />
 
     <PageContainer size="wide">
-        <PageHeader
-            :eyebrow="t('Monitors')"
-            :title="t('Monitors')"
-            :description="
-                t(':up up · :down down · :all total', {
-                    up: totals.up,
-                    down: totals.down,
-                    all: totals.all,
-                })
-            "
-        >
-            <template v-if="canManage">
-                <Button variant="outline" @click="importOpen = true">
-                    <Upload class="size-4" /> {{ t('Import from Uptime Kuma') }}
-                </Button>
-                <Button @click="openCreate">
-                    <Plus class="size-4" /> {{ t('Add a monitor') }}
-                </Button>
-            </template>
-        </PageHeader>
-
-        <div v-if="checks.length" class="grid gap-4 sm:grid-cols-3">
-            <StatTile
-                :label="t('Up')"
-                :value="totals.up"
-                tone="success"
-                class="reveal"
-            />
-            <StatTile
-                :label="t('Down')"
-                :value="totals.down"
-                :tone="totals.down ? 'danger' : 'default'"
-                class="reveal reveal-delay-1"
-            />
-            <StatTile
-                :label="t('Total')"
-                :value="totals.all"
-                class="reveal reveal-delay-2"
-            />
-        </div>
-
-        <!-- toolbar -->
-        <search v-if="checks.length" class="surface p-4">
-            <form
-                class="flex flex-wrap items-center gap-2"
-                role="search"
-                @submit.prevent
+        <header class="space-y-2">
+            <div
+                class="flex flex-wrap items-center justify-between gap-2 gap-y-2"
             >
-                <Input
-                    v-model="view.q"
-                    class="w-56"
-                    type="search"
-                    :placeholder="t('Search name, target, group, tag…')"
-                    :aria-label="t('Search')"
-                    autocomplete="off"
-                    autocorrect="off"
-                    autocapitalize="none"
-                    spellcheck="false"
-                />
-                <select
-                    v-model="view.groupFilter"
-                    :class="select"
-                    :aria-label="t('Group')"
+                <div
+                    class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
                 >
-                    <option value="all">{{ t('All groups') }}</option>
-                    <option value="none">{{ t('No group') }}</option>
-                    <option
-                        v-for="g in groups"
-                        :key="g.id"
-                        :value="String(g.id)"
+                    <h1
+                        class="font-display text-xl font-semibold tracking-tight md:text-2xl"
                     >
-                        {{ g.path }}
-                    </option>
-                </select>
-                <select
-                    v-model="view.category"
-                    :class="select"
-                    :aria-label="t('Category')"
+                        {{ t('Monitors') }}
+                    </h1>
+                    <div
+                        v-if="checks.length"
+                        class="flex flex-wrap items-center gap-1.5 text-xs"
+                        role="status"
+                    >
+                        <span class="chip chip-success tabular-nums">
+                            {{ totals.up }} {{ t('Up') }}
+                        </span>
+                        <span
+                            class="chip tabular-nums"
+                            :class="{ 'chip-danger': totals.down > 0 }"
+                        >
+                            {{ totals.down }} {{ t('Down') }}
+                        </span>
+                        <span class="text-muted-foreground tabular-nums"
+                            >{{ totals.all }} {{ t('Total') }}</span
+                        >
+                    </div>
+                </div>
+                <div
+                    v-if="canManage"
+                    class="flex shrink-0 flex-wrap items-center gap-2"
                 >
-                    <option value="all">{{ t('All categories') }}</option>
-                    <option v-for="c in categories" :key="c" :value="c">
-                        {{ categoryLabel(c) }}
-                    </option>
-                </select>
-                <select
-                    v-model="view.status"
-                    :class="select"
-                    :aria-label="t('Status')"
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        @click="importOpen = true"
+                    >
+                        <Upload class="size-4" aria-hidden="true" />
+                        <span class="hidden sm:inline">{{
+                            t('Import from Uptime Kuma')
+                        }}</span>
+                        <span class="sm:hidden">{{ t('Import') }}</span>
+                    </Button>
+                    <Button size="sm" @click="openCreate">
+                        <Plus class="size-4" aria-hidden="true" />
+                        {{ t('Add a monitor') }}
+                    </Button>
+                </div>
+            </div>
+
+            <search v-if="checks.length" class="surface px-3 py-2">
+                <form
+                    class="flex flex-wrap items-center gap-2"
+                    role="search"
+                    @submit.prevent
                 >
-                    <option value="all">{{ t('All statuses') }}</option>
-                    <option value="down">{{ t('Down') }}</option>
-                    <option value="up">{{ t('Up') }}</option>
-                    <option value="unknown">{{ t('Unknown') }}</option>
-                </select>
-                <label
-                    class="ml-auto flex items-center gap-2 text-sm text-muted-foreground"
-                >
-                    {{ t('Group by') }}
-                    <select v-model="view.groupBy" :class="select">
+                    <Input
+                        v-model="view.q"
+                        class="h-9 min-w-[11rem] flex-1 sm:max-w-[14rem]"
+                        type="search"
+                        :placeholder="t('Search name, target, group, tag…')"
+                        :aria-label="t('Search')"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="none"
+                        spellcheck="false"
+                    />
+                    <select
+                        v-model="view.groupFilter"
+                        :class="selectNarrow"
+                        :aria-label="t('Group')"
+                    >
+                        <option value="all">{{ t('All groups') }}</option>
+                        <option value="none">{{ t('No group') }}</option>
+                        <option
+                            v-for="g in groups"
+                            :key="g.id"
+                            :value="String(g.id)"
+                        >
+                            {{ g.path }}
+                        </option>
+                    </select>
+                    <select
+                        v-model="view.category"
+                        :class="selectNarrow"
+                        :aria-label="t('Category')"
+                    >
+                        <option value="all">{{ t('All categories') }}</option>
+                        <option v-for="c in categories" :key="c" :value="c">
+                            {{ categoryLabel(c) }}
+                        </option>
+                    </select>
+                    <select
+                        v-model="view.status"
+                        :class="selectNarrow"
+                        :aria-label="t('Status')"
+                    >
+                        <option value="all">{{ t('All statuses') }}</option>
+                        <option value="down">{{ t('Down') }}</option>
+                        <option value="up">{{ t('Up') }}</option>
+                        <option value="unknown">{{ t('Unknown') }}</option>
+                    </select>
+                    <span
+                        class="hidden h-5 w-px bg-border lg:block"
+                        aria-hidden="true"
+                    />
+                    <select
+                        v-model="view.groupBy"
+                        :class="selectNarrow"
+                        :aria-label="t('Group by')"
+                    >
                         <option value="group">{{ t('Group tree') }}</option>
                         <option value="category">{{ t('Category') }}</option>
                         <option value="status">{{ t('Status') }}</option>
                         <option value="none">{{ t('No grouping') }}</option>
                     </select>
-                </label>
-                <label
-                    class="flex items-center gap-2 text-sm text-muted-foreground"
-                >
-                    {{ t('Display') }}
-                    <select v-model="view.layout" :class="select">
+                    <select
+                        v-model="view.layout"
+                        :class="selectNarrow"
+                        :aria-label="t('Display')"
+                    >
                         <option value="auto">
                             {{ t("Use each group's layout") }}
                         </option>
@@ -710,23 +723,25 @@ function bulkDelete() {
                             {{ l.label }}
                         </option>
                     </select>
-                </label>
-                <select
-                    v-model="view.sort"
-                    :class="select"
-                    :aria-label="t('Sort')"
-                >
-                    <option value="status">{{ t('Sort: status') }}</option>
-                    <option value="name">{{ t('Sort: name') }}</option>
-                    <option value="latency">{{ t('Sort: latency') }}</option>
-                </select>
-            </form>
-        </search>
+                    <select
+                        v-model="view.sort"
+                        :class="selectNarrow"
+                        :aria-label="t('Sort')"
+                    >
+                        <option value="status">{{ t('Sort: status') }}</option>
+                        <option value="name">{{ t('Sort: name') }}</option>
+                        <option value="latency">
+                            {{ t('Sort: latency') }}
+                        </option>
+                    </select>
+                </form>
+            </search>
+        </header>
 
         <!-- bulk bar -->
         <div
             v-if="selected.length && canManage"
-            class="flex flex-wrap items-center gap-2 surface p-4 text-sm"
+            class="flex flex-wrap items-center gap-2 surface px-3 py-2 text-sm"
         >
             <strong class="font-display">{{
                 t(':count selected', { count: selected.length })

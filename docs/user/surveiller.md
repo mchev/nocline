@@ -1,49 +1,57 @@
-# Surveiller quelque chose
+# Monitor something
 
-Bouton **Add a monitor** (haut du dashboard et de la barre latérale). Trois choix :
+Use **Add a monitor** (top of the dashboard and sidebar). Three choices:
 
-1. **Un site** — saisissez l'adresse (`example.com` suffit). Phare vérifie qu'il répond, et suit automatiquement l'expiration du domaine et du certificat SSL (page Renewals, aucune saisie).
-2. **Un serveur** — donnez-lui un nom. Phare affiche **une seule ligne** à coller dans un terminal du serveur :
+1. **A website** — enter the address (`example.com` is enough). Phare checks that it responds, and automatically tracks domain and SSL certificate expiry (Renewals page, no manual entry).
+2. **A server** — give it a name. Phare shows **one line** to paste in a terminal on the server:
 
     ```sh
-    curl -fsSL https://votre-hub/install/<jeton> | sudo sh
+    curl -fsSL https://your-hub/install/<token> | sudo sh
     ```
 
-    Le script installe l'agent, l'enregistre et le démarre (systemd). La page se met à jour seule dès que le serveur est connecté. Le lien est à usage unique et expire après 24 h (« Generate a new command » pour en obtenir un autre).
+    The script installs the agent, enrolls it, and starts it (systemd). The page updates on its own once the server is connected. The link is single-use and expires after 24h (“Generate a new command” for another).
 
-3. **Autre chose** — serveur mail, port/application, machine (ping), nom de domaine (DNS).
+3. **Something else** — **object storage (S3)** (OVH, AWS, Scaleway…), mail server, port/app, machine (ping), domain name (DNS), scheduled task.
 
-Pour chaque choix vous pouvez, en option, ranger l'élément dans un groupe (existant ou créé à la volée).
+### Object storage (S3)
 
-## Détection automatique
+Under **Something else** → **Object storage (S3)**:
 
-Quand vous saisissez l'adresse d'un site, Phare l'examine pour vous (quelques requêtes GET, 5 s maximum chacune) et propose une surveillance adaptée, sans jargon :
+| Mode | Meaning |
+| ---- | ------- |
+| **Storage service answers** | TCP on the provider S3 endpoint (port 443) — good first step for OVH `s3.<region>.io.cloud.ovh.net`. |
+| **Public file in my bucket** | HTTP on `https://<bucket>.s3.<region>…/<file>` — put a small public `health.txt` (or similar) in the bucket. |
+| **Backup job still runs** | Heartbeat — ping Phare after your `aws s3` / `rclone` job succeeds. |
 
-- il vérifie que le site répond et suit les redirections vers le même site (par exemple `http` vers `https`) ;
-- il reconnaît un site **Laravel** ou **WordPress** (et l'indique par une étiquette sur le check) ;
-- pour Laravel, si la page de santé `/up` existe réellement, il propose (case cochée) de la surveiller aussi : cela crée un second check « nom du site — health », utile quand la page d'accueil est servie par un cache alors que l'application est en panne ;
-- il rappelle que l'expiration du certificat SSL est déjà suivie automatiquement.
+Providers: OVH, **Hetzner**, **Laravel Cloud** (R2 endpoint from the bucket settings), AWS, Scaleway, Wasabi, or custom MinIO hostname. No cloud API keys in Phare for this wizard (phase 1).
 
-La détection est facultative : si elle échoue, vous pouvez ajouter le site normalement.
+For each choice you can optionally put the item in a group (existing or created on the fly).
 
-L’**icône du site** (favicon) est récupérée automatiquement à l’ajout (puis vérifiée chaque semaine). Si elle change, le tag `favicon-changed` apparaît sur le check — utile pour repérer un rebranding ou une page remplacée.
+## Automatic detection
 
-**Sécurité.** Comme c'est le hub qui fait ces requêtes, il refuse les adresses privées (réseau local, `localhost`, adresses de métadonnées cloud, IPv6 locales, adresses écrites en décimal ou hexadécimal), vérifie l'adresse IP de chaque étape et n'accepte que les ports 80, 443, 8080 et 8443. Pour détecter un site hébergé sur votre propre réseau (`*.test`, `192.168.x.x`), définissez `PHARE_DETECT_ALLOW_PRIVATE=true` dans `.env` : à n'activer que si tous les utilisateurs qui peuvent ajouter des sites sont de confiance.
+When you enter a site URL, Phare inspects it (a few GET requests, 5s max each) and suggests suitable monitoring, without jargon:
 
-## Ranger dans des groupes
+- it checks the site responds and follows redirects to the same site (e.g. `http` → `https`);
+- it detects **Laravel** or **WordPress** (tag on the check);
+- for Laravel, if `/up` really exists, it offers (checked by default) a companion health check: “site name — health”, useful when the homepage is cached but the app is down;
+- SSL expiry is already tracked automatically.
 
-Un **groupe** est un dossier qui regroupe serveurs, sites et autres éléments (par exemple un projet, une équipe ou un hébergeur). Les groupes peuvent contenir des **sous-groupes**, autant de niveaux que nécessaire.
+Detection is optional: if it fails, you can add the site normally.
 
-Chaque groupe a ses propres options d'affichage :
+The **favicon** is fetched on add (then refreshed weekly). If it changes, the `favicon-changed` tag appears on the check.
 
-- **Présentation** : _liste_ (une ligne par élément), _grille_ (cartes) ou _compact_ (pastilles, pour de nombreux éléments) ;
-- **Couleur**, pour le repérer d'un coup d'œil ;
-- **Replié** : le groupe est fermé par défaut et n'affiche que son état global.
+**Security.** Because the hub performs these requests, it blocks private addresses (LAN, `localhost`, cloud metadata, local IPv6, decimal/hex-encoded IPs), verifies each hop’s IP, and only allows ports 80, 443, 8080, 8443. To monitor sites on your own network (`*.test`, `192.168.x.x`), set `PHARE_DETECT_ALLOW_PRIVATE=true` in `.env` — only if everyone who can add sites is trusted.
 
-Un wallboard peut afficher un seul groupe : ses sous-groupes sont inclus. Importer depuis Uptime Kuma recrée les groupes Kuma sous forme de groupes imbriqués. Supprimer un groupe ne supprime pas son contenu : les sous-groupes remontent d'un niveau et les éléments sont simplement détachés.
+## Groups
 
-## Agent : releases GitHub officielles
+A **group** is a folder for servers, sites, and other items (project, team, provider…). Groups can contain **sub-groups**, as deep as you need.
 
-Les serveurs surveillés téléchargent `phare-agent` depuis la release **officielle** (`PHARE_OFFICIAL_REPOSITORY`, défaut `mchev/phare`), tag `vX.Y.Z` = fichier `VERSION` du hub. Aucun Go sur le hub en production.
+Each group has display options: **list**, **grid**, or **compact** (dots); **colour**; **collapsed** (shows only aggregate state).
 
-Les mainteneurs publient les binaires avec `git tag vX.Y.Z && git push --tags` (workflow `release.yml`) ou `scripts/build-agent.sh` avant de créer la release à la main. `APP_URL` reste l'adresse du hub pour l'enrôlement uniquement.
+A wallboard can target one group (sub-groups included). Importing from Uptime Kuma recreates Kuma groups as nested groups. Deleting a group does not delete its content: sub-groups move up and items are detached.
+
+## Agent: official GitHub releases
+
+Monitored servers download `phare-agent` from the **official** release (`PHARE_OFFICIAL_REPOSITORY`, default `mchev/phare`), tag `vX.Y.Z` = hub `VERSION` file. No Go on the production hub.
+
+Maintainers publish binaries with `git tag vX.Y.Z && git push --tags` (`release.yml`) or `scripts/build-agent.sh`. `APP_URL` is the hub URL for enrollment only.
