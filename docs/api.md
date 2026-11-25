@@ -4,8 +4,8 @@ Everything the UI does for checks and groups can be automated with the REST API.
 
 - [Authentication](#authentication)
 - [Conventions](#conventions) (pagination, errors, rate limits)
-- [Endpoints](#endpoints): [me](#get-me) · [checks](#checks) · [groups](#groups) · [hosts](#hosts) · [website monitor](#post-monitorswebsite)
-- [Heartbeat](#heartbeat-scheduled-task-monitoring) (public ping endpoint) and the [`phare/laravel` package](../packages/phare-laravel/README.md)
+- [Endpoints](#endpoints): [me](#current-user) · [checks](#checks) · [groups](#groups) · [hosts](#hosts) · [website monitor](#create-website-monitor)
+- [Heartbeat](#heartbeat-scheduled-task-monitoring) (public ping endpoint) and the [`phare/laravel` package](https://github.com/mchev/phare/tree/main/packages/phare-laravel)
 - Machine-readable spec: [openapi.yaml](openapi.yaml) (OpenAPI 3.1)
 
 In the examples, `$PHARE` is your hub URL (`https://phare.example.com`) and `$TOKEN` a personal API token.
@@ -65,7 +65,9 @@ Single resources are wrapped in `data`.
 
 ## Endpoints
 
-### GET /me
+### Current user
+
+`GET /me`
 
 The user behind the token and what the token may do.
 
@@ -111,7 +113,9 @@ A check object:
 
 The validation rules are the ones of the web form.
 
-#### GET /checks
+#### List checks
+
+`GET /checks`
 
 Filters: `group_id`, `type`, `enabled` (`0`/`1`), `per_page`, `page`.
 
@@ -119,7 +123,9 @@ Filters: `group_id`, `type`, `enabled` (`0`/`1`), `per_page`, `page`.
 curl -H "Authorization: Bearer $TOKEN" "$PHARE/api/v1/checks?type=http&enabled=1&per_page=50"
 ```
 
-#### POST /checks
+#### Create a check
+
+`POST /checks`
 
 ```bash
 curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $PHARE/api/v1/checks -d '{
@@ -131,9 +137,13 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
 
 `201` with the created check. Required: `name`, `type`, `target` (except for `agent` and `heartbeat`), `host_id` (for `agent`).
 
-#### GET /checks/{id}
+#### Get one check
 
-#### PATCH /checks/{id}
+`GET /checks/{id}`
+
+#### Patch a check
+
+`PATCH /checks/{id}`
 
 Send only the fields to change (`PUT` is accepted and behaves the same). The conditional rules are applied to the stored check completed with your fields.
 
@@ -141,11 +151,15 @@ Send only the fields to change (`PUT` is accepted and behaves the same). The con
 curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $PHARE/api/v1/checks/12 -d '{"enabled": false}'
 ```
 
-#### DELETE /checks/{id}
+#### Delete a check
+
+`DELETE /checks/{id}`
 
 `204` with no body. Admins only.
 
-#### GET /checks/{id}/status
+#### Check status
+
+`GET /checks/{id}/status`
 
 Current state of the check (one row, updated in place):
 
@@ -184,11 +198,15 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
 
 ### Hosts
 
-#### GET /hosts
+#### List hosts
+
+`GET /hosts`
 
 Read only (servers are enrolled with the agent, see `agent/README.md`). Fields: `id`, `name`, `group_id`, `tags`, `enrolled`, `online`, `last_seen_at`, `agent_version`, `os`. Agent credentials are never exposed.
 
-### POST /monitors/website
+### Create website monitor
+
+`POST /monitors/website`
 
 "Site created → monitor it". Same recipe as the guided _A website_ screen: an HTTP check every 60 s, category `website`, 2 failures before it is down; domain and SSL expiry are tracked automatically.
 
@@ -247,4 +265,4 @@ The token is stored in clear in a unique column (it has to be looked up from the
 
 ### Laravel
 
-The [`phare/laravel`](../packages/phare-laravel/README.md) package adds `->pingPhareOnSuccess('token')` / `->pingPhareOnFailure('token')` to the scheduler, a `Phare::heartbeat()` facade and `php artisan phare:ping`. It never throws and uses a 3 s timeout.
+The [`phare/laravel`](https://github.com/mchev/phare/tree/main/packages/phare-laravel) package adds `->pingPhareOnSuccess('token')` / `->pingPhareOnFailure('token')` to the scheduler, a `Phare::heartbeat()` facade and `php artisan phare:ping`. It never throws and uses a 3 s timeout.

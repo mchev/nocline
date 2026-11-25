@@ -1,6 +1,6 @@
 # Roadmap Phare
 
-Alignée sur [`.cursor/skills/phare/SKILL.md`](../.cursor/skills/phare/SKILL.md).
+Alignée sur la [skill produit Phare](guideline/SKILL).
 
 ## Phase 1 — MVP
 

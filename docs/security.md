@@ -1,6 +1,6 @@
 # Security
 
-This page explains, plainly, how Phare protects your data, what it does **not** protect, and how to run it safely. To report a vulnerability, see [SECURITY.md](../SECURITY.md).
+This page explains, plainly, how Phare protects your data, what it does **not** protect, and how to run it safely. To report a vulnerability, see [SECURITY.md](https://github.com/mchev/phare/blob/main/SECURITY.md).
 
 ## What is stored how
 

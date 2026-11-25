@@ -42,6 +42,17 @@ cd agent && go test ./...             # agent
 - **Tests**: add a Pest feature test for behaviour and failure modes.
 - Code style is enforced by Pint; keep explicit types and PHPDoc array shapes.
 
+## Documentation (VitePress)
+
+User-facing site: [https://mchev.github.io/phare/](https://mchev.github.io/phare/) (built from `docs/` on push to `main`).
+
+- **Product or UI change** → update `docs/user/` (French, task-oriented). See the Phare skill § Documentation.
+- **Install, deploy, API** → update the matching files under `docs/` and the root `README.md` when the operator path changes.
+- **New doc page or section** → add it to `docs/.vitepress/config.ts` (sidebar).
+- Before merging structural doc changes, run `npm run docs:build`. Local preview: `npm run docs:dev`.
+
+Details: [docs/README.md](docs/README.md).
+
 ## Commits and pull requests
 
 - Small, focused pull requests are reviewed faster. One topic per PR.

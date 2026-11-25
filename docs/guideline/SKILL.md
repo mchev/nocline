@@ -219,9 +219,19 @@ Quand tu codes ce produit :
 4. **Tests** : politique de rétention et transitions d'état des checks en priorité.
 5. **Nom de code** : **Phare** (`phare`, `phare-agent`) — ne pas réintroduire d'anciens noms de code.
 
-## Documentation utilisateur
+## Documentation (obligatoire à chaque évolution produit)
 
-Chaque feature livrée met à jour `docs/user/` (français, orientée usage : où cliquer, rôles requis, limites). Une PR/feature sans mise à jour de la doc utilisateur est incomplète.
+Site public : **VitePress** dans `docs/` → GitHub Pages (`npm run docs:dev` / `docs:build`, config `docs/.vitepress/config.ts`).
+
+| Changement | Mettre à jour |
+|------------|----------------|
+| Feature visible dans l'UI | `docs/user/` (FR, où cliquer, rôles, limites) |
+| Install / déploiement / env | `docs/deploy/`, `docs/user/installation.md`, README racine si parcours change |
+| API ou intégrations | `docs/api.md`, OpenAPI si besoin |
+| Comportement agent / sonde | `docs/user/hosts-agent.md`, `docs/user/sondes-wallboard.md`, `agent/README.md` |
+| Nouvelle page doc ou section | Entrée dans `docs/.vitepress/config.ts` (sidebar) |
+
+Une PR qui modifie le produit **sans** doc à jour est incomplète. Vérifier `npm run docs:build` si la structure ou les liens changent.
 
 ## Checklist avant une feature
 
@@ -231,8 +241,7 @@ Chaque feature livrée met à jour `docs/user/` (français, orientée usage : o�
 - [ ] Chemin agent = push-only ?
 - [ ] Wallboard reste lisible si API lente (stale / cache) ?
 - [ ] Compréhensible par un non-informaticien (parcours guidé, vocabulaire simple, rien à saisir si détectable) ?
-- [ ] Compréhensible par un non-informaticien (parcours guidé, vocabulaire simple, rien à saisir si détectable) ?
-- [ ] Doc utilisateur (`docs/user/`) mise à jour ?
+- [ ] Documentation mise à jour (`docs/user/` + deploy/api/README/sidebar VitePress si pertinent) ?
 
 ## Ressources
 

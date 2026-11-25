@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import type { WallboardSite } from '@/types/wallboard';
+import type { HostMetrics } from '@/components/HostCard.vue';
 import WallboardHostTile from '@/components/wallboard/WallboardHostTile.vue';
 import WallboardSiteTile from '@/components/wallboard/WallboardSiteTile.vue';
 import { t } from '@/lib/i18n';
@@ -22,9 +23,7 @@ type Payload = {
         id: number;
         name: string;
         online: boolean;
-        cpu_avg_5m: number | null;
-        mem_pct: number | null;
-        disk_pct: number | null;
+        metrics: HostMetrics;
     }[];
     sites?: WallboardSite[];
 };
@@ -255,12 +254,13 @@ const since = (iso: string | null) => {
 .wb-root {
     --wb-pad: clamp(0.35rem, 1.2vmin, 1rem);
     --wb-gap: clamp(0.2rem, 0.5vmin, 0.5rem);
-    --wb-name: clamp(0.55rem, 1.55vmin, 1.05rem);
+    --wb-name: clamp(0.8rem, 2.35vmin, 1.45rem);
     --wb-title: clamp(1rem, 4vmin, 2.75rem);
     --wb-status: clamp(0.95rem, 3.2vmin, 2.5rem);
     --wb-alert: clamp(0.85rem, 2.4vmin, 1.75rem);
-    --wb-site-min: clamp(3.75rem, 9vmin, 7.5rem);
-    --wb-host-min: clamp(4.5rem, 11vmin, 9rem);
+    --wb-site-min: clamp(6.25rem, 15vmin, 11rem);
+    --wb-host-min: clamp(11rem, 28vw, 16rem);
+    --wb-host-name: clamp(0.85rem, 2vmin, 1.15rem);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -424,7 +424,7 @@ const since = (iso: string | null) => {
 }
 
 .wb-pane--hosts {
-    flex: 0 0 clamp(4.5rem, 18cqh, 12rem);
+    flex: 0 0 clamp(8rem, 34cqh, 22rem);
 }
 
 .wb-grid {
@@ -454,25 +454,29 @@ const since = (iso: string | null) => {
 
 @container wallboard (min-width: 900px) {
     .wb-root {
-        --wb-site-min: clamp(4.5rem, 7vmin, 8.5rem);
-        --wb-name: clamp(0.65rem, 1.35vmin, 1.25rem);
+        --wb-site-min: clamp(7rem, 11vmin, 12rem);
+        --wb-name: clamp(0.9rem, 1.85vmin, 1.55rem);
     }
 }
 
 @container wallboard (min-height: 700px) {
     .wb-pane--hosts {
-        flex-basis: clamp(5rem, 14cqh, 14rem);
+        flex-basis: clamp(9rem, 30cqh, 24rem);
     }
+}
+
+.wb-pane--hosts {
+    --wb-host-name: clamp(0.85rem, 2vmin, 1.2rem);
 }
 
 :deep(.wb-tile) {
     display: flex;
     flex-direction: column;
-    gap: 0.15em;
+    gap: 0.25em;
     align-items: center;
     justify-content: center;
-    min-height: clamp(2.5rem, 6.5vmin, 4.25rem);
-    padding: 0.2em 0.25em;
+    min-height: clamp(3.75rem, 10vmin, 6.5rem);
+    padding: 0.35em 0.4em;
     text-align: center;
     border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
     border-radius: 0.3rem;
@@ -480,8 +484,8 @@ const since = (iso: string | null) => {
 
 :deep(.wb-dot) {
     flex-shrink: 0;
-    width: clamp(0.45rem, 1.2vmin, 0.85rem);
-    height: clamp(0.45rem, 1.2vmin, 0.85rem);
+    width: clamp(0.65rem, 1.8vmin, 1.1rem);
+    height: clamp(0.65rem, 1.8vmin, 1.1rem);
     border-radius: 50%;
     background: var(--muted-foreground);
 }

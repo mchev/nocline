@@ -6,7 +6,7 @@ Ce dépôt est **Phare** (plateforme ops self-hosted OSS).
 | ----------------- | ----------------------------------- |
 | Guideline produit | `.cursor/skills/phare/SKILL.md`     |
 | Spec technique    | `.cursor/skills/phare/reference.md` |
-| Index             | `docs/index.md`                     |
+| Doc (site)        | [mchev.github.io/phare](https://mchev.github.io/phare/) · sources `docs/` |
 | Roadmap           | `docs/roadmap.md`                   |
 | Agent Go          | `agent/README.md`                   |
 | Modules Laravel   | `app/Modules/README.md`             |

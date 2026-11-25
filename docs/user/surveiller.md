@@ -21,7 +21,7 @@ Quand vous saisissez l'adresse d'un site, Phare l'examine pour vous (quelques re
 
 - il vérifie que le site répond et suit les redirections vers le même site (par exemple `http` vers `https`) ;
 - il reconnaît un site **Laravel** ou **WordPress** (et l'indique par une étiquette sur le check) ;
-- pour Laravel, si la page de santé `/up` existe réellement, il propose (case cochée) de la surveiller aussi : cela crée un second check « <nom> — health », utile quand la page d'accueil est servie par un cache alors que l'application est en panne ;
+- pour Laravel, si la page de santé `/up` existe réellement, il propose (case cochée) de la surveiller aussi : cela crée un second check « nom du site — health », utile quand la page d'accueil est servie par un cache alors que l'application est en panne ;
 - il rappelle que l'expiration du certificat SSL est déjà suivie automatiquement.
 
 La détection est facultative : si elle échoue, vous pouvez ajouter le site normalement.

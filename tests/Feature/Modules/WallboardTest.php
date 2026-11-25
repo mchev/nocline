@@ -94,7 +94,8 @@ it('aggregates summary, incidents, sites and host metrics', function () {
     expect($json['summary'])->toMatchArray(['down' => 1, 'maintenance' => 0])
         ->and($json)->not->toHaveKey('checks_failing')
         ->and($json['active_incidents'])->toHaveCount(1)
-        ->and($json['hosts'][0])->toMatchArray(['cpu_avg_5m' => 20.0, 'mem_pct' => 50.0, 'disk_pct' => 70.0, 'online' => true])
+        ->and($json['hosts'][0]['online'])->toBeTrue()
+        ->and($json['hosts'][0]['metrics'])->toMatchArray(['cpu_now' => 20.0, 'mem_now' => 50.0, 'disk_now' => 70.0])
         ->and(collect($json['sites'])->pluck('name'))->toContain('Shop')
         ->and(collect($json['sites'])->firstWhere('name', 'Shop')['latency_ms'])->toBe(120);
 });

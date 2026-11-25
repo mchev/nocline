@@ -1,6 +1,6 @@
 # Versions et releases
 
-Phare a **une version produit** (fichier [`VERSION`](../VERSION) à la racine du repo). Elle sert à :
+Phare a **une version produit** (fichier [`VERSION`](https://github.com/mchev/phare/blob/main/VERSION) à la racine du repo). Elle sert à :
 
 - comparer le hub avec les releases GitHub (`phare:update:check`) ;
 - construire l’URL de téléchargement de **`phare-agent`** (`vX.Y.Z` = contenu de `VERSION`).
@@ -43,7 +43,7 @@ git push origin v0.1.1
 
 ### Ce que fait GitHub Actions
 
-Workflow [`.github/workflows/release.yml`](../.github/workflows/release.yml), déclenché par le **push du tag** `v*` :
+Workflow [`.github/workflows/release.yml`](https://github.com/mchev/phare/blob/main/.github/workflows/release.yml), déclenché par le **push du tag** `v*` :
 
 1. Checkout du tag.
 2. Vérification `VERSION` ↔ tag.
@@ -115,7 +115,7 @@ Après un tag, déployer **le commit/tag** qui contient le nouveau `VERSION`. Au
 - Après upgrade du hub, **relancer** la commande d’installation depuis l’UI (_Generate a new command_ si le jeton a expiré).
 - Les serveurs doivent atteindre **`github.com`** (HTTPS) et le hub (enrôlement).
 
-L’install one-liner ne cible que **Linux amd64/arm64** (voir [agent/README.md](../agent/README.md)).
+L’install one-liner ne cible que **Linux amd64/arm64** (voir [agent/README.md](https://github.com/mchev/phare/blob/main/agent/README.md)).
 
 ---
 
@@ -145,5 +145,5 @@ flowchart LR
 - [deploy/hub.md](deploy/hub.md) — prérequis prod, Forge, variables d’environnement
 - [user/installation.md](user/installation.md) — premier install hub
 - [user/hosts-agent.md](user/hosts-agent.md) — enrôlement serveur
-- [CONTRIBUTING.md](../CONTRIBUTING.md) — releases (résumé mainteneur)
-- [README.md](../README.md) — vue d’ensemble (anglais)
+- [CONTRIBUTING.md](https://github.com/mchev/phare/blob/main/CONTRIBUTING.md) — releases (résumé mainteneur)
+- [README.md](https://github.com/mchev/phare/blob/main/README.md) — vue d’ensemble (anglais)

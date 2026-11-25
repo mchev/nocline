@@ -14,7 +14,7 @@
 <p align="center">
   <a href="LICENSE">Elastic License 2.0</a>
   · <a href="https://github.com/mchev/phare/releases">Releases</a>
-  · <a href="docs/index.md">Documentation</a>
+  · <a href="https://mchev.github.io/phare/">Documentation</a>
   · <a href="CONTRIBUTING.md">Contributing</a>
   · <a href="https://github.com/sponsors/mchev">Sponsor</a>
 </p>
@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <sub>Demo dataset · <a href="docs/index.md#aperçu">more screenshots</a></sub>
+  <sub>Demo dataset · <a href="https://mchev.github.io/phare/apercu">more screenshots</a></sub>
 </p>
 
 ---

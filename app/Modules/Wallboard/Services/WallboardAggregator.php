@@ -10,7 +10,7 @@ use App\Modules\Checks\Support\WebsiteMonitorRows;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Incidents\Models\Incident;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
-use App\Modules\Metrics\Models\MetricRollup;
+use App\Modules\Metrics\Services\HostMetricsReader;
 use App\Modules\Wallboard\Models\Wallboard;
 use Illuminate\Support\Facades\Cache;
 
@@ -21,9 +21,12 @@ class WallboardAggregator
 {
     public const CACHE_TTL_SECONDS = 10;
 
+    public const HOST_SPARKLINE_POINTS = 24;
+
     public function __construct(
         private MaintenanceChecker $maintenance,
         private WebsiteMonitorRows $websiteRows,
+        private HostMetricsReader $hostMetrics,
     ) {}
 
     /**
@@ -63,7 +66,7 @@ class WallboardAggregator
             ->orderBy('name')
             ->get();
 
-        $metrics = $this->recentMetrics($hosts->pluck('id')->all());
+        $metricSeries = $this->hostMetrics->forHosts($hosts, self::HOST_SPARKLINE_POINTS);
         $checkIds = $checks->pluck('id');
 
         $sites = Check::query()
@@ -95,38 +98,16 @@ class WallboardAggregator
                 'id' => $h->id,
                 'name' => $h->name,
                 'online' => $h->isOnline(),
-                'cpu_avg_5m' => $metrics[$h->id]['cpu.usage_pct'] ?? null,
-                'mem_pct' => $metrics[$h->id]['mem.used_pct'] ?? null,
-                'disk_pct' => $metrics[$h->id]['disk.used_pct'] ?? null,
+                'metrics' => $metricSeries[$h->id] ?? [
+                    'cpu' => [],
+                    'mem' => [],
+                    'disk' => [],
+                    'cpu_now' => null,
+                    'mem_now' => null,
+                    'disk_now' => null,
+                ],
             ])->all(),
             'sites' => $this->websiteRows->rows($sites),
         ];
-    }
-
-    /**
-     * @param  array<int, int>  $hostIds
-     * @return array<int, array<string, float>>
-     */
-    private function recentMetrics(array $hostIds): array
-    {
-        if ($hostIds === []) {
-            return [];
-        }
-
-        $rows = MetricRollup::query()
-            ->selectRaw('host_id, metric_key, avg(avg) as value')
-            ->whereIn('host_id', $hostIds)
-            ->where('bucket_size', MetricRollup::BUCKET_1M)
-            ->where('bucket_start', '>=', now()->subMinutes(5))
-            ->whereIn('metric_key', ['cpu.usage_pct', 'mem.used_pct', 'disk.used_pct'])
-            ->groupBy('host_id', 'metric_key')
-            ->get();
-
-        $out = [];
-        foreach ($rows as $row) {
-            $out[$row->host_id][$row->metric_key] = round((float) $row->getAttribute('value'), 1);
-        }
-
-        return $out;
     }
 }
