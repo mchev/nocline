@@ -66,6 +66,7 @@ class WallboardAggregator
             ->orderBy('name')
             ->get();
 
+        $hostIds = $hosts->pluck('id')->all();
         $metricSeries = $this->hostMetrics->forHosts($hosts, self::HOST_SPARKLINE_POINTS);
         $checkIds = $checks->pluck('id');
 
@@ -94,19 +95,23 @@ class WallboardAggregator
                     'since' => $i->started_at->toIso8601String(),
                     'acknowledged' => $i->isAcknowledged(),
                 ])->all(),
-            'hosts' => $hosts->map(fn (Host $h) => [
-                'id' => $h->id,
-                'name' => $h->name,
-                'online' => $h->isOnline(),
-                'metrics' => $metricSeries[$h->id] ?? [
-                    'cpu' => [],
-                    'mem' => [],
-                    'disk' => [],
-                    'cpu_now' => null,
-                    'mem_now' => null,
-                    'disk_now' => null,
-                ],
-            ])->all(),
+            'hosts' => $hosts->map(function (Host $h) use ($metricSeries) {
+                return [
+                    'id' => $h->id,
+                    'name' => $h->name,
+                    'online' => $h->isOnline(),
+                    'metrics' => $metricSeries[$h->id] ?? [
+                        'cpu' => [],
+                        'mem' => [],
+                        'disk' => [],
+                        'cpu_now' => null,
+                        'mem_now' => null,
+                        'disk_now' => null,
+                        'disk_used_bytes' => null,
+                        'disk_total_bytes' => null,
+                    ],
+                ];
+            })->all(),
             'sites' => $this->websiteRows->rows($sites),
         ];
     }

@@ -33,6 +33,10 @@ fi
 chmod 755 "$TMP"
 mv "$TMP" "$BIN"
 
+if ! grep -q '^auto_update:' /etc/phare-agent/config.yaml 2>/dev/null; then
+    printf '\nauto_update: true\n' >> /etc/phare-agent/config.yaml
+fi
+
 say "2/2 Restarting the agent..."
 if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
     if systemctl is-enabled phare-agent >/dev/null 2>&1 || systemctl is-active phare-agent >/dev/null 2>&1; then

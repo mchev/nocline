@@ -6,6 +6,12 @@ VERSION="$(tr -d '[:space:]' < ../VERSION)"
 OUT="${PHARE_AGENT_BINARY_DIR:-../storage/app/agent}"
 mkdir -p "$OUT"
 for arch in amd64 arm64; do
-    CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags "-s -w -X main.version=$VERSION" -o "$OUT/phare-agent-linux-$arch" ./cmd/phare-agent
-    echo "built $OUT/phare-agent-linux-$arch"
+    out="$OUT/phare-agent-linux-$arch"
+    CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags "-s -w -X main.version=$VERSION" -o "$out" ./cmd/phare-agent
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$out" | awk '{print $1}' >"$out.sha256"
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$out" | awk '{print $1}' >"$out.sha256"
+    fi
+    echo "built $out"
 done

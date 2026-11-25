@@ -43,6 +43,12 @@ jobs:
       - name: Build the agent
         run: PHARE_AGENT_BINARY_DIR="$PWD/dist" scripts/build-agent.sh
 
+      - name: SHA256 checksums
+        run: |
+          for arch in amd64 arm64; do
+            sha256sum "dist/phare-agent-linux-$arch" | awk '{print $1}' >"dist/phare-agent-linux-$arch.sha256"
+          done
+
       - name: Verify agent binaries
         run: |
           for arch in amd64 arm64; do
@@ -61,3 +67,5 @@ jobs:
           files: |
             dist/phare-agent-linux-amd64
             dist/phare-agent-linux-arm64
+            dist/phare-agent-linux-amd64.sha256
+            dist/phare-agent-linux-arm64.sha256

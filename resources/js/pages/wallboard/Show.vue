@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import {
-    computed,
-    nextTick,
-    onBeforeUnmount,
-    onMounted,
-    ref,
-    watch,
-} from 'vue';
-import { wallboardGridLayout } from '@/lib/wallboardLayout';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import type { WallboardSite } from '@/types/wallboard';
 import type { HostMetrics } from '@/components/HostCard.vue';
 import WallboardHostTile from '@/components/wallboard/WallboardHostTile.vue';
@@ -72,45 +64,10 @@ async function refresh() {
     }
 }
 
-function observeSitesPane(el: HTMLElement | null) {
-    sitesPaneObserver?.disconnect();
-    sitesPaneObserver = undefined;
-
-    if (!el) {
-        return;
-    }
-
-    const measure = () => {
-        sitesPaneSize.value = {
-            width: el.clientWidth,
-            height: el.clientHeight,
-        };
-    };
-
-    measure();
-    sitesPaneObserver = new ResizeObserver(measure);
-    sitesPaneObserver.observe(el);
-}
-
 onMounted(() => {
     void refresh();
     timer = setInterval(refresh, REFRESH_MS);
     tick = setInterval(() => (now.value = Date.now()), 1000);
-});
-
-watch(
-    () => [data.value, sitesPaneEl.value, sortedSites.value.length] as const,
-    async () => {
-        await nextTick();
-        observeSitesPane(sitesPaneEl.value);
-    },
-    { flush: 'post' },
-);
-
-onBeforeUnmount(() => {
-    clearInterval(timer);
-    clearInterval(tick);
-    sitesPaneObserver?.disconnect();
 });
 
 const stale = computed(
@@ -184,27 +141,18 @@ const problemLabels = computed(() => {
 
 const problemCount = computed(() => problemLabels.value.length);
 
-const sitesPaneEl = ref<HTMLElement | null>(null);
-const sitesPaneSize = ref({ width: 0, height: 0 });
-let sitesPaneObserver: ResizeObserver | undefined;
+const clockIso = computed(() => new Date(now.value).toISOString());
 
-const siteGrid = computed(() => {
-    const count = sortedSites.value.length;
-    const { width, height } = sitesPaneSize.value;
-
-    return wallboardGridLayout(count, width, height, 5);
-});
-
-const sitesGridStyle = computed(() => {
-    const { cols, rows, cellMin } = siteGrid.value;
-    const fontPx = Math.min(22, Math.max(11, Math.floor(cellMin * 0.22)));
-
-    return {
-        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-        gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-        '--wb-tile-font': `${fontPx}px`,
-    };
-});
+const clockLabel = computed(() =>
+    new Intl.DateTimeFormat(undefined, {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    }).format(new Date(now.value)),
+);
 
 const since = (iso: string | null) => {
     if (!iso) {
@@ -213,6 +161,11 @@ const since = (iso: string | null) => {
     const m = Math.max(0, Math.floor((now.value - Date.parse(iso)) / 60000));
     return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
 };
+
+onBeforeUnmount(() => {
+    clearInterval(timer);
+    clearInterval(tick);
+});
 </script>
 
 <template>
@@ -237,40 +190,46 @@ const since = (iso: string | null) => {
                 }}
             </div>
 
-            <header class="wb-header">
+            <header
+                class="wb-topbar"
+                :class="{ 'wb-topbar--alert': data !== null && !allGood }"
+                role="banner"
+            >
                 <h1 class="wb-title">{{ name }}</h1>
+                <template v-if="data !== null && !allGood">
+                    <div
+                        class="wb-topbar-alerts"
+                        role="alert"
+                        aria-live="assertive"
+                    >
+                        <span class="wb-topbar-count" aria-hidden="true">{{
+                            problemCount
+                        }}</span>
+                        <p class="wb-topbar-list">
+                            {{ problemLabels.join(' · ') }}
+                        </p>
+                    </div>
+                </template>
                 <p
-                    v-if="data !== null && allGood"
-                    class="wb-status wb-status--ok"
+                    v-else-if="data !== null && allGood"
+                    class="wb-topbar-ok"
                     role="status"
                 >
-                    <span class="wb-status-dot" aria-hidden="true" />
                     {{ $t('ALL GOOD') }}
                 </p>
-                <p
-                    v-else-if="data === null"
-                    class="wb-status wb-status--wait"
-                    role="status"
-                >
+                <p v-else-if="data === null" class="wb-topbar-wait" role="status">
                     …
                 </p>
+                <time
+                    class="wb-clock numeric"
+                    :datetime="clockIso"
+                    :aria-label="$t('Local time')"
+                >
+                    {{ clockLabel }}
+                </time>
             </header>
 
             <template v-if="data">
-                <section
-                    v-if="!allGood"
-                    class="wb-alert"
-                    role="alert"
-                    aria-live="assertive"
-                >
-                    <p class="wb-alert-count" aria-hidden="true">
-                        {{ problemCount }}
-                    </p>
-                    <p class="wb-alert-list">
-                        {{ problemLabels.join(' · ') }}
-                    </p>
-                </section>
-
                 <div
                     class="wb-board"
                     :class="{
@@ -279,15 +238,10 @@ const since = (iso: string | null) => {
                 >
                     <section
                         v-if="sortedSites.length"
-                        ref="sitesPaneEl"
                         class="wb-pane wb-pane--sites"
                         :aria-label="$t('Websites')"
                     >
-                        <ul
-                            class="wb-grid wb-grid--sites"
-                            role="list"
-                            :style="sitesGridStyle"
-                        >
+                        <ul class="wb-grid wb-grid--sites" role="list">
                             <WallboardSiteTile
                                 v-for="site in sortedSites"
                                 :key="site.id"
@@ -334,8 +288,8 @@ const since = (iso: string | null) => {
     --wb-pad: clamp(0.35rem, 1.2vmin, 1rem);
     --wb-gap: clamp(0.2rem, 0.5vmin, 0.5rem);
     --wb-name: clamp(0.8rem, 2.35vmin, 1.45rem);
-    --wb-title: clamp(1rem, 4vmin, 2.75rem);
-    --wb-status: clamp(0.95rem, 3.2vmin, 2.5rem);
+    --wb-title: clamp(0.95rem, 2.8vmin, 1.85rem);
+    --wb-topbar: clamp(0.75rem, 1.85vmin, 1.15rem);
     --wb-alert: clamp(0.85rem, 2.4vmin, 1.75rem);
     --wb-host-min: clamp(11rem, 28vw, 16rem);
     --wb-host-name: clamp(0.85rem, 2vmin, 1.15rem);
@@ -391,91 +345,93 @@ const since = (iso: string | null) => {
     border-radius: 0.35rem;
 }
 
-.wb-header {
+.wb-topbar {
     display: flex;
     flex-shrink: 0;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: clamp(0.4rem, 1.2vmin, 0.85rem);
     align-items: center;
-    justify-content: space-between;
+    min-height: 0;
+    padding: 0.25em 0.45em;
+    border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+    border-radius: 0.35rem;
+    background: color-mix(in oklch, var(--card) 88%, transparent);
+}
+
+.wb-topbar--alert {
+    border-color: var(--danger);
+    background: color-mix(in oklch, var(--danger) 22%, var(--card));
 }
 
 .wb-title {
+    flex-shrink: 0;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     font-family: var(--font-display, system-ui), sans-serif;
     font-size: var(--wb-title);
-    font-weight: 600;
-    line-height: 1.05;
+    font-weight: 700;
+    line-height: 1.1;
     white-space: nowrap;
 }
 
-.wb-status {
+.wb-topbar-alerts {
     display: flex;
-    gap: 0.4em;
+    flex: 1;
+    gap: 0.45em;
     align-items: center;
-    margin: 0;
-    padding: 0.25em 0.65em;
-    font-size: var(--wb-status);
-    font-weight: 700;
-    border-radius: 0.35rem;
+    min-width: 0;
 }
 
-.wb-status-dot {
-    width: 0.55em;
-    height: 0.55em;
-    border-radius: 50%;
-    background: currentcolor;
-}
-
-.wb-status--ok {
-    color: #0a0a0a;
-    background: var(--success);
-}
-
-.wb-status--bad {
-    color: #fff;
-    background: var(--danger);
-    animation: wb-pulse 1.6s ease-in-out infinite;
-}
-
-.wb-status--wait {
-    color: var(--muted-foreground);
-    background: var(--muted);
-}
-
-.wb-alert {
-    display: flex;
-    flex-shrink: 0;
-    gap: 0.65em;
-    align-items: center;
-    padding: 0.5em 0.75em;
-    background: color-mix(in oklch, var(--danger) 88%, black);
-    border: 2px solid var(--danger);
-    border-radius: 0.35rem;
-}
-
-.wb-alert-count {
+.wb-topbar-count {
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    min-width: 2.25em;
-    padding: 0.15em 0.35em;
-    margin: 0;
-    font-size: calc(var(--wb-alert) * 1.35);
+    min-width: 1.65em;
+    padding: 0.1em 0.35em;
+    font-size: calc(var(--wb-topbar) * 1.05);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
+    line-height: 1;
     color: var(--danger);
     background: #fff;
-    border-radius: 0.3rem;
+    border-radius: 0.25rem;
 }
 
-.wb-alert-list {
+.wb-topbar-list {
     margin: 0;
-    font-size: var(--wb-alert);
+    overflow: hidden;
+    font-size: var(--wb-topbar);
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wb-topbar-ok {
+    flex: 1;
+    margin: 0;
+    font-size: var(--wb-topbar);
+    font-weight: 700;
+    color: color-mix(in oklch, var(--success) 85%, white);
+    text-align: left;
+}
+
+.wb-topbar-wait {
+    flex: 1;
+    margin: 0;
+    font-size: var(--wb-topbar);
+    color: var(--muted-foreground);
+}
+
+.wb-clock {
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: var(--wb-topbar);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: var(--muted-foreground);
+    white-space: nowrap;
 }
 
 .wb-footer {
@@ -519,9 +475,6 @@ const since = (iso: string | null) => {
     flex-direction: column;
     min-height: 0;
     overflow: hidden;
-    background: color-mix(in oklch, var(--card) 85%, transparent);
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
 }
 
 .wb-pane--hosts {
@@ -533,14 +486,21 @@ const since = (iso: string | null) => {
     gap: clamp(3px, 0.45vmin, 6px);
     height: 100%;
     margin: 0;
-    padding: clamp(3px, 0.4vmin, 6px);
+    padding: 0;
     list-style: none;
 }
 
 .wb-grid--sites {
     flex: 1;
     min-height: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    align-content: start;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(min(20rem, 100%), 1fr)
+    );
+    grid-auto-rows: auto;
 }
 
 .wb-grid--hosts {
@@ -558,95 +518,6 @@ const since = (iso: string | null) => {
 
 .wb-pane--hosts {
     --wb-host-name: clamp(0.85rem, 2vmin, 1.2rem);
-}
-
-:deep(.wb-tile) {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25em;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    min-width: 0;
-    min-height: 0;
-    padding: 0.35em 0.45em;
-    text-align: center;
-    border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
-    border-radius: 0.3rem;
-}
-
-:deep(.wb-dot) {
-    flex-shrink: 0;
-    width: clamp(0.65rem, 1.8vmin, 1.1rem);
-    height: clamp(0.65rem, 1.8vmin, 1.1rem);
-    border-radius: 50%;
-    background: var(--muted-foreground);
-}
-
-:deep(.wb-tile-sub) {
-    width: 100%;
-    overflow: hidden;
-    font-size: calc(var(--wb-tile-font, var(--wb-name)) * 0.85);
-    font-weight: 700;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--danger);
-}
-
-:deep(.wb-tile--site .wb-tile-name) {
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-    font-size: var(--wb-tile-font, var(--wb-name));
-    font-weight: 600;
-    line-height: 1.1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-:deep(.wb-tile-name) {
-    font-size: var(--wb-name);
-    font-weight: 600;
-    line-height: 1.15;
-}
-
-:deep(.wb-tile-meta) {
-    font-size: calc(var(--wb-name) * 0.8);
-    font-weight: 600;
-    line-height: 1.1;
-    color: var(--warning);
-}
-
-:deep(.wb-tile--up) {
-    background: color-mix(in oklch, var(--card) 95%, var(--success) 5%);
-}
-
-:deep(.wb-tile--up .wb-dot) {
-    background: var(--success);
-}
-
-:deep(.wb-tile--down) {
-    background: color-mix(in oklch, var(--danger) 35%, var(--card));
-    border-color: var(--danger);
-    animation: wb-pulse 1.5s ease-in-out infinite;
-}
-
-:deep(.wb-tile--down .wb-dot) {
-    background: var(--danger);
-}
-
-:deep(.wb-tile--unknown .wb-dot),
-:deep(.wb-tile--maint .wb-dot) {
-    background: var(--warning);
-}
-
-:deep(.wb-tile--warn) {
-    border-color: var(--warning);
-}
-
-:deep(.wb-tile--warn .wb-dot) {
-    background: var(--warning);
 }
 
 @keyframes wb-pulse {

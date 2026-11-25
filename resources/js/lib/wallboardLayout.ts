@@ -61,6 +61,74 @@ export function wallboardSiteLabel(site: {
     return site.name;
 }
 
+/** Human URL line for wallboard (host + optional path, no scheme). */
+export function wallboardSiteAddress(raw: string | undefined): string | null {
+    const trimmed = raw?.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    try {
+        const u = new URL(trimmed);
+        const path =
+            u.pathname !== '/' && u.pathname !== ''
+                ? u.pathname.replace(/\/$/, '')
+                : '';
+
+        return `${u.host}${path}`;
+    } catch {
+        return trimmed;
+    }
+}
+
+/** True when the check has a display title distinct from the monitored URL. */
+export function wallboardSiteHasTitle(site: {
+    name: string;
+    target?: string;
+}): boolean {
+    const name = site.name.trim();
+    if (name === '') {
+        return false;
+    }
+
+    const address = wallboardSiteAddress(site.target);
+    const host = hostFromUrl(site.target);
+
+    if (address !== null) {
+        const norm = name.toLowerCase();
+        if (
+            norm === address.toLowerCase() ||
+            norm === site.target?.trim().toLowerCase() ||
+            (host !== null && (norm === host || name === host))
+        ) {
+            return false;
+        }
+    }
+
+    if (host !== null && name.includes(host) && name.length <= host.length + 6) {
+        return false;
+    }
+
+    return true;
+}
+
+/** Second line on wallboard tiles: custom title or URL only (never both). */
+export function wallboardSiteCaption(site: {
+    name: string;
+    target?: string;
+}): string {
+    if (wallboardSiteHasTitle(site)) {
+        return site.name.trim();
+    }
+
+    const address = wallboardSiteAddress(site.target);
+    if (address !== null) {
+        return address;
+    }
+
+    return site.name.trim() || '—';
+}
+
 function hostFromUrl(raw: string | undefined): string | null {
     if (!raw) {
         return null;

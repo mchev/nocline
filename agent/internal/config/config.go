@@ -25,6 +25,8 @@ type Config struct {
 	Role        string
 	Token       string
 	IntervalSec int
+	// AutoUpdate : mise à jour auto quand le hub propose agent_update (vérif SHA256).
+	AutoUpdate bool
 	// Capabilities (probe) : types de checks exécutables (http, tcp, dns, icmp).
 	Capabilities []string
 }
@@ -69,6 +71,8 @@ func Parse(data []byte) (Config, error) {
 			}
 			c.IntervalSec = n
 			intervalSet = true
+		case "auto_update":
+			c.AutoUpdate = val == "true" || val == "1" || val == "yes"
 		case "capabilities":
 			if strings.HasPrefix(val, "[") {
 				for _, p := range strings.Split(strings.Trim(val, "[] "), ",") {
@@ -136,6 +140,9 @@ func Save(path string, c Config) error {
 		return err
 	}
 	body := fmt.Sprintf("hub_url: %s\nrole: %s\ntoken: \"%s\"\ninterval_sec: %d\n", c.HubURL, c.Role, c.Token, c.IntervalSec)
+	if c.AutoUpdate {
+		body += "auto_update: true\n"
+	}
 	if len(c.Capabilities) > 0 {
 		body += "capabilities: [" + strings.Join(c.Capabilities, ", ") + "]\n"
 	}

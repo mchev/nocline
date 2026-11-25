@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import { hostMetricTone } from '@/lib/hostMetricTone';
+import { hostDiskCaption } from '@/lib/hostDiskCaption';
 import { t } from '@/lib/i18n';
 import type { HostMetrics } from '@/components/HostCard.vue';
 
@@ -19,21 +20,13 @@ const status = computed(() => (props.host.online ? 'up' as const : 'down' as con
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v)}%`);
 
-const freeDisk = computed(() =>
-    props.host.metrics.disk_now === null
-        ? null
-        : Math.max(0, 100 - props.host.metrics.disk_now),
-);
-
-const rows = computed(() => [
+const sparkRows = computed(() => [
     {
         key: 'cpu',
         label: t('CPU'),
         now: props.host.metrics.cpu_now,
         series: props.host.metrics.cpu,
         display: pct(props.host.metrics.cpu_now),
-        invertTone: false as const,
-        toneNow: props.host.metrics.cpu_now,
     },
     {
         key: 'mem',
@@ -41,22 +34,14 @@ const rows = computed(() => [
         now: props.host.metrics.mem_now,
         series: props.host.metrics.mem,
         display: pct(props.host.metrics.mem_now),
-        invertTone: false as const,
-        toneNow: props.host.metrics.mem_now,
-    },
-    {
-        key: 'disk',
-        label: t('Disk'),
-        now: props.host.metrics.disk_now,
-        series: props.host.metrics.disk.map((v) =>
-            v === null ? null : Math.max(0, 100 - v),
-        ),
-        display:
-            freeDisk.value === null ? '—' : `${Math.round(freeDisk.value)}%`,
-        invertTone: true as const,
-        toneNow: freeDisk.value,
     },
 ]);
+
+const diskCaption = computed(() => hostDiskCaption(props.host.metrics));
+
+const diskTone = computed(() =>
+    hostMetricTone(props.host.metrics.disk_now, false),
+);
 </script>
 
 <template>
@@ -75,7 +60,7 @@ const rows = computed(() => [
 
         <ul v-if="host.online" class="wb-host-metrics" role="list">
             <li
-                v-for="row in rows"
+                v-for="row in sparkRows"
                 :key="row.key"
                 class="wb-host-metric-row"
             >
@@ -84,17 +69,22 @@ const rows = computed(() => [
                     subtle
                     class="wb-host-spark"
                     :values="row.series"
-                    :tone="
-                        hostMetricTone(
-                            row.invertTone
-                                ? (row.toneNow ?? null)
-                                : row.now,
-                            row.invertTone,
-                        )
-                    "
+                    :tone="hostMetricTone(row.now, false)"
                     :label="`${row.label} ${row.display}`"
                 />
                 <span class="wb-host-metric-val numeric">{{ row.display }}</span>
+            </li>
+            <li class="wb-host-disk-row">
+                <span class="wb-host-metric-label">{{ t('Disk') }}</span>
+                <span
+                    class="wb-host-disk-cap numeric"
+                    :class="{
+                        'text-danger': diskTone === 'danger',
+                        'text-warning': diskTone === 'warning',
+                    }"
+                >
+                    {{ diskCaption }}
+                </span>
             </li>
         </ul>
         <p v-else class="wb-host-offline">{{ t('Offline') }}</p>
@@ -151,6 +141,15 @@ const rows = computed(() => [
     align-items: center;
 }
 
+.wb-host-disk-row {
+    display: grid;
+    grid-template-columns: 2.5em 1fr;
+    gap: 0.35em;
+    align-items: center;
+    padding-top: 0.1em;
+    border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+
 .wb-host-metric-label {
     font-size: calc(var(--wb-host-name, 0.95rem) * 0.72);
     font-weight: 600;
@@ -163,6 +162,16 @@ const rows = computed(() => [
     font-size: calc(var(--wb-host-name, 0.95rem) * 0.85);
     font-weight: 700;
     text-align: right;
+}
+
+.wb-host-disk-cap {
+    overflow: hidden;
+    font-size: calc(var(--wb-host-name, 0.95rem) * 0.82);
+    font-weight: 700;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    text-align: right;
+    white-space: nowrap;
 }
 
 .wb-host-offline {

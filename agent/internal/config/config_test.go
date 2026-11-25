@@ -54,6 +54,17 @@ func TestValidate(t *testing.T) {
 	}
 }
 
+func TestParseAutoUpdate(t *testing.T) {
+	c, err := Parse([]byte("hub_url: https://x\nrole: host\ntoken: a\nauto_update: true\n"))
+	if err != nil || !c.AutoUpdate {
+		t.Fatalf("%+v err=%v", c, err)
+	}
+	c, err = Parse([]byte("hub_url: https://x\nrole: host\ntoken: a\nauto_update: false\n"))
+	if err != nil || c.AutoUpdate {
+		t.Fatalf("%+v", c)
+	}
+}
+
 func TestProbeConfig(t *testing.T) {
 	c, err := Parse([]byte("hub_url: https://x\nrole: probe\ntoken: t\ncapabilities: [http, icmp]\n"))
 	if err != nil || c.IntervalSec != 15 || !reflect.DeepEqual(c.Capabilities, []string{"http", "icmp"}) {

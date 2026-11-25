@@ -60,6 +60,11 @@ return [
     'agent_download_url' => env('PHARE_AGENT_DOWNLOAD_URL'),
 
     /*
+    | When true, outdated agents receive agent_update in POST /api/v1/ingest (SHA256-verified self-update).
+    */
+    'agent_auto_update' => (bool) env('PHARE_AGENT_AUTO_UPDATE', true),
+
+    /*
     | Smart detection of a website added in the wizard: refuse addresses on private networks
     | (loopback, LAN, link-local/metadata). Set PHARE_DETECT_ALLOW_PRIVATE=true to detect
     | sites hosted on your own network (*.test, 192.168.x.x...).

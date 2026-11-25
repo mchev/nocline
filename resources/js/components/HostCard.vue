@@ -5,6 +5,7 @@ import AgentUpdateDialog from '@/components/AgentUpdateDialog.vue';
 import HostMetaChips from '@/components/HostMetaChips.vue';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
+import { hostDiskCaption } from '@/lib/hostDiskCaption';
 import { hostMetricTone } from '@/lib/hostMetricTone';
 import { t } from '@/lib/i18n';
 
@@ -15,6 +16,8 @@ export type HostMetrics = {
     cpu_now: number | null;
     mem_now: number | null;
     disk_now: number | null;
+    disk_used_bytes?: number | null;
+    disk_total_bytes?: number | null;
 };
 
 const props = withDefaults(
@@ -97,13 +100,7 @@ const lastSeenLabel = computed(() => {
     return t(':n h ago', { n: Math.floor(sec / 3600) });
 });
 
-const freeDisk = computed(() =>
-    props.metrics.disk_now === null
-        ? null
-        : Math.max(0, 100 - props.metrics.disk_now),
-);
-
-const rows = computed(() => [
+const sparkRows = computed(() => [
     {
         key: 'cpu',
         label: t('CPU'),
@@ -118,19 +115,13 @@ const rows = computed(() => [
         series: props.metrics.mem,
         display: pct(props.metrics.mem_now),
     },
-    {
-        key: 'disk',
-        label: t('Disk free'),
-        now: props.metrics.disk_now,
-        series: props.metrics.disk.map((v) =>
-            v === null ? null : Math.max(0, 100 - v),
-        ),
-        display:
-            freeDisk.value === null ? '—' : `${Math.round(freeDisk.value)}%`,
-        toneNow: freeDisk.value,
-        invertTone: true,
-    },
 ]);
+
+const diskCaption = computed(() => hostDiskCaption(props.metrics));
+
+const diskTone = computed(() =>
+    hostMetricTone(props.metrics.disk_now, false),
+);
 </script>
 
 <template>
@@ -239,7 +230,7 @@ const rows = computed(() => [
 
             <ul v-else class="grid gap-2" role="list">
                 <li
-                    v-for="row in rows"
+                    v-for="row in sparkRows"
                     :key="row.key"
                     class="grid grid-cols-[3.5rem_1fr_2.5rem] items-center gap-2"
                 >
@@ -249,29 +240,34 @@ const rows = computed(() => [
                     <Sparkline
                         subtle
                         :values="row.series"
-                        :tone="
-                            hostMetricTone(
-                                row.invertTone
-                                    ? (row.toneNow ?? null)
-                                    : row.now,
-                                !!row.invertTone,
-                            )
-                        "
+                        :tone="hostMetricTone(row.now, false)"
                         :label="`${row.label} ${row.display}`"
                     />
                     <span
                         class="text-right numeric text-sm font-semibold tabular-nums"
                         :class="{
-                            'text-danger': row.invertTone
-                                ? (row.toneNow ?? 100) <= 10
-                                : (row.now ?? 0) >= 90,
-                            'text-warning': row.invertTone
-                                ? (row.toneNow ?? 100) <= 25 &&
-                                  (row.toneNow ?? 100) > 10
-                                : (row.now ?? 0) >= 75 && (row.now ?? 0) < 90,
+                            'text-danger': (row.now ?? 0) >= 90,
+                            'text-warning':
+                                (row.now ?? 0) >= 75 && (row.now ?? 0) < 90,
                         }"
                     >
                         {{ row.display }}
+                    </span>
+                </li>
+                <li
+                    class="grid grid-cols-[3.5rem_1fr] items-center gap-2 border-t border-border/70 pt-2"
+                >
+                    <span class="text-xs font-medium text-muted-foreground">{{
+                        t('Disk')
+                    }}</span>
+                    <span
+                        class="truncate text-right numeric text-sm font-semibold tabular-nums"
+                        :class="{
+                            'text-danger': diskTone === 'danger',
+                            'text-warning': diskTone === 'warning',
+                        }"
+                    >
+                        {{ diskCaption }}
                     </span>
                 </li>
             </ul>

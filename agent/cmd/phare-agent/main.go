@@ -17,6 +17,7 @@ import (
 	"github.com/phare/phare/agent/internal/meta"
 	"github.com/phare/phare/agent/internal/probe"
 	"github.com/phare/phare/agent/internal/transport"
+	"github.com/phare/phare/agent/internal/update"
 )
 
 var version = "0.1.3"
@@ -51,7 +52,10 @@ func runEnroll(args []string) int {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	cfg := config.Config{HubURL: *hub, Role: "host", Token: res.Token, IntervalSec: config.DefaultIntervalSec}
+	cfg := config.Config{
+		HubURL: *hub, Role: "host", Token: res.Token, IntervalSec: config.DefaultIntervalSec,
+		AutoUpdate: true,
+	}
 	if res.Role == "probe" {
 		cfg.Role = "probe"
 		cfg.IntervalSec = config.DefaultProbeIntervalSec
@@ -95,6 +99,13 @@ func runAgent(args []string) int {
 	sender := &transport.Sender{
 		Client: &transport.Client{HubURL: cfg.HubURL, Token: cfg.Token},
 		Logf:   log.Printf,
+		OnAccepted: func(ctx context.Context, offer *update.Offer) {
+			update.MaybeApply(ctx, offer, update.Settings{
+				AutoUpdate: cfg.AutoUpdate,
+				NowVersion: version,
+				Logf:       log.Printf,
+			})
+		},
 	}
 	batches := make(chan transport.Batch, 4)
 	done := make(chan struct{})

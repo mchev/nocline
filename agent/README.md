@@ -36,11 +36,16 @@ hub_url: https://ops.example.com
 role: host # host | probe
 token: '***'
 interval_sec: 30 # défaut 30, min 5
+auto_update: true # optionnel : mise à jour auto (SHA256) quand le hub le propose dans /api/v1/ingest
 ```
+
+## Mise à jour automatique
+
+Sur chaque push métriques accepté (202), le hub peut renvoyer `agent_update` (version + URL + SHA256 par arch). Si `auto_update: true`, l'agent télécharge depuis l'URL **https** indiquée, vérifie le SHA256, sauvegarde l'ancien binaire en `.prev`, remplace puis `systemctl restart phare-agent`. Au plus une tentative toutes les **6 h**. Désactiver sur l'agent : `auto_update: false` ; sur le hub : `PHARE_AGENT_AUTO_UPDATE=false`.
 
 ## Fonctionnement
 
-- Collecte Linux (`/proc/stat`, `/proc/meminfo`, `/proc/loadavg`, `statfs /`) toutes les 5 s : `cpu.usage_pct`, `mem.used_bytes`, `mem.used_pct`, `disk.used_pct`, `load.1m`. Hors Linux : stub (aucune métrique).
+- Collecte Linux (`/proc/stat`, `/proc/meminfo`, `/proc/loadavg`, `statfs /`) toutes les 5 s : `cpu.usage_pct`, `mem.used_bytes`, `mem.used_pct`, `disk.used_pct`, `disk.used_bytes`, `disk.total_bytes`, `load.1m`. Hors Linux : stub (aucune métrique).
 - Chaque `interval_sec`, réduction en `{key,min,max,avg,p95}` puis `POST /api/v1/ingest` (`Bearer`, attend 202). Aucun port entrant.
 - Échec : retry exponentiel (1 s → 30 s, 4 essais) ; lots gardés en mémoire (≤ 10 Mo / 120 lots, les plus anciens abandonnés). 401 : log + nouvel essai toutes les 5 min. 4xx (autres) : lot abandonné.
 

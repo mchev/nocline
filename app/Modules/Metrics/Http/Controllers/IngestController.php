@@ -3,6 +3,7 @@
 namespace App\Modules\Metrics\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Hosts\Services\AgentUpdateOffer;
 use App\Modules\Hosts\Services\HostMetadataApplier;
 use App\Modules\Metrics\Http\Requests\IngestRequest;
 use App\Modules\Metrics\Services\MetricIngestor;
@@ -11,8 +12,12 @@ use Illuminate\Http\JsonResponse;
 
 class IngestController extends Controller
 {
-    public function __invoke(IngestRequest $request, MetricIngestor $ingestor, HostMetadataApplier $metadata): JsonResponse
-    {
+    public function __invoke(
+        IngestRequest $request,
+        MetricIngestor $ingestor,
+        HostMetadataApplier $metadata,
+        AgentUpdateOffer $agentUpdate,
+    ): JsonResponse {
         $host = $request->attributes->get('host');
         $data = $request->validated();
 
@@ -29,6 +34,13 @@ class IngestController extends Controller
 
         OpsBroadcast::ping();
 
-        return response()->json(['accepted' => count($data['metrics'])], 202);
+        $payload = ['accepted' => count($data['metrics'])];
+
+        $offer = $agentUpdate->forAgent($data['agent_version'] ?? null);
+        if ($offer !== null) {
+            $payload['agent_update'] = $offer;
+        }
+
+        return response()->json($payload, 202);
     }
 }

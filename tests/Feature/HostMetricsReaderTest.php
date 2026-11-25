@@ -60,3 +60,39 @@ it('accepts demo metric key aliases', function () {
 
     expect($series[$host->id]['cpu_now'])->toBe(33.0);
 });
+
+it('merges latest disk byte rollups into forHosts', function () {
+    $host = Host::factory()->enrolled()->create();
+    $start = now()->startOfMinute();
+
+    MetricRollup::create([
+        'host_id' => $host->id,
+        'metric_key' => 'disk.used_pct',
+        'bucket_size' => MetricRollup::BUCKET_1M,
+        'bucket_start' => $start,
+        'avg' => 2,
+        'sample_count' => 1,
+    ]);
+    MetricRollup::create([
+        'host_id' => $host->id,
+        'metric_key' => 'disk.used_bytes',
+        'bucket_size' => MetricRollup::BUCKET_1M,
+        'bucket_start' => $start,
+        'avg' => 5.2 * 1024 ** 3,
+        'sample_count' => 1,
+    ]);
+    MetricRollup::create([
+        'host_id' => $host->id,
+        'metric_key' => 'disk.total_bytes',
+        'bucket_size' => MetricRollup::BUCKET_1M,
+        'bucket_start' => $start,
+        'avg' => 250 * 1024 ** 3,
+        'sample_count' => 1,
+    ]);
+
+    $series = app(HostMetricsReader::class)->forHosts([$host], 1);
+
+    expect($series[$host->id]['disk_now'])->toBe(2.0)
+        ->and($series[$host->id]['disk_used_bytes'])->toEqual(5.2 * 1024 ** 3)
+        ->and($series[$host->id]['disk_total_bytes'])->toEqual(250.0 * 1024 ** 3);
+});

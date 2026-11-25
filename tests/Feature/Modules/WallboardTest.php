@@ -85,6 +85,8 @@ it('aggregates summary, incidents, sites and host metrics', function () {
     foreach (['cpu.usage_pct' => 20, 'mem.used_pct' => 50, 'disk.used_pct' => 70] as $key => $v) {
         MetricRollup::create(['host_id' => $host->id, 'metric_key' => $key, 'bucket_size' => 60, 'bucket_start' => now()->startOfMinute(), 'avg' => $v]);
     }
+    MetricRollup::create(['host_id' => $host->id, 'metric_key' => 'disk.used_bytes', 'bucket_size' => 60, 'bucket_start' => now()->startOfMinute(), 'avg' => 5.2 * 1024 ** 3]);
+    MetricRollup::create(['host_id' => $host->id, 'metric_key' => 'disk.total_bytes', 'bucket_size' => 60, 'bucket_start' => now()->startOfMinute(), 'avg' => 250 * 1024 ** 3]);
 
     $json = $this->getJson(route('api.wallboard', $token))->assertOk()->json();
 
@@ -95,7 +97,13 @@ it('aggregates summary, incidents, sites and host metrics', function () {
         ->and($json)->not->toHaveKey('checks_failing')
         ->and($json['active_incidents'])->toHaveCount(1)
         ->and($json['hosts'][0]['online'])->toBeTrue()
-        ->and($json['hosts'][0]['metrics'])->toMatchArray(['cpu_now' => 20.0, 'mem_now' => 50.0, 'disk_now' => 70.0])
+        ->and($json['hosts'][0]['metrics'])->toMatchArray([
+            'cpu_now' => 20.0,
+            'mem_now' => 50.0,
+            'disk_now' => 70.0,
+            'disk_used_bytes' => 5.2 * 1024 ** 3,
+            'disk_total_bytes' => 250 * 1024 ** 3,
+        ])
         ->and(collect($json['sites'])->pluck('name'))->toContain('Shop')
         ->and(collect($json['sites'])->firstWhere('name', 'Shop')['latency_ms'])->toBe(120);
 });

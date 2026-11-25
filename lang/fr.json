@@ -700,6 +700,7 @@
     ":name had a problem": ":name a eu un problème",
     "ongoing": "en cours",
     "Last updated :date": "Dernière mise à jour : :date",
+    "Local time": "Heure locale",
     "We could not check this address from here. You can still add it: we will keep trying.": "Nous n'avons pas pu vérifier cette adresse d'ici. Vous pouvez quand même l'ajouter : nous continuerons d'essayer.",
     "We could reach your site. It looks like a Laravel site.": "Nous avons pu joindre votre site. Il semble s'agir d'un site Laravel.",
     "We could reach your site. It looks like a WordPress site.": "Nous avons pu joindre votre site. Il semble s'agir d'un site WordPress.",

@@ -12,8 +12,14 @@ _Révoquer_ invalide le jeton permanent (l'agent reçoit 401). Aucun port entran
 
 ## Mettre à jour l'agent
 
-Sur un serveur **déjà enrôlé**, utilisez la commande du badge _mise à jour disponible_ (ou `curl -fsSL https://votre-hub/install/agent-update.sh | sudo sh`) : téléchargement du binaire + `systemctl restart`. **Ne relancez pas** la ligne d'installation complète sur un serveur en prod : elle ré-enrôle, invalide l'ancien jeton pendant que l'ancien processus tourne encore → 401 et host « hors ligne » jusqu'à un restart manuel.
+### Mise à jour automatique (recommandée)
+
+Quand `auto_update: true` dans `/etc/phare-agent/config.yaml` (activé à l'enrôlement et par `agent-update.sh`), l'agent récupère une indication dans la réponse `POST /api/v1/ingest` : version cible, URL GitHub officielle et **SHA256**. Il ne télécharge et ne remplace le binaire que si le hash correspond, garde une copie `.prev`, puis `systemctl restart phare-agent`. Au plus une tentative toutes les 6 h. Coup de frein côté hub : `PHARE_AGENT_AUTO_UPDATE=false`.
+
+### Mise à jour manuelle
+
+Sur un serveur **déjà enrôlé**, utilisez la commande du badge _mise à jour disponible_ (ou `curl -fsSL https://votre-hub/install/agent-update.sh | sudo sh`) : téléchargement du binaire + `systemctl restart` + `auto_update: true` si absent. **Ne relancez pas** la ligne d'installation complète sur un serveur en prod : elle ré-enrôle, invalide l'ancien jeton pendant que l'ancien processus tourne encore → 401 et host « hors ligne » jusqu'à un restart manuel.
 
 ## Métriques
 
-Toutes les 30 s l'agent envoie des agrégats réduits (min/max/moyenne/p95) de `cpu.usage_pct`, `mem.used_bytes`, `mem.used_pct`, `disk.used_pct`, `load.1m`. Le hub ne conserve que des rollups : 1 min pendant 7 jours, 5 min pendant 90 jours, 1 h pendant 2 ans. Compilation de l'agent : voir `agent/README.md`.
+Toutes les 30 s l'agent envoie des agrégats réduits (min/max/moyenne/p95) de `cpu.usage_pct`, `mem.used_bytes`, `mem.used_pct`, `disk.used_pct`, `disk.used_bytes`, `disk.total_bytes`, `load.1m`. Le hub ne conserve que des rollups : 1 min pendant 7 jours, 5 min pendant 90 jours, 1 h pendant 2 ans. Compilation de l'agent : voir `agent/README.md`.

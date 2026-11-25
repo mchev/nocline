@@ -16,6 +16,7 @@ import (
 
 	"github.com/phare/phare/agent/internal/collect"
 	"github.com/phare/phare/agent/internal/meta"
+	"github.com/phare/phare/agent/internal/update"
 )
 
 const (
@@ -63,38 +64,38 @@ func Sanitize(ms []collect.Metric) []collect.Metric {
 	return out
 }
 
-// Push envoie un lot ; attend 202.
-func (c *Client) Push(ctx context.Context, b Batch) error {
+// Push envoie un lot ; attend 202 et interprète agent_update si présent.
+func (c *Client) Push(ctx context.Context, b Batch) (*update.Offer, error) {
 	hc := c.HTTP
 	if hc == nil {
 		hc = &http.Client{Timeout: 15 * time.Second}
 	}
 	body, err := json.Marshal(b)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(c.HubURL, "/")+"/api/v1/ingest", bytes.NewReader(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.Token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	resp, err := hc.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
-	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<16))
+	respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<16))
 	switch {
 	case resp.StatusCode == http.StatusAccepted:
-		return nil
+		return update.ParseOfferJSON(respBody), nil
 	case resp.StatusCode == http.StatusUnauthorized:
-		return ErrUnauthorized
+		return nil, ErrUnauthorized
 	case resp.StatusCode >= 400 && resp.StatusCode < 500 && resp.StatusCode != 408 && resp.StatusCode != 429:
-		return permanentError{resp.StatusCode}
+		return nil, permanentError{resp.StatusCode}
 	default:
-		return fmt.Errorf("transport: statut inattendu %d", resp.StatusCode)
+		return nil, fmt.Errorf("transport: statut inattendu %d", resp.StatusCode)
 	}
 }
 
@@ -106,6 +107,7 @@ type queued struct {
 // Sender met en file les lots et les envoie dans l'ordre, avec backoff exponentiel.
 type Sender struct {
 	Client      *Client
+	OnAccepted  func(ctx context.Context, offer *update.Offer)
 	Logf        func(format string, args ...any)
 	Sleep       func(ctx context.Context, d time.Duration) // injectable pour les tests
 	Attempts    int                                        // tentatives par lot et par appel (défaut 4)
@@ -219,9 +221,13 @@ func (s *Sender) Send(ctx context.Context, b Batch) error {
 		}
 		delay := base
 		for i := 0; ; i++ {
-			err := s.Client.Push(ctx, item.batch)
+			offer, err := s.Client.Push(ctx, item.batch)
 			if err == nil {
 				s.pop()
+				if s.OnAccepted != nil && offer != nil {
+					offerCopy := offer
+					go s.OnAccepted(context.WithoutCancel(ctx), offerCopy)
+				}
 				break
 			}
 			var perm permanentError

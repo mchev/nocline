@@ -6,7 +6,7 @@ export type MetricSparklineTone =
     | 'danger'
     | 'primary';
 
-/** Sparkline color from current usage (CPU/RAM high = bad; disk *free* high = good). */
+/** Sparkline color from current usage (high = bad; disk free% uses invert). */
 export function hostMetricTone(
     v: number | null,
     invert = false,
