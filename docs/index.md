@@ -1,5 +1,16 @@
 # Documentation Phare
 
+## Aperçu
+
+Captures UI (jeu démo : `php artisan phare:demo:seed` puis `phare:demo:simulate`). Fichiers dans [`media/screenshots/`](media/screenshots/).
+
+| | |
+| --- | --- |
+| **Console** | ![Tableau de bord](media/screenshots/02-dashboard.png) |
+| **Monitors** | [Liste groupée](media/screenshots/03-monitors.png) · [Assistant](media/screenshots/04-add-monitor-wizard.png) · [Site web](media/screenshots/05-website-form.png) |
+| **Serveurs & ops** | [Agents](media/screenshots/06-servers.png) · [Incidents](media/screenshots/08-incidents.png) · [Wallboard NOC](media/screenshots/07-wallboard.png) |
+| **Setup** | [Assistant d’installation](media/screenshots/01-setup-welcome.png) |
+
 ## Produit
 
 - **Guideline (git, source de vérité)** : [guideline/SKILL.md](guideline/SKILL.md)

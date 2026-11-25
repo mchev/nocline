@@ -157,10 +157,11 @@ alert_deliveries
 
 Réponse agrégée (une requête) :
 
-- `summary` : counts up/down/warn
+- `summary` : `down`, `maintenance` (bandeau ATTENTION / agrégats légers)
+- `hub_revision` : rechargement auto du HTML kiosk si changement de déploiement
 - `active_incidents[]`
-- `hosts[]` : status, cpu_avg_5m, mem_pct, disk_pct_warn
-- `checks_failing[]` : name, since, latency
+- `sites[]` : pastille, historique court, latence (sites web)
+- `hosts[]` : online, cpu_avg_5m, mem_pct, disk_pct
 
 Cache Redis TTL 10 s ; stale si &gt; 90 s sans refresh réussi.
 

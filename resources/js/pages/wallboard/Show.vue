@@ -10,14 +10,9 @@ import { t } from '@/lib/i18n';
 
 type Payload = {
     name: string;
-    generated_at: string;
     summary: {
-        up: number;
         down: number;
-        unknown: number;
         maintenance: number;
-        hosts_online: number;
-        hosts_total: number;
     };
     active_incidents: {
         id: number;
@@ -33,19 +28,16 @@ type Payload = {
         mem_pct: number | null;
         disk_pct: number | null;
     }[];
-    checks_failing: {
-        id: number;
-        name: string;
-        since: string | null;
-        latency_ms: number | null;
-        error: string | null;
-    }[];
     sites?: WallboardSite[];
 };
 
 const WALLBOARD_SITE_CAP = 24;
 
-const props = defineProps<{ token: string; name: string }>();
+const props = defineProps<{
+    token: string;
+    name: string;
+    hubRevision: string;
+}>();
 
 const STALE_AFTER_MS = 90_000;
 const REFRESH_MS = 15_000;
@@ -64,7 +56,13 @@ async function refresh() {
         if (!res.ok) {
             throw new Error(String(res.status));
         }
-        data.value = await res.json();
+        const json = (await res.json()) as Payload & { hub_revision?: string };
+        if (json.hub_revision && json.hub_revision !== props.hubRevision) {
+            window.location.reload();
+
+            return;
+        }
+        data.value = json;
         lastSuccess.value = Date.now();
     } catch {
         // keep the last data; the stale banner takes over
@@ -100,11 +98,40 @@ const level = (v: number | null, warn: number, crit: number) =>
           : v >= warn
             ? 'text-warning'
             : 'text-success';
-const visibleSites = computed(() =>
-    (data.value?.sites ?? []).slice(0, WALLBOARD_SITE_CAP),
+const siteRank = (s: WallboardSite) => {
+    if (s.enabled && !s.in_maintenance && s.status === 'down') {
+        return 0;
+    }
+    if (s.in_maintenance) {
+        return 2;
+    }
+    if (s.status === 'unknown') {
+        return 1;
+    }
+
+    return 3;
+};
+
+const sortedSites = computed(() =>
+    [...(data.value?.sites ?? [])]
+        .sort(
+            (a, b) =>
+                siteRank(a) - siteRank(b) ||
+                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+        )
+        .slice(0, WALLBOARD_SITE_CAP),
 );
+
 const hiddenSiteCount = computed(() =>
-    Math.max(0, (data.value?.sites?.length ?? 0) - visibleSites.value.length),
+    Math.max(0, (data.value?.sites?.length ?? 0) - sortedSites.value.length),
+);
+
+const sortedHosts = computed(() =>
+    [...(data.value?.hosts ?? [])].sort(
+        (a, b) =>
+            Number(a.online) - Number(b.online) ||
+            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    ),
 );
 
 const since = (iso: string | null) => {
@@ -120,13 +147,13 @@ const since = (iso: string | null) => {
     <Head :title="`${$t('Wallboard')} - ${name}`" />
 
     <main
-        class="dark relative min-h-svh overflow-hidden bg-background p-6 text-foreground lg:p-10"
+        class="dark relative flex h-dvh max-h-dvh w-full flex-col overflow-hidden bg-background p-4 text-foreground lg:p-6"
     >
         <div
             class="pointer-events-none absolute inset-0 opacity-80 aurora"
             aria-hidden="true"
         />
-        <div class="relative flex flex-col gap-8">
+        <div class="relative flex min-h-0 flex-1 flex-col gap-3">
             <div
                 v-if="stale"
                 class="rounded-md bg-warning px-6 py-3 text-2xl font-semibold text-black"
@@ -142,14 +169,16 @@ const since = (iso: string | null) => {
                 }}
             </div>
 
-            <header class="flex flex-wrap items-center justify-between gap-4">
+            <header
+                class="flex shrink-0 flex-wrap items-center justify-between gap-3"
+            >
                 <h1
-                    class="font-display text-4xl font-semibold tracking-tight text-balance lg:text-5xl"
+                    class="truncate font-display text-3xl font-semibold tracking-tight lg:text-4xl"
                 >
                     {{ name }}
                 </h1>
                 <div
-                    class="flex items-center gap-4 rounded-md px-8 py-3 text-3xl font-bold lg:text-4xl"
+                    class="flex shrink-0 items-center gap-3 rounded-md px-5 py-2 text-2xl font-bold lg:text-3xl"
                     :class="
                         data === null
                             ? 'bg-muted text-muted-foreground'
@@ -174,172 +203,122 @@ const since = (iso: string | null) => {
             </header>
 
             <template v-if="data">
-                <section
-                    class="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6"
-                    :aria-label="$t('Summary')"
-                >
-                    <div class="surface p-6 text-center lg:p-8">
-                        <div
-                            class="numeric text-7xl font-bold text-success lg:text-8xl"
-                        >
-                            {{ data.summary.up }}
-                        </div>
-                        <div class="mt-2 text-2xl text-muted-foreground">
-                            {{ $t('checks OK') }}
-                        </div>
-                    </div>
-                    <div
-                        class="surface p-6 text-center lg:p-8"
-                        :class="data.summary.down ? 'border-danger' : ''"
-                    >
-                        <div
-                            class="numeric text-7xl font-bold lg:text-8xl"
-                            :class="
-                                data.summary.down
-                                    ? 'text-danger'
-                                    : 'text-muted-foreground/50'
-                            "
-                        >
-                            {{ data.summary.down }}
-                        </div>
-                        <div class="mt-2 text-2xl text-muted-foreground">
-                            {{ $t('down') }}
-                        </div>
-                    </div>
-                    <div class="surface p-6 text-center lg:p-8">
-                        <div
-                            class="numeric text-7xl font-bold text-foreground/80 lg:text-8xl"
-                        >
-                            {{ data.summary.unknown }}
-                        </div>
-                        <div class="mt-2 text-2xl text-muted-foreground">
-                            {{ $t('unknown') }}
-                        </div>
-                        <div
-                            v-if="data.summary.maintenance"
-                            class="mt-1 text-xl text-info"
-                        >
-                            {{ data.summary.maintenance }}
-                            {{ $t('in maintenance') }}
-                        </div>
-                    </div>
-                    <div class="surface p-6 text-center lg:p-8">
-                        <div
-                            class="numeric text-7xl font-bold text-highlight lg:text-8xl"
-                        >
-                            {{ data.summary.hosts_online }}/{{
-                                data.summary.hosts_total
-                            }}
-                        </div>
-                        <div class="mt-2 text-2xl text-muted-foreground">
-                            {{ $t('hosts online') }}
-                        </div>
-                    </div>
-                </section>
-
-                <section
+                <div
                     v-if="data.active_incidents.length"
-                    class="rounded-md border border-danger bg-danger/15 p-6"
+                    class="shrink-0 truncate rounded-md border border-danger bg-danger/15 px-4 py-2 text-lg font-semibold lg:text-xl"
+                    role="alert"
                 >
-                    <h2 class="mb-3 font-display text-3xl font-semibold">
-                        {{ $t('Unresolved incidents') }}
-                    </h2>
-                    <ul class="space-y-2 text-2xl">
-                        <li v-for="i in data.active_incidents" :key="i.id">
-                            {{ i.title }} — {{ since(i.since) }}
-                            <span
-                                v-if="i.acknowledged"
-                                class="text-muted-foreground"
-                            >
-                                ({{ $t('ack') }})
-                            </span>
-                        </li>
-                    </ul>
-                </section>
+                    <span
+                        v-for="(i, idx) in data.active_incidents"
+                        :key="i.id"
+                    >
+                        <template v-if="idx"> · </template>
+                        {{ i.title }} — {{ since(i.since) }}
+                        <span v-if="i.acknowledged" class="text-muted-foreground">
+                            ({{ $t('ack') }})
+                        </span>
+                    </span>
+                </div>
 
-                <section v-if="visibleSites.length" class="space-y-3">
-                    <div class="flex flex-wrap items-end justify-between gap-2">
-                        <h2
-                            class="flex items-center gap-2 font-display text-3xl font-semibold"
-                        >
-                            <Globe
-                                class="size-8 text-primary"
-                                aria-hidden="true"
-                            />
-                            {{ $t('Websites') }}
-                        </h2>
-                        <p class="text-lg text-muted-foreground">
-                            {{
-                                t('Last :minutes minutes', {
-                                    minutes: MONITOR_HISTORY_MINUTES,
-                                })
-                            }}
-                            <span v-if="hiddenSiteCount" class="ml-2"
-                                >+{{ hiddenSiteCount }}</span
-                            >
-                        </p>
-                    </div>
-                    <ul class="space-y-2" role="list">
-                        <WallboardSiteRow
-                            v-for="site in visibleSites"
-                            :key="site.id"
-                            :site="site"
-                        />
-                    </ul>
-                </section>
-
-                <section v-if="data.checks_failing.length">
-                    <h2 class="mb-3 font-display text-3xl font-semibold">
-                        {{ $t('Ongoing failures') }}
-                    </h2>
-                    <ul class="space-y-2 text-2xl">
-                        <li
-                            v-for="c in data.checks_failing"
-                            :key="c.id"
-                            class="flex flex-wrap justify-between gap-2 surface px-6 py-3"
-                        >
-                            <span class="font-medium text-danger">{{
-                                c.name
-                            }}</span>
-                            <span class="text-muted-foreground">
-                                {{ c.error }} · {{ since(c.since) }}
-                            </span>
-                        </li>
-                    </ul>
-                </section>
-
-                <section v-if="data.hosts.length">
-                    <h2 class="mb-3 font-display text-3xl font-semibold">
-                        {{ $t('Servers') }}
-                    </h2>
-                    <div
-                        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                <div
+                    class="grid min-h-0 flex-1 gap-3"
+                    :class="
+                        sortedSites.length && sortedHosts.length
+                            ? 'lg:grid-cols-2'
+                            : 'grid-cols-1'
+                    "
+                >
+                    <section
+                        v-if="sortedSites.length"
+                        class="flex min-h-0 min-w-0 flex-col overflow-hidden surface"
                     >
                         <div
-                            v-for="h in data.hosts"
-                            :key="h.id"
-                            class="surface p-5"
-                            :class="h.online ? '' : 'border-danger opacity-60'"
+                            class="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2"
                         >
-                            <div class="truncate text-2xl font-semibold">
-                                {{ h.name }}
-                            </div>
-                            <div
-                                class="mt-2 grid grid-cols-3 gap-2 numeric text-xl font-semibold"
+                            <h2
+                                class="flex items-center gap-2 font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase"
                             >
-                                <span :class="level(h.cpu_avg_5m, 70, 90)">
-                                    CPU {{ h.cpu_avg_5m ?? '–' }}%
-                                </span>
-                                <span :class="level(h.mem_pct, 80, 92)">
-                                    RAM {{ h.mem_pct ?? '–' }}%
-                                </span>
-                                <span :class="level(h.disk_pct, 80, 92)">
-                                    DSK {{ h.disk_pct ?? '–' }}%
-                                </span>
-                            </div>
+                                <Globe
+                                    class="size-4 text-primary"
+                                    aria-hidden="true"
+                                />
+                                {{ $t('Websites') }}
+                            </h2>
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    t('Last :minutes minutes', {
+                                        minutes: MONITOR_HISTORY_MINUTES,
+                                    })
+                                }}
+                                <span v-if="hiddenSiteCount" class="ml-1"
+                                    >+{{ hiddenSiteCount }}</span
+                                >
+                            </p>
                         </div>
-                    </div>
-                </section>
+                        <ul
+                            class="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden p-1"
+                            role="list"
+                        >
+                            <WallboardSiteRow
+                                v-for="site in sortedSites"
+                                :key="site.id"
+                                :site="site"
+                            />
+                        </ul>
+                    </section>
+
+                    <section
+                        v-if="sortedHosts.length"
+                        class="flex min-h-0 min-w-0 flex-col overflow-hidden surface"
+                    >
+                        <h2
+                            class="shrink-0 border-b border-border px-3 py-2 font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+                        >
+                            {{ $t('Servers') }}
+                        </h2>
+                        <ul
+                            class="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden p-1"
+                            role="list"
+                        >
+                            <li
+                                v-for="h in sortedHosts"
+                                :key="h.id"
+                                class="flex items-center gap-2 rounded-md border border-border px-3 py-2"
+                                :class="
+                                    h.online
+                                        ? 'bg-card'
+                                        : 'border-danger bg-danger/10'
+                                "
+                            >
+                                <span
+                                    class="size-2.5 shrink-0 rounded-full"
+                                    :class="
+                                        h.online ? 'bg-success' : 'bg-danger'
+                                    "
+                                    aria-hidden="true"
+                                />
+                                <span
+                                    class="min-w-0 flex-1 truncate text-lg font-semibold"
+                                >
+                                    {{ h.name }}
+                                </span>
+                                <span
+                                    class="numeric flex shrink-0 gap-2 text-sm font-semibold"
+                                >
+                                    <span :class="level(h.cpu_avg_5m, 70, 90)">
+                                        CPU {{ h.cpu_avg_5m ?? '–' }}%
+                                    </span>
+                                    <span :class="level(h.mem_pct, 80, 92)">
+                                        RAM {{ h.mem_pct ?? '–' }}%
+                                    </span>
+                                    <span :class="level(h.disk_pct, 80, 92)">
+                                        DSK {{ h.disk_pct ?? '–' }}%
+                                    </span>
+                                </span>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
             </template>
         </div>
     </main>

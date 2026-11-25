@@ -208,7 +208,7 @@ it('does not list checks in maintenance as failing on the wallboard', function (
     $this->getJson(route('api.wallboard', $token))
         ->assertJsonPath('summary.down', 0)
         ->assertJsonPath('summary.maintenance', 1)
-        ->assertJsonCount(0, 'checks_failing');
+        ->assertJsonMissingPath('checks_failing');
 });
 
 it('lets tech and admin manage windows and validates them', function () {

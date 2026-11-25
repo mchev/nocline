@@ -79,14 +79,9 @@ class WallboardAggregator
 
         return [
             'name' => $wallboard->name,
-            'generated_at' => now()->toIso8601String(),
             'summary' => [
-                'up' => $checks->filter(fn ($c) => $status($c) === CheckStatus::Up)->count(),
                 'down' => $failing->count(),
                 'maintenance' => $underMaintenance->count(),
-                'unknown' => $checks->filter(fn ($c) => $status($c) === CheckStatus::Unknown)->count(),
-                'hosts_online' => $hosts->filter->isOnline()->count(),
-                'hosts_total' => $hosts->count(),
             ],
             'active_incidents' => Incident::query()->open()->whereIn('check_id', $checkIds)
                 ->with('check:id,name')->latest('started_at')->limit(20)->get()
@@ -104,15 +99,6 @@ class WallboardAggregator
                 'mem_pct' => $metrics[$h->id]['mem.used_pct'] ?? null,
                 'disk_pct' => $metrics[$h->id]['disk.used_pct'] ?? null,
             ])->all(),
-            'checks_failing' => $failing
-                ->sortBy(fn ($c) => $c->state->since_at)->take(30)
-                ->map(fn (Check $c) => [
-                    'id' => $c->id,
-                    'name' => $c->name,
-                    'since' => $c->state->since_at?->toIso8601String(),
-                    'latency_ms' => $c->state->last_latency_ms,
-                    'error' => $c->state->last_error,
-                ])->values()->all(),
             'sites' => $this->websiteRows->rows($sites),
         ];
     }

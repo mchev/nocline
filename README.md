@@ -19,6 +19,20 @@
   · <a href="https://github.com/sponsors/mchev">Sponsor</a>
 </p>
 
+<p align="center">
+  <a href="docs/media/screenshots/02-dashboard.png">
+    <img
+      src="docs/media/screenshots/02-dashboard.png"
+      alt="Phare dashboard — uptime, heartbeats, servers, and renewals in one console"
+      width="720"
+    />
+  </a>
+</p>
+
+<p align="center">
+  <sub>Demo dataset · <a href="docs/index.md#aperçu">more screenshots</a></sub>
+</p>
+
 ---
 
 ## Quick start

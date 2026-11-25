@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Wallboard\Models\Wallboard;
 use App\Modules\Wallboard\Services\WallboardAggregator;
+use App\Modules\Wallboard\Support\HubRevision;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,6 +71,7 @@ class WallboardController extends Controller
         return Inertia::render('wallboard/Show', [
             'token' => $token,
             'name' => $wallboard->name,
+            'hubRevision' => app(HubRevision::class)->current(),
         ]);
     }
 
@@ -84,6 +86,7 @@ class WallboardController extends Controller
             'token' => $token,
             'name' => $wallboard->name,
             'apiUrl' => route('api.wallboard', $token),
+            'hubRevision' => app(HubRevision::class)->current(),
         ]);
     }
 
@@ -91,7 +94,9 @@ class WallboardController extends Controller
     {
         $wallboard = Wallboard::findByToken($token) ?? abort(404);
 
-        return response()->json($aggregator->payload($wallboard))
-            ->header('Cache-Control', 'no-store');
+        return response()->json([
+            ...$aggregator->payload($wallboard),
+            'hub_revision' => app(HubRevision::class)->current(),
+        ])->header('Cache-Control', 'no-store');
     }
 }

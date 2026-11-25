@@ -7,6 +7,14 @@ return [
     | PHARE_UPDATE_CHECK=false to never contact GitHub.
     */
     'version' => trim((string) @file_get_contents(base_path('VERSION'))) ?: '0.0.0',
+
+    /*
+    | Optional override for wallboard auto-reload (kiosk). When set, public JSON exposes this
+    | as hub_revision and clients reload when it changes. Useful if deploy bumps assets without
+    | touching VERSION or manifest.json on the server yet.
+    */
+    'deploy_revision' => env('PHARE_DEPLOY_REVISION'),
+
     'repository' => env('PHARE_REPOSITORY', 'mchev/phare'),
 
     /*

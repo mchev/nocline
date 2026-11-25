@@ -9,6 +9,7 @@ use App\Modules\Hosts\Models\Host;
 use App\Modules\Metrics\Models\MetricRollup;
 use App\Modules\Wallboard\Models\Wallboard;
 use App\Modules\Wallboard\Services\WallboardAggregator;
+use App\Modules\Wallboard\Support\HubRevision;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -63,14 +64,17 @@ it('serves the kiosk page without authentication', function () {
 it('serves a legacy-compatible wallboard without inertia', function () {
     ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC TV']);
 
+    $revision = app(HubRevision::class)->current();
+
     $this->get(route('wallboard.compat', $token))
         ->assertOk()
         ->assertSee('NOC TV', false)
         ->assertSee($token, false)
-        ->assertSee('notranslate', false);
+        ->assertSee('notranslate', false)
+        ->assertSee($revision, false);
 });
 
-it('aggregates summary, incidents, failing checks and host metrics', function () {
+it('aggregates summary, incidents, sites and host metrics', function () {
     ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC']);
     $up = Check::factory()->create();
     $site = Check::factory()->create(['category' => CheckCategory::Website, 'name' => 'Shop']);
@@ -87,9 +91,12 @@ it('aggregates summary, incidents, failing checks and host metrics', function ()
 
     $json = $this->getJson(route('api.wallboard', $token))->assertOk()->json();
 
-    expect($json['summary'])->toMatchArray(['up' => 2, 'down' => 1, 'unknown' => 0, 'hosts_online' => 1, 'hosts_total' => 1])
+    expect($json)->toHaveKey('hub_revision')
+        ->and($json['hub_revision'])->toBe(app(HubRevision::class)->current());
+
+    expect($json['summary'])->toMatchArray(['down' => 1, 'maintenance' => 0])
+        ->and($json)->not->toHaveKey('checks_failing')
         ->and($json['active_incidents'])->toHaveCount(1)
-        ->and($json['checks_failing'][0]['error'])->toBe('HTTP 503')
         ->and($json['hosts'][0])->toMatchArray(['cpu_avg_5m' => 20.0, 'mem_pct' => 50.0, 'disk_pct' => 70.0, 'online' => true])
         ->and(collect($json['sites'])->pluck('name'))->toContain('Shop')
         ->and(collect($json['sites'])->firstWhere('name', 'Shop')['latency_ms'])->toBe(120);
@@ -103,7 +110,9 @@ it('filters by group, including sub-groups', function () {
     Check::factory()->create(['group_id' => $sub->id]);
     Check::factory()->create();
 
-    expect($this->getJson(route('api.wallboard', $token))->json('summary.unknown'))->toBe(2);
+    $json = $this->getJson(route('api.wallboard', $token))->assertOk()->json();
+
+    expect(collect($json['sites'] ?? []))->toHaveCount(2);
 });
 
 it('caches the wallboard payload between aggregator calls', function () {
