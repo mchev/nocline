@@ -223,13 +223,13 @@ Quand tu codes ce produit :
 
 Site public : **VitePress** dans `docs/` → GitHub Pages (`npm run docs:dev` / `docs:build`, config `docs/.vitepress/config.ts`).
 
-| Changement | Mettre à jour |
-|------------|----------------|
-| Feature visible dans l'UI | `docs/user/` (FR, où cliquer, rôles, limites) |
-| Install / déploiement / env | `docs/deploy/`, `docs/user/installation.md`, README racine si parcours change |
-| API ou intégrations | `docs/api.md`, OpenAPI si besoin |
-| Comportement agent / sonde | `docs/user/hosts-agent.md`, `docs/user/sondes-wallboard.md`, `agent/README.md` |
-| Nouvelle page doc ou section | Entrée dans `docs/.vitepress/config.ts` (sidebar) |
+| Changement                   | Mettre à jour                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| Feature visible dans l'UI    | `docs/user/` (FR, où cliquer, rôles, limites)                                  |
+| Install / déploiement / env  | `docs/deploy/`, `docs/user/installation.md`, README racine si parcours change  |
+| API ou intégrations          | `docs/api.md`, OpenAPI si besoin                                               |
+| Comportement agent / sonde   | `docs/user/hosts-agent.md`, `docs/user/sondes-wallboard.md`, `agent/README.md` |
+| Nouvelle page doc ou section | Entrée dans `docs/.vitepress/config.ts` (sidebar)                              |
 
 Une PR qui modifie le produit **sans** doc à jour est incomplète. Vérifier `npm run docs:build` si la structure ou les liens changent.
 

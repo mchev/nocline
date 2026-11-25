@@ -26,6 +26,10 @@ export type CheckSettings = {
     execution: string;
     quorum: string;
     enabled: boolean;
+    config?: {
+        latency_alert_ms?: number | null;
+        latency_sustain?: number | null;
+    };
 };
 
 const props = defineProps<{
@@ -58,6 +62,12 @@ const form = useForm({
     execution: props.check.execution,
     quorum: props.check.quorum,
     enabled: props.check.enabled,
+    config: {
+        latency_alert_ms:
+            props.check.config?.latency_alert_ms ?? ('' as number | ''),
+        latency_sustain:
+            props.check.config?.latency_sustain ?? ('' as number | ''),
+    },
 });
 
 watch(
@@ -77,6 +87,10 @@ watch(
             execution: c.execution,
             quorum: c.quorum,
             enabled: c.enabled,
+            config: {
+                latency_alert_ms: c.config?.latency_alert_ms ?? '',
+                latency_sustain: c.config?.latency_sustain ?? '',
+            },
         }).reset();
         tagsInput.value = c.tags.join(', ');
     },
@@ -110,6 +124,18 @@ function save() {
         group_id: d.group_id === '' ? null : d.group_id,
         host_id:
             d.type === 'heartbeat' ? null : d.host_id !== '' ? d.host_id : null,
+        config: {
+            latency_alert_ms:
+                d.config.latency_alert_ms === '' ||
+                d.config.latency_alert_ms === null
+                    ? null
+                    : Number(d.config.latency_alert_ms),
+            latency_sustain:
+                d.config.latency_sustain === '' ||
+                d.config.latency_sustain === null
+                    ? null
+                    : Number(d.config.latency_sustain),
+        },
     }));
 
     form.patch(CheckController.update.url(props.check.id), {
@@ -200,6 +226,40 @@ function save() {
                 min="1"
             />
         </div>
+        <template v-if="form.type === 'http'">
+            <div class="field-stack sm:col-span-2">
+                <Label for="check-latency-ms">{{
+                    t('Slow response alert (ms)')
+                }}</Label>
+                <Input
+                    id="check-latency-ms"
+                    v-model.number="form.config.latency_alert_ms"
+                    type="number"
+                    min="100"
+                    :placeholder="t('Optional — e.g. 2000')"
+                />
+                <p class="text-xs text-muted-foreground">
+                    {{
+                        t(
+                            'Opens an incident when response time stays above this limit.',
+                        )
+                    }}
+                </p>
+            </div>
+            <div class="field-stack">
+                <Label for="check-latency-sustain">{{
+                    t('Slow streak before alert')
+                }}</Label>
+                <Input
+                    id="check-latency-sustain"
+                    v-model.number="form.config.latency_sustain"
+                    type="number"
+                    min="1"
+                    max="20"
+                    :placeholder="String(form.failure_threshold)"
+                />
+            </div>
+        </template>
         <div class="field-stack">
             <Label for="check-threshold">{{
                 t('Failures before alert')

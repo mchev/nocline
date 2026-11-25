@@ -23,6 +23,7 @@ class IncidentController extends Controller
                 ->paginate(25)
                 ->through(fn (Incident $i) => [
                     'id' => $i->id,
+                    'check_id' => $i->check_id,
                     'title' => $i->title,
                     'check' => $i->check->name,
                     'started_at' => $i->started_at->toIso8601String(),

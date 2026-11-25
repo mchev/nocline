@@ -7,7 +7,7 @@ use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Services\CheckStatusHistory;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
 use App\Modules\Renewals\Models\Renewal;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 /**
  * Dashboard and wallboard rows for website monitors (status, 24 min history, SSL, favicon).
@@ -20,10 +20,10 @@ final class WebsiteMonitorRows
     ) {}
 
     /**
-     * @param  Collection<int, Check>  $sites
+     * @param  EloquentCollection<int, Check>  $sites
      * @return list<array<string, mixed>>
      */
-    public function rows(Collection $sites): array
+    public function rows(EloquentCollection $sites): array
     {
         if ($sites->isEmpty()) {
             return [];
@@ -37,7 +37,8 @@ final class WebsiteMonitorRows
             ->get()
             ->keyBy('check_id');
 
-        return $sites
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $sites
             ->map(function (Check $c) use ($siteMaint, $histories, $sslRenewals) {
                 $ssl = $sslRenewals->get($c->id);
 
@@ -65,6 +66,8 @@ final class WebsiteMonitorRows
             ])
             ->values()
             ->all();
+
+        return $rows;
     }
 
     public static function problemRank(bool $enabled, bool $inMaintenance, string $status): int

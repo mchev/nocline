@@ -13,13 +13,21 @@ use Throwable;
  */
 class AlertDispatcher
 {
-    public function __construct(private AdapterRegistry $adapters) {}
+    public function __construct(
+        private AdapterRegistry $adapters,
+        private NotificationChannelResolver $channels,
+        private SnoozedAlertGate $snooze,
+    ) {}
 
     public function dispatch(Incident $incident, string $kind): void
     {
         $incident->loadMissing('check');
 
-        NotificationChannel::query()->where('enabled', true)->each(function (NotificationChannel $channel) use ($incident, $kind): void {
+        if ($incident->check === null || $this->snooze->isMuted($incident->check)) {
+            return;
+        }
+
+        $this->channels->forCheck($incident->check)->each(function (NotificationChannel $channel) use ($incident, $kind): void {
             $delivery = AlertDelivery::query()->firstOrCreate(
                 ['dedupe_key' => "incident:{$incident->id}:{$kind}:channel:{$channel->id}"],
                 ['incident_id' => $incident->id, 'channel_id' => $channel->id, 'kind' => $kind, 'status' => 'pending'],

@@ -41,13 +41,14 @@ use Illuminate\Support\Str;
  * @property CheckCategory $category
  * @property array<int, string>|null $tags
  * @property bool $enabled
+ * @property CarbonInterface|null $alerts_snoozed_until
  * @property CheckExecution $execution
  * @property string|null $heartbeat_token
  * @property string $quorum any|majority|all
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
  */
-#[Fillable(['group_id', 'host_id', 'name', 'type', 'target', 'interval_sec', 'timeout_sec', 'failure_threshold', 'config', 'enabled', 'execution', 'quorum', 'category', 'tags'])]
+#[Fillable(['group_id', 'host_id', 'name', 'type', 'target', 'interval_sec', 'timeout_sec', 'failure_threshold', 'config', 'enabled', 'alerts_snoozed_until', 'execution', 'quorum', 'category', 'tags'])]
 #[Hidden(['heartbeat_token'])]
 #[UseFactory(CheckFactory::class)]
 #[UsePolicy(CheckPolicy::class)]
@@ -95,6 +96,7 @@ class Check extends Model
             'tags' => 'array',
             'config' => 'array',
             'enabled' => 'boolean',
+            'alerts_snoozed_until' => 'datetime',
         ];
     }
 

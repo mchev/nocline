@@ -15,6 +15,8 @@ Route::middleware(['auth', 'verified'])->prefix('checks')->name('checks.')->grou
     Route::post('import/kuma', [CheckController::class, 'importKuma'])->name('import-kuma');
     Route::post('bulk', [CheckController::class, 'bulk'])->name('bulk');
     Route::patch('{check}', [CheckController::class, 'update'])->name('update');
+    Route::post('{check}/snooze', [CheckController::class, 'snooze'])->name('snooze');
+    Route::delete('{check}/snooze', [CheckController::class, 'unsnooze'])->name('unsnooze');
     Route::delete('{check}', [CheckController::class, 'destroy'])->name('destroy');
 });
 

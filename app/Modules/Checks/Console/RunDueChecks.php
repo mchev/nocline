@@ -2,6 +2,7 @@
 
 namespace App\Modules\Checks\Console;
 
+use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Services\CheckExecutor;
 use App\Modules\Checks\Services\CheckResultRecorder;
@@ -18,6 +19,7 @@ class RunDueChecks extends Command
         $count = 0;
 
         Check::query()
+            ->whereNotIn('type', [CheckType::HostResources])
             ->where('enabled', true)
             ->whereHas('state', fn ($q) => $q->where('next_run_at', '<=', now())->orWhereNull('next_run_at'))
             ->with(['host', 'state'])

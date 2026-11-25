@@ -25,4 +25,16 @@ Une panne ouvre un incident (un seul par check tant qu'il dure) ; le retour à l
 
 ## Alertes
 
-Menu **Alertes** (admin) : canaux **e-mail (SMTP)**, **Slack**, **Discord**, **Brevo** (API) et **webhook** JSON générique. Chaque canal a un bouton **Envoyer un test** ; les secrets (clés API, URL de webhook) ne sont jamais ré-affichés (laisser vide à l'édition les conserve). Besoin d'un autre système (WhatsApp, Telegram…) ? Un adapter se crée en un fichier : voir [contributing/notification-adapters.md](../contributing/notification-adapters.md). Chaque canal actif reçoit une notification à l'ouverture et à la résolution, une seule fois par incident (déduplication). Un échec d'envoi n'interrompt pas les autres canaux. La configuration des canaux est chiffrée en base.
+Menu **Alertes** (admin) : canaux **e-mail (SMTP)**, **Slack**, **Discord**, **Brevo** (API) et **webhook** JSON générique.
+
+### Canaux par groupe
+
+Sur **Groupes → modifier un groupe** : cochez les **canaux d’alerte** à utiliser pour les checks de ce groupe. **Aucune case** = comportement historique (tous les canaux actifs). Utile pour envoyer le Slack « client Acme » uniquement aux incidents de ce dossier.
+
+### Snooze
+
+Sur la fiche d’un check ou depuis **Incidents** : **Snooze 4 h** coupe les notifications (incident toujours visible). À l’expiration, si l’incident est encore ouvert et n’avait pas été notifié, l’envoi repart (`phare:alerts:release-snoozes` chaque minute).
+
+### Lenteur HTTP
+
+Sur un check **HTTP** (édition) : **Slow response alert (ms)** — après N mesures lentes consécutives (_Slow streak_, défaut = seuil d’échecs), le check passe **down** avec un incident (« Slow response… ») et les alertes habituelles. Chaque canal a un bouton **Envoyer un test** ; les secrets (clés API, URL de webhook) ne sont jamais ré-affichés (laisser vide à l'édition les conserve). Besoin d'un autre système (WhatsApp, Telegram…) ? Un adapter se crée en un fichier : voir [contributing/notification-adapters.md](../contributing/notification-adapters.md). Chaque canal actif reçoit une notification à l'ouverture et à la résolution, une seule fois par incident (déduplication). Un échec d'envoi n'interrompt pas les autres canaux. La configuration des canaux est chiffrée en base.

@@ -2,14 +2,14 @@
 
 Ce dépôt est **Phare** (plateforme ops self-hosted OSS).
 
-| Priorité          | Ressource                           |
-| ----------------- | ----------------------------------- |
-| Guideline produit | `.cursor/skills/phare/SKILL.md`     |
-| Spec technique    | `.cursor/skills/phare/reference.md` |
+| Priorité          | Ressource                                                                 |
+| ----------------- | ------------------------------------------------------------------------- |
+| Guideline produit | `.cursor/skills/phare/SKILL.md`                                           |
+| Spec technique    | `.cursor/skills/phare/reference.md`                                       |
 | Doc (site)        | [mchev.github.io/phare](https://mchev.github.io/phare/) · sources `docs/` |
-| Roadmap           | `docs/roadmap.md`                   |
-| Agent Go          | `agent/README.md`                   |
-| Modules Laravel   | `app/Modules/README.md`             |
+| Roadmap           | `docs/roadmap.md`                                                         |
+| Agent Go          | `agent/README.md`                                                         |
+| Modules Laravel   | `app/Modules/README.md`                                                   |
 
 Activer la skill **phare** pour tout travail checks, sondes, métriques, incidents, wallboard ou coffre.
 

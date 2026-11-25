@@ -27,6 +27,8 @@ class GroupRequest extends FormRequest
             'layout' => ['sometimes', Rule::enum(GroupLayout::class)],
             'collapsed' => ['sometimes', 'boolean'],
             'position' => ['sometimes', 'integer', 'between:0,100000'],
+            'channel_ids' => ['sometimes', 'array'],
+            'channel_ids.*' => ['integer', 'exists:notification_channels,id'],
         ];
     }
 

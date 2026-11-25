@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hosts\Http\Requests;
 
+use App\Modules\Hosts\Support\HostMetricAlerts;
 use Illuminate\Foundation\Http\FormRequest;
 
 class HostRequest extends FormRequest
@@ -25,6 +26,8 @@ class HostRequest extends FormRequest
             'interval_sec' => ['sometimes', 'integer', 'min:30', 'max:86400'],
             'timeout_sec' => ['sometimes', 'integer', 'min:1', 'max:60'],
             'failure_threshold' => ['sometimes', 'integer', 'min:1', 'max:10'],
+            'agent_auto_update' => ['sometimes', 'boolean'],
+            ...HostMetricAlerts::validationRules(),
         ];
     }
 }

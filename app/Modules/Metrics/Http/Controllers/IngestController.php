@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Hosts\Services\AgentUpdateOffer;
 use App\Modules\Hosts\Services\HostMetadataApplier;
 use App\Modules\Metrics\Http\Requests\IngestRequest;
+use App\Modules\Metrics\Services\HostMetricAlertEvaluator;
 use App\Modules\Metrics\Services\MetricIngestor;
 use App\Support\OpsBroadcast;
 use Illuminate\Http\JsonResponse;
@@ -17,11 +18,13 @@ class IngestController extends Controller
         MetricIngestor $ingestor,
         HostMetadataApplier $metadata,
         AgentUpdateOffer $agentUpdate,
+        HostMetricAlertEvaluator $metricAlerts,
     ): JsonResponse {
         $host = $request->attributes->get('host');
         $data = $request->validated();
 
         $ingestor->ingest($host, $data['metrics']);
+        $metricAlerts->evaluate($host);
 
         if (! empty($data['host_meta']) && is_array($data['host_meta'])) {
             $metadata->apply($host, $data['host_meta']);
@@ -36,7 +39,7 @@ class IngestController extends Controller
 
         $payload = ['accepted' => count($data['metrics'])];
 
-        $offer = $agentUpdate->forAgent($data['agent_version'] ?? null);
+        $offer = $agentUpdate->forHost($host, $data['agent_version'] ?? null);
         if ($offer !== null) {
             $payload['agent_update'] = $offer;
         }

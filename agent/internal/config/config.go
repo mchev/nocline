@@ -33,7 +33,7 @@ type Config struct {
 
 // Parse lit un YAML plat « clé: valeur ». Les clés inconnues, listes et lignes indentées sont ignorées.
 func Parse(data []byte) (Config, error) {
-	c := Config{IntervalSec: DefaultIntervalSec}
+	c := Config{IntervalSec: DefaultIntervalSec, AutoUpdate: true}
 	sc := bufio.NewScanner(strings.NewReader(string(data)))
 	intervalSet, inCaps := false, false
 	for sc.Scan() {

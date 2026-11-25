@@ -6,8 +6,8 @@
 
 ## Contribuer à la doc
 
-1. Contenu : fichiers Markdown dans `docs/` (surtout `docs/user/` en français).
-2. Navigation : mettre à jour `docs/.vitepress/config.ts` si vous ajoutez une **nouvelle section** ou une page hors sidebar existante.
+1. Contenu : Markdown dans `docs/` (**français**, racine) et `docs/en/` (**anglais**). Voir [traductions.md](user/traductions.md#documentation-site-vitepress).
+2. Navigation : mettre à jour `docs/.vitepress/config.ts` (`locales.root` et `locales.en`) pour une **nouvelle section** ou une page hors sidebar.
 3. Après une **feature produit** : guide utilisateur + API / déploiement si le comportement change (voir skill Phare).
 4. Avant une PR qui touche la structure : `npm run docs:build` doit réussir.
 

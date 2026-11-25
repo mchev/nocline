@@ -36,12 +36,12 @@ hub_url: https://ops.example.com
 role: host # host | probe
 token: '***'
 interval_sec: 30 # défaut 30, min 5
-auto_update: true # optionnel : mise à jour auto (SHA256) quand le hub le propose dans /api/v1/ingest
+auto_update: true # défaut : applique agent_update du hub (mettre false pour refuser sur la machine)
 ```
 
 ## Mise à jour automatique
 
-Sur chaque push métriques accepté (202), le hub peut renvoyer `agent_update` (version + URL + SHA256 par arch). Si `auto_update: true`, l'agent télécharge depuis l'URL **https** indiquée, vérifie le SHA256, sauvegarde l'ancien binaire en `.prev`, remplace puis `systemctl restart phare-agent`. Au plus une tentative toutes les **6 h**. Désactiver sur l'agent : `auto_update: false` ; sur le hub : `PHARE_AGENT_AUTO_UPDATE=false`.
+Sur chaque push accepté (202), le hub peut renvoyer `agent_update` lorsque le serveur est autorisé dans Phare (version + URL + SHA256). Par défaut l'agent applique l'offre (`auto_update` absent ou `true`). Vérif SHA256, `.prev`, `systemctl restart phare-agent`, cooldown **6 h**. Refus : décocher sur la fiche serveur, `PHARE_AGENT_AUTO_UPDATE=false` sur le hub, ou `auto_update: false` dans la config agent.
 
 ## Fonctionnement
 

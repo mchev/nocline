@@ -48,12 +48,17 @@ type CheckDetail = {
     group_id: number | null;
     host_id: number | null;
     favicon_url?: string | null;
-    ssl_status?: string | null;
+    ssl_status?: 'ok' | 'warning' | 'expired' | 'error' | 'unknown' | null;
     ssl_days_remaining?: number | null;
     site_framework?: string | null;
     health_check_id?: number;
     companion_of?: number;
     is_health_companion?: boolean;
+    config?: {
+        latency_alert_ms?: number | null;
+        latency_sustain?: number | null;
+    };
+    alerts_snoozed_until?: string | null;
 };
 
 const props = defineProps<{
@@ -173,6 +178,20 @@ onMounted(() => {
     }
 });
 
+function snoozeAlerts(hours: number) {
+    router.post(
+        CheckController.snooze.url(props.check.id),
+        { hours },
+        { preserveScroll: true },
+    );
+}
+
+function clearSnooze() {
+    router.delete(CheckController.unsnooze.url(props.check.id), {
+        preserveScroll: true,
+    });
+}
+
 function togglePause() {
     router.patch(
         CheckController.update.url(props.check.id),
@@ -261,7 +280,35 @@ async function loadChart(hours: number) {
                         {{ check.target }}
                     </p>
                 </div>
-                <div v-if="canManage" class="flex flex-wrap gap-2">
+                <div v-if="canManage" class="flex flex-wrap items-center gap-2">
+                    <span
+                        v-if="check.alerts_snoozed_until"
+                        class="chip text-xs chip-warning"
+                    >
+                        {{
+                            t('Alerts snoozed until :date', {
+                                date: new Date(
+                                    check.alerts_snoozed_until,
+                                ).toLocaleString(),
+                            })
+                        }}
+                        <button
+                            type="button"
+                            class="ml-1 underline"
+                            @click="clearSnooze"
+                        >
+                            {{ t('Clear') }}
+                        </button>
+                    </span>
+                    <Button
+                        v-if="!check.alerts_snoozed_until"
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        @click="snoozeAlerts(4)"
+                    >
+                        {{ t('Snooze alerts 4 h') }}
+                    </Button>
                     <Button
                         type="button"
                         variant="outline"
@@ -409,7 +456,11 @@ async function loadChart(hours: number) {
                         {{ t('Domain expiry') }}
                     </dt>
                     <dd class="text-base font-medium">
-                        {{ t(':days d', { days: renewals.domain.days }) }}
+                        {{
+                            renewals.domain.days !== null
+                                ? t(':days d', { days: renewals.domain.days })
+                                : '—'
+                        }}
                         <span class="block text-xs text-muted-foreground">{{
                             renewals.domain.expires_on
                         }}</span>

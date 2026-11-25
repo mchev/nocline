@@ -6,7 +6,10 @@ import HostMetaChips from '@/components/HostMetaChips.vue';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import { hostDiskCaption } from '@/lib/hostDiskCaption';
-import { hostMetricTone } from '@/lib/hostMetricTone';
+import {
+    hostMetricTone,
+    metricThresholdsFromAlert,
+} from '@/lib/hostMetricTone';
 import { t } from '@/lib/i18n';
 
 export type HostMetrics = {
@@ -37,6 +40,14 @@ const props = withDefaults(
         hostId?: number | null;
         /** When true, the “update available” badge opens a modal with the curl command. */
         updateCommandEnabled?: boolean;
+        showAgentVersionBadge?: boolean;
+        metricAlerts?: {
+            cpu_pct: number;
+            mem_pct: number;
+            disk_pct: number;
+        } | null;
+        resourceAlertActive?: boolean;
+        resourceAlertMessage?: string | null;
     }>(),
     {
         compact: false,
@@ -46,7 +57,27 @@ const props = withDefaults(
         providerLabel: null,
         hostId: null,
         updateCommandEnabled: false,
+        showAgentVersionBadge: true,
+        metricAlerts: null,
+        resourceAlertActive: false,
+        resourceAlertMessage: null,
     },
+);
+
+const cpuThresholds = computed(() =>
+    props.metricAlerts
+        ? metricThresholdsFromAlert(props.metricAlerts.cpu_pct)
+        : undefined,
+);
+const memThresholds = computed(() =>
+    props.metricAlerts
+        ? metricThresholdsFromAlert(props.metricAlerts.mem_pct)
+        : undefined,
+);
+const diskThresholds = computed(() =>
+    props.metricAlerts
+        ? metricThresholdsFromAlert(props.metricAlerts.disk_pct)
+        : undefined,
 );
 
 const updateDialogOpen = ref(false);
@@ -120,8 +151,23 @@ const sparkRows = computed(() => [
 const diskCaption = computed(() => hostDiskCaption(props.metrics));
 
 const diskTone = computed(() =>
-    hostMetricTone(props.metrics.disk_now, false),
+    hostMetricTone(props.metrics.disk_now, false, diskThresholds.value),
 );
+
+function rowTone(key: 'cpu' | 'mem', now: number | null) {
+    const custom = key === 'cpu' ? cpuThresholds.value : memThresholds.value;
+
+    return hostMetricTone(now, false, custom);
+}
+
+function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
+    const tone = rowTone(key, now);
+
+    return {
+        'text-danger': tone === 'danger',
+        'text-warning': tone === 'warning',
+    };
+}
 </script>
 
 <template>
@@ -132,6 +178,7 @@ const diskTone = computed(() =>
                 'gap-3 p-4': !compact,
                 'gap-2 p-3': compact,
                 'border-danger/40': enrolled !== false && !online,
+                'border-warning/50': resourceAlertActive && online,
                 'opacity-70': enrolled === false,
             }"
             :style="
@@ -166,42 +213,53 @@ const diskTone = computed(() =>
                         :public-ipv4="publicIpv4"
                         :provider-label="providerLabel"
                     />
-                    <p
-                        v-if="agentVersion && !compact"
-                        class="mt-0.5 text-xs text-muted-foreground"
-                    >
-                        agent {{ agentVersion }}
-                        <button
-                            v-if="
-                                agentOutdated && updateCommandEnabled && hostId
-                            "
-                            type="button"
-                            class="ml-1 chip cursor-pointer chip-warning underline-offset-2 hover:underline"
-                            :aria-label="
-                                t('Get command to update the agent on :name', {
-                                    name,
-                                })
-                            "
-                            @click.stop="onUpdateBadgeClick"
-                        >
-                            {{ t('update available') }}
-                        </button>
-                        <span
-                            v-else-if="agentOutdated"
-                            class="ml-1 chip chip-warning"
-                            >{{ t('update available') }}</span
-                        >
-                    </p>
                 </div>
-                <span
-                    class="chip shrink-0"
-                    :class="{
-                        'chip-success': enrolled !== false && online,
-                        'chip-danger': enrolled !== false && !online,
-                    }"
-                >
-                    {{ statusLabel }}
-                </span>
+                <div class="flex shrink-0 flex-col items-end gap-1">
+                    <span
+                        class="chip"
+                        :class="{
+                            'chip-success':
+                                enrolled !== false &&
+                                online &&
+                                !resourceAlertActive,
+                            'chip-danger': enrolled !== false && !online,
+                            'chip-warning': resourceAlertActive && online,
+                        }"
+                    >
+                        {{
+                            resourceAlertActive && online
+                                ? t('High load')
+                                : statusLabel
+                        }}
+                    </span>
+                    <button
+                        v-if="
+                            showAgentVersionBadge &&
+                            agentVersion &&
+                            agentOutdated &&
+                            updateCommandEnabled &&
+                            hostId
+                        "
+                        type="button"
+                        class="chip cursor-pointer font-mono text-xs chip-warning tabular-nums underline-offset-2 hover:underline"
+                        :aria-label="
+                            t('Get command to update the agent on :name', {
+                                name,
+                            })
+                        "
+                        @click.stop="onUpdateBadgeClick"
+                    >
+                        {{ agentVersion }} · {{ t('Update') }}
+                    </button>
+                    <span
+                        v-else-if="showAgentVersionBadge && agentVersion"
+                        class="chip font-mono text-xs tabular-nums"
+                        :class="{ 'chip-warning': agentOutdated }"
+                        :title="t('Agent version')"
+                    >
+                        {{ agentVersion }}
+                    </span>
+                </div>
             </header>
 
             <HostMetaChips
@@ -211,6 +269,14 @@ const diskTone = computed(() =>
                 :public-ipv4="publicIpv4"
                 :provider-label="providerLabel"
             />
+
+            <p
+                v-if="resourceAlertActive && resourceAlertMessage"
+                class="text-xs text-pretty text-warning"
+                role="status"
+            >
+                {{ resourceAlertMessage }}
+            </p>
 
             <div
                 v-if="!showMetrics"
@@ -240,16 +306,14 @@ const diskTone = computed(() =>
                     <Sparkline
                         subtle
                         :values="row.series"
-                        :tone="hostMetricTone(row.now, false)"
+                        :tone="rowTone(row.key as 'cpu' | 'mem', row.now)"
                         :label="`${row.label} ${row.display}`"
                     />
                     <span
                         class="text-right numeric text-sm font-semibold tabular-nums"
-                        :class="{
-                            'text-danger': (row.now ?? 0) >= 90,
-                            'text-warning':
-                                (row.now ?? 0) >= 75 && (row.now ?? 0) < 90,
-                        }"
+                        :class="
+                            rowValueClass(row.now, row.key as 'cpu' | 'mem')
+                        "
                     >
                         {{ row.display }}
                     </span>

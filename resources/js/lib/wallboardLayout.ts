@@ -1,10 +1,18 @@
+export type WallboardGridLayoutOptions = {
+    minCellW?: number;
+    minCellH?: number;
+};
+
 /** Pick a column count so tiles grow evenly and fill the pane (NOC wallboard). */
 export function wallboardGridLayout(
     count: number,
     width: number,
     height: number,
     gapPx = 4,
+    opts?: WallboardGridLayoutOptions,
 ): { cols: number; rows: number; cellMin: number } {
+    const minCellW = opts?.minCellW ?? 52;
+    const minCellH = opts?.minCellH ?? 36;
     if (count <= 0 || width <= 0 || height <= 0) {
         return { cols: 1, rows: 1, cellMin: 56 };
     }
@@ -22,13 +30,19 @@ export function wallboardGridLayout(
         const cellH = (height - gapPx * (rows - 1)) / rows;
         const cellMin = Math.min(cellW, cellH);
 
-        if (cellW < 52 || cellH < 36) {
+        if (cellW < minCellW || cellH < minCellH) {
             continue;
         }
 
         const empty = cols * rows - count;
+        const lastRow = count - (rows - 1) * cols;
+        const rowBalance =
+            rows > 1 ? -Math.abs(cols - lastRow) * 4 : 0;
         // Favor wider cells so hostnames stay readable (NOC tiles are read at a glance).
-        const score = Math.min(cellW, cellH * 2) - empty * 2;
+        const score =
+            Math.min(cellW, cellH * 2) -
+            empty * 3 +
+            rowBalance;
 
         if (score > best.score) {
             best = { cols, rows, score, cellMin };
@@ -105,7 +119,11 @@ export function wallboardSiteHasTitle(site: {
         }
     }
 
-    if (host !== null && name.includes(host) && name.length <= host.length + 6) {
+    if (
+        host !== null &&
+        name.includes(host) &&
+        name.length <= host.length + 6
+    ) {
         return false;
     }
 
@@ -135,9 +153,7 @@ function hostFromUrl(raw: string | undefined): string | null {
     }
 
     try {
-        const host = new URL(raw).hostname
-            .replace(/^www\./i, '')
-            .toLowerCase();
+        const host = new URL(raw).hostname.replace(/^www\./i, '').toLowerCase();
 
         return host || null;
     } catch {

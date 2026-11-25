@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Form, Head, usePage } from '@inertiajs/vue3';
+import { Form, Head, router, usePage } from '@inertiajs/vue3';
 import { ShieldCheck } from '@lucide/vue';
 import { computed } from 'vue';
+import CheckController from '@/actions/App/Modules/Checks/Http/Controllers/CheckController';
 import IncidentController from '@/actions/App/Modules/Incidents/Http/Controllers/IncidentController';
+import { t } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui-kit/EmptyState.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
@@ -11,6 +13,7 @@ import StatusDot from '@/components/ui-kit/StatusDot.vue';
 
 type Incident = {
     id: number;
+    check_id: number;
     title: string;
     check: string;
     started_at: string;
@@ -24,6 +27,14 @@ defineProps<{ incidents: { data: Incident[] } }>();
 
 const canManage = computed(() => usePage().props.auth.user.role !== 'viewer');
 const fmt = (d: string) => new Date(d).toLocaleString();
+
+function snoozeCheck(checkId: number, hours: number) {
+    router.post(
+        CheckController.snooze.url(checkId),
+        { hours },
+        { preserveScroll: true },
+    );
+}
 </script>
 
 <template>
@@ -103,6 +114,15 @@ const fmt = (d: string) => new Date(d).toLocaleString();
                     <span v-else class="chip chip-danger">{{
                         $t('open')
                     }}</span>
+                    <Button
+                        v-if="canManage && !i.resolved_at"
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        @click="snoozeCheck(i.check_id, 4)"
+                    >
+                        {{ t('Snooze alerts 4 h') }}
+                    </Button>
                     <Form
                         v-if="canManage && !i.resolved_at && !i.acknowledged_at"
                         v-bind="IncidentController.acknowledge.form(i.id)"

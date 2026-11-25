@@ -27,7 +27,7 @@ final class CheckLatencySeries
         $hours = max(1, min(168, $hours));
         $since = now()->subHours($hours);
 
-        return CheckLatencySample::query()
+        $points = CheckLatencySample::query()
             ->where('check_id', $check->id)
             ->where('at', '>=', $since)
             ->orderBy('at')
@@ -38,6 +38,8 @@ final class CheckLatencySeries
                 'ok' => $s->ok,
             ])
             ->all();
+
+        return array_values($points);
     }
 
     public function averageLatencyMs(Check $check, int $hours): ?float
@@ -76,7 +78,7 @@ final class CheckLatencySeries
 
         foreach ($hist['timeline'] as $bucket) {
             $at = CarbonImmutable::parse($bucket['at']);
-            $isDown = ($bucket['s'] ?? '') === 'down';
+            $isDown = $bucket['s'] === 'down';
 
             if ($isDown && $openStart === null) {
                 $openStart = $at->subSeconds($bucketSeconds);

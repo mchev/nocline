@@ -8,6 +8,7 @@ use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Support\SiteHealthCompanion;
 use App\Modules\Checks\Support\WebsiteMonitorRows;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Hosts\Support\HostMetricAlerts;
 use App\Modules\Incidents\Models\Incident;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
 use App\Modules\Metrics\Services\HostMetricsReader;
@@ -61,6 +62,7 @@ class WallboardAggregator
         $failing = $failing->reject(fn ($c) => isset($inMaintenance[$c->id]));
 
         $hosts = Host::query()
+            ->with(['resourcesCheck.state'])
             ->whereNotNull('enrolled_at')
             ->when($groupIds, fn ($q) => $q->whereIn('group_id', $groupIds))
             ->orderBy('name')
@@ -100,6 +102,7 @@ class WallboardAggregator
                     'id' => $h->id,
                     'name' => $h->name,
                     'online' => $h->isOnline(),
+                    ...HostMetricAlerts::presentation($h),
                     'metrics' => $metricSeries[$h->id] ?? [
                         'cpu' => [],
                         'mem' => [],

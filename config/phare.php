@@ -65,6 +65,20 @@ return [
     'agent_auto_update' => (bool) env('PHARE_AGENT_AUTO_UPDATE', true),
 
     /*
+    | Per-host metric alerts (CPU/RAM/disk %, optional load 1m). Evaluated on agent ingest rollups.
+    */
+    'metric_alerts' => [
+        'enabled' => (bool) env('PHARE_METRIC_ALERTS', true),
+        'cpu_pct' => (int) env('PHARE_METRIC_ALERT_CPU', 90),
+        'mem_pct' => (int) env('PHARE_METRIC_ALERT_MEM', 90),
+        'disk_pct' => (int) env('PHARE_METRIC_ALERT_DISK', 90),
+        'load_1m' => env('PHARE_METRIC_ALERT_LOAD') !== null
+            ? (float) env('PHARE_METRIC_ALERT_LOAD')
+            : null,
+        'sustain_minutes' => (int) env('PHARE_METRIC_ALERT_SUSTAIN', 5),
+    ],
+
+    /*
     | Smart detection of a website added in the wizard: refuse addresses on private networks
     | (loopback, LAN, link-local/metadata). Set PHARE_DETECT_ALLOW_PRIVATE=true to detect
     | sites hosted on your own network (*.test, 192.168.x.x...).

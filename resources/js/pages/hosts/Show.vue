@@ -4,6 +4,10 @@ import { KeyRound, Link2, Server, Unplug, Unlink } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import HostController from '@/actions/App/Modules/Hosts/Http/Controllers/HostController';
 import GroupSelect from '@/components/GroupSelect.vue';
+import HostAgentSection from '@/components/HostAgentSection.vue';
+import HostMetricAlertsSection, {
+    type MetricAlertsConfig,
+} from '@/components/HostMetricAlertsSection.vue';
 import HostCard, { type HostMetrics } from '@/components/HostCard.vue';
 import HostMetaChips from '@/components/HostMetaChips.vue';
 import InputError from '@/components/InputError.vue';
@@ -40,6 +44,8 @@ type HostPayload = {
     last_seen_at: string | null;
     agent_version: string | null;
     agent_outdated: boolean;
+    agent_auto_update: boolean;
+    hub_version: string;
     metrics: HostMetrics;
     agent_check: {
         id: number;
@@ -54,6 +60,8 @@ type HostPayload = {
     provider: string | null;
     provider_label: string | null;
     provider_region: string | null;
+    metric_alerts: MetricAlertsConfig;
+    resource_alert: { active: boolean; message: string | null };
 };
 
 const canManage = computed(
@@ -166,16 +174,19 @@ const installHref = computed(() => `/monitor/install/${props.host.id}`);
         </PageHeader>
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,20rem)_1fr]">
-            <div class="space-y-3">
+            <div class="flex min-w-0 flex-col gap-5 overflow-visible">
                 <HostCard
                     :name="host.name"
                     :online="host.online"
                     :enrolled="host.enrolled"
                     :metrics="host.metrics"
+                    :metric-alerts="host.metric_alerts"
+                    :resource-alert-active="host.resource_alert.active"
+                    :resource-alert-message="host.resource_alert.message"
                     :agent-version="host.agent_version"
                     :agent-outdated="host.agent_outdated"
-                    :host-id="host.id"
-                    :update-command-enabled="canManage && host.enrolled"
+                    :update-command-enabled="false"
+                    :show-agent-version-badge="false"
                     :last-seen-at="host.last_seen_at"
                     :accent-color="host.color"
                     :public-ipv4="host.public_ipv4"
@@ -209,6 +220,24 @@ const installHref = computed(() => `/monitor/install/${props.host.id}`);
                     :distro="host.distro"
                     :provider-label="host.provider_label"
                     :provider-region="host.provider_region"
+                />
+                <HostAgentSection
+                    :agent-auto-update="host.agent_auto_update"
+                    :host-name="host.name"
+                    :host-id="host.id"
+                    :enrolled="host.enrolled"
+                    :agent-version="host.agent_version"
+                    :agent-outdated="host.agent_outdated"
+                    :hub-version="host.hub_version"
+                    :can-manage="canManage"
+                />
+                <HostMetricAlertsSection
+                    v-if="host.enrolled"
+                    :host-id="host.id"
+                    :host-name="host.name"
+                    :metric-alerts="host.metric_alerts"
+                    :resource-alert="host.resource_alert"
+                    :can-manage="canManage"
                 />
             </div>
 

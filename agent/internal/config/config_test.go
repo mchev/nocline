@@ -9,7 +9,7 @@ import (
 
 func TestRoundTrip(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "sub", "config.yaml")
-	in := Config{HubURL: "https://ops.example.com", Role: "host", Token: "tok-en", IntervalSec: 15}
+	in := Config{HubURL: "https://ops.example.com", Role: "host", Token: "tok-en", IntervalSec: 15, AutoUpdate: true}
 	if err := Save(path, in); err != nil {
 		t.Fatal(err)
 	}
@@ -55,9 +55,9 @@ func TestValidate(t *testing.T) {
 }
 
 func TestParseAutoUpdate(t *testing.T) {
-	c, err := Parse([]byte("hub_url: https://x\nrole: host\ntoken: a\nauto_update: true\n"))
+	c, err := Parse([]byte("hub_url: https://x\nrole: host\ntoken: a\n"))
 	if err != nil || !c.AutoUpdate {
-		t.Fatalf("%+v err=%v", c, err)
+		t.Fatalf("default %+v err=%v", c, err)
 	}
 	c, err = Parse([]byte("hub_url: https://x\nrole: host\ntoken: a\nauto_update: false\n"))
 	if err != nil || c.AutoUpdate {

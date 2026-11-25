@@ -15,8 +15,15 @@ import { DEFAULT_GROUP_COLOR, groupWithDescendantIds } from '@/lib/groups';
 import { t } from '@/lib/i18n';
 import type { GroupLayout, GroupOption } from '@/types/groups';
 
+type NotificationChannelOption = {
+    id: number;
+    name: string;
+    enabled: boolean;
+};
+
 const props = defineProps<{
     groups: GroupOption[];
+    notification_channels: NotificationChannelOption[];
 }>();
 
 const role = computed(() => usePage().props.auth.user.role);
@@ -37,6 +44,7 @@ type GroupFields = {
     color: string;
     layout: GroupLayout;
     collapsed: boolean;
+    channel_ids: number[];
 };
 
 const blank = (): GroupFields => ({
@@ -45,6 +53,7 @@ const blank = (): GroupFields => ({
     color: '',
     layout: 'list',
     collapsed: false,
+    channel_ids: [],
 });
 
 const createForm = useForm<GroupFields>(blank());
@@ -80,8 +89,19 @@ function startEdit(g: GroupOption) {
             color: g.color ?? '',
             layout: g.layout,
             collapsed: g.collapsed,
+            channel_ids: [...(g.channel_ids ?? [])],
         })
         .reset();
+}
+
+function toggleChannel(id: number) {
+    const set = new Set(editForm.channel_ids);
+    if (set.has(id)) {
+        set.delete(id);
+    } else {
+        set.add(id);
+    }
+    editForm.channel_ids = [...set];
 }
 
 function saveEdit() {
@@ -297,6 +317,45 @@ function remove(g: GroupOption) {
                             </option>
                         </select>
                     </div>
+                    <fieldset
+                        v-if="notification_channels.length"
+                        class="space-y-2 md:col-span-2"
+                    >
+                        <legend class="text-sm font-medium">
+                            {{ t('Alert channels') }}
+                        </legend>
+                        <p class="text-xs text-muted-foreground">
+                            {{
+                                t(
+                                    'Leave empty to use all enabled channels. Pick channels to notify only this group’s team.',
+                                )
+                            }}
+                        </p>
+                        <ul class="flex flex-wrap gap-3">
+                            <li
+                                v-for="ch in notification_channels"
+                                :key="ch.id"
+                            >
+                                <label
+                                    class="flex cursor-pointer items-center gap-2 text-sm"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        :checked="
+                                            editForm.channel_ids.includes(ch.id)
+                                        "
+                                        @change="toggleChannel(ch.id)"
+                                    />
+                                    {{ ch.name }}
+                                    <span
+                                        v-if="!ch.enabled"
+                                        class="text-xs text-muted-foreground"
+                                        >({{ t('off') }})</span
+                                    >
+                                </label>
+                            </li>
+                        </ul>
+                    </fieldset>
                     <label
                         class="flex min-h-10 items-center gap-2 text-sm md:col-span-2"
                     >

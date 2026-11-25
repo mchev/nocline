@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../app/Modules/Audit/Console',
         __DIR__.'/../app/Modules/Maintenance/Console',
         __DIR__.'/../app/Modules/Hosts/Console',
+        __DIR__.'/../app/Modules/Alertes/Console',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);

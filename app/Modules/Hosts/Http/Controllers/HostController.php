@@ -11,6 +11,8 @@ use App\Modules\Hosts\Http\Requests\HostRequest;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Hosts\Support\AgentInstallCommand;
 use App\Modules\Hosts\Support\HostMetaPresenter;
+use App\Modules\Hosts\Support\HostMetricAlerts;
+use App\Modules\Metrics\Services\HostMetricAlertEvaluator;
 use App\Modules\Metrics\Services\HostMetricsReader;
 use App\Modules\Updates\Services\ReleaseChecker;
 use Illuminate\Http\JsonResponse;
@@ -29,7 +31,7 @@ class HostController extends Controller
 
         return Inertia::render('hosts/Index', [
             'hosts' => Inertia::live(function () use ($checker, $metrics) {
-                $hosts = Host::query()->orderBy('name')->limit(2000)->get();
+                $hosts = Host::query()->with(['resourcesCheck.state'])->orderBy('name')->limit(2000)->get();
                 $series = $metrics->forHosts($hosts);
 
                 return $hosts->map(fn (Host $host) => [
@@ -43,6 +45,7 @@ class HostController extends Controller
                     'last_seen_at' => $host->last_seen_at?->toIso8601String(),
                     'agent_version' => $host->agent_version,
                     'agent_outdated' => $checker->agentIsOutdated($host->agent_version),
+                    'agent_auto_update' => (bool) $host->agent_auto_update,
                     'metrics' => $series[$host->id] ?? [
                         'cpu' => [],
                         'mem' => [],
@@ -52,6 +55,7 @@ class HostController extends Controller
                         'disk_now' => null,
                     ],
                     ...HostMetaPresenter::forHost($host),
+                    ...HostMetricAlerts::presentation($host),
                 ])->values();
             }, $live),
             'groups' => Group::options(),
@@ -62,7 +66,7 @@ class HostController extends Controller
     {
         $this->authorize('view', $host);
 
-        $host->load(['agentCheck.state', 'linkedChecks.state']);
+        $host->load(['agentCheck.state', 'resourcesCheck.state', 'linkedChecks.state']);
         $series = $metrics->forHosts(collect([$host]));
         $agent = $host->agentCheck;
 
@@ -78,6 +82,8 @@ class HostController extends Controller
                 'last_seen_at' => $host->last_seen_at?->toIso8601String(),
                 'agent_version' => $host->agent_version,
                 'agent_outdated' => $checker->agentIsOutdated($host->agent_version),
+                'agent_auto_update' => (bool) $host->agent_auto_update,
+                'hub_version' => (string) config('phare.version'),
                 'metrics' => $series[$host->id] ?? [
                     'cpu' => [],
                     'mem' => [],
@@ -94,6 +100,7 @@ class HostController extends Controller
                     'failure_threshold' => $agent->failure_threshold,
                 ],
                 ...HostMetaPresenter::forHost($host),
+                ...HostMetricAlerts::presentation($host),
             ],
             'linked_checks' => $host->linkedChecks->map(fn (Check $c) => [
                 'id' => $c->id,
@@ -104,7 +111,7 @@ class HostController extends Controller
                 'enabled' => $c->enabled,
             ])->values(),
             'attachable_checks' => Check::query()
-                ->where('type', '!=', CheckType::Agent)
+                ->whereNotIn('type', [CheckType::Agent, CheckType::HostResources])
                 ->whereNull('host_id')
                 ->orderBy('name')
                 ->limit(500)
@@ -131,20 +138,37 @@ class HostController extends Controller
         ]);
     }
 
-    public function update(HostRequest $request, Host $host): RedirectResponse
+    public function update(HostRequest $request, Host $host, HostMetricAlertEvaluator $metricAlerts): RedirectResponse
     {
         $this->authorize('update', $host);
 
         $data = $request->validated();
         $monitoring = array_intersect_key($data, array_flip(['interval_sec', 'timeout_sec', 'failure_threshold']));
 
-        $host->update(collect($data)->only(['name', 'group_id', 'tags', 'color'])->all());
+        if (array_key_exists('metric_alerts', $data)) {
+            $data['metric_alerts'] = HostMetricAlerts::resolve($data['metric_alerts']);
+        }
+
+        $host->update(collect($data)->only(['name', 'group_id', 'tags', 'color', 'agent_auto_update', 'metric_alerts'])->all());
 
         if ($monitoring !== []) {
             $host->agentCheck()->update($monitoring);
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Host updated.')]);
+        if ($host->enrolled_at !== null) {
+            $metricAlerts->evaluate($host->refresh());
+        }
+
+        $otherFields = ['group_id', 'tags', 'color', 'interval_sec', 'timeout_sec', 'failure_threshold'];
+        $agentAutoUpdateOnly = array_key_exists('agent_auto_update', $data)
+            && array_all($otherFields, fn (string $key): bool => ! array_key_exists($key, $data));
+        $metricAlertsOnly = array_key_exists('metric_alerts', $data)
+            && array_all($otherFields, fn (string $key): bool => ! array_key_exists($key, $data))
+            && ! array_key_exists('agent_auto_update', $data);
+
+        if (! $agentAutoUpdateOnly && ! $metricAlertsOnly) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Host updated.')]);
+        }
 
         return back();
     }
@@ -158,7 +182,7 @@ class HostController extends Controller
         ]);
 
         $check = Check::query()->whereKey($data['check_id'])->firstOrFail();
-        abort_if($check->type === CheckType::Agent, 422);
+        abort_if(in_array($check->type, [CheckType::Agent, CheckType::HostResources], true), 422);
         abort_if($check->host_id !== null && $check->host_id !== $host->id, 422);
 
         $this->authorize('update', $check);
@@ -172,7 +196,7 @@ class HostController extends Controller
     public function detachCheck(Host $host, Check $check): RedirectResponse
     {
         $this->authorize('update', $host);
-        abort_if($check->host_id !== $host->id || $check->type === CheckType::Agent, 404);
+        abort_if($check->host_id !== $host->id || in_array($check->type, [CheckType::Agent, CheckType::HostResources], true), 404);
 
         $this->authorize('update', $check);
         $check->update(['host_id' => null]);

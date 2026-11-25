@@ -2,7 +2,10 @@
 import { computed } from 'vue';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
-import { hostMetricTone } from '@/lib/hostMetricTone';
+import {
+    hostMetricTone,
+    metricThresholdsFromAlert,
+} from '@/lib/hostMetricTone';
 import { hostDiskCaption } from '@/lib/hostDiskCaption';
 import { t } from '@/lib/i18n';
 import type { HostMetrics } from '@/components/HostCard.vue';
@@ -13,10 +16,40 @@ const props = defineProps<{
         name: string;
         online: boolean;
         metrics: HostMetrics;
+        metric_alerts?: {
+            cpu_pct: number;
+            mem_pct: number;
+            disk_pct: number;
+        };
+        resource_alert?: { active: boolean; message: string | null };
     };
 }>();
 
-const status = computed(() => (props.host.online ? 'up' as const : 'down' as const));
+const cpuThresholds = computed(() =>
+    props.host.metric_alerts
+        ? metricThresholdsFromAlert(props.host.metric_alerts.cpu_pct)
+        : undefined,
+);
+const memThresholds = computed(() =>
+    props.host.metric_alerts
+        ? metricThresholdsFromAlert(props.host.metric_alerts.mem_pct)
+        : undefined,
+);
+const diskThresholds = computed(() =>
+    props.host.metric_alerts
+        ? metricThresholdsFromAlert(props.host.metric_alerts.disk_pct)
+        : undefined,
+);
+
+function rowTone(key: 'cpu' | 'mem', now: number | null) {
+    const custom = key === 'cpu' ? cpuThresholds.value : memThresholds.value;
+
+    return hostMetricTone(now, false, custom);
+}
+
+const status = computed(() =>
+    props.host.online ? ('up' as const) : ('down' as const),
+);
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v)}%`);
 
@@ -40,14 +73,18 @@ const sparkRows = computed(() => [
 const diskCaption = computed(() => hostDiskCaption(props.host.metrics));
 
 const diskTone = computed(() =>
-    hostMetricTone(props.host.metrics.disk_now, false),
+    hostMetricTone(props.host.metrics.disk_now, false, diskThresholds.value),
 );
 </script>
 
 <template>
     <li
         class="wb-host-card"
-        :class="host.online ? 'wb-host-card--up' : 'wb-host-card--down'"
+        :class="{
+            'wb-host-card--up': host.online && !host.resource_alert?.active,
+            'wb-host-card--down': !host.online,
+            'wb-host-card--warn': host.online && host.resource_alert?.active,
+        }"
     >
         <header class="wb-host-head">
             <StatusDot
@@ -69,10 +106,12 @@ const diskTone = computed(() =>
                     subtle
                     class="wb-host-spark"
                     :values="row.series"
-                    :tone="hostMetricTone(row.now, false)"
+                    :tone="rowTone(row.key as 'cpu' | 'mem', row.now)"
                     :label="`${row.label} ${row.display}`"
                 />
-                <span class="wb-host-metric-val numeric">{{ row.display }}</span>
+                <span class="wb-host-metric-val numeric">{{
+                    row.display
+                }}</span>
             </li>
             <li class="wb-host-disk-row">
                 <span class="wb-host-metric-label">{{ t('Disk') }}</span>
@@ -108,6 +147,11 @@ const diskTone = computed(() =>
     background: color-mix(in oklch, var(--danger) 22%, var(--card));
     border-color: var(--danger);
     animation: wb-pulse 1.5s ease-in-out infinite;
+}
+
+.wb-host-card--warn {
+    background: color-mix(in oklch, var(--warning) 18%, var(--card));
+    border-color: color-mix(in oklch, var(--warning) 65%, var(--border));
 }
 
 .wb-host-head {

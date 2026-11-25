@@ -20,7 +20,7 @@ import (
 	"github.com/phare/phare/agent/internal/update"
 )
 
-var version = "0.1.3"
+var version = "0.1.4"
 
 const (
 	sampleEvery   = 5 * time.Second

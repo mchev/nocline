@@ -17,3 +17,22 @@ La clé est le **texte anglais** (même convention que Laravel) ; elle sert au P
 - PHP : `__('Some text')`.
 - Toujours écrire la clé en anglais ; ne jamais construire une clé par concaténation.
 - La langue est choisie par : préférence de l'utilisateur → session (installation / invité) → `APP_LOCALE`.
+
+## Documentation (site VitePress)
+
+Le site public est **bilingue** : **français** (URLs à la racine, ex. `/user/installation`) et **anglais** (`/en/…`), comme l'application. VitePress affiche un sélecteur de langue en haut à droite.
+
+| Langue   | Fichiers sources               | URL (GitHub Pages)                                             |
+| -------- | ------------------------------ | -------------------------------------------------------------- |
+| Français | `docs/` (hors `docs/en/`)      | [mchev.github.io/phare/](https://mchev.github.io/phare/)       |
+| English  | `docs/en/` (même arborescence) | [mchev.github.io/phare/en/](https://mchev.github.io/phare/en/) |
+
+### Contribuer en anglais (ou autre langue doc)
+
+1. Ajouter ou modifier un fichier sous `docs/en/` (ex. `docs/en/user/surveiller.md`).
+2. **Nouvelle section** : entrées dans `docs/.vitepress/config.ts` (`locales.en.themeConfig.sidebar` et, si besoin, la sidebar française).
+3. Liens **relatifs à la locale** : dans une page EN, préférer `/en/user/…` ; renvoi vers le français : `/user/…`.
+4. Certaines pages techniques restent en anglais à la racine (`api.md`, `security.md`, …) et sont liées depuis les deux sidebars.
+5. Vérifier : `npm run docs:build`.
+
+Pour une **troisième langue** plus tard : nouveau bloc `locales` dans `config.ts` + dossier `docs/<code>/` (voir le détail côté anglais dans [en/user/translations.md](/en/user/translations)).

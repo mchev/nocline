@@ -14,6 +14,16 @@ describe('wallboardGridLayout', () => {
         expect(wide.cols).toBeGreaterThan(narrow.cols);
         expect(wide.cols * wide.rows).toBeGreaterThanOrEqual(50);
     });
+
+    it('balances eight host tiles as four and four', () => {
+        const layout = wallboardGridLayout(8, 1200, 200, 4, {
+            minCellW: 160,
+            minCellH: 72,
+        });
+
+        expect(layout.cols).toBe(4);
+        expect(layout.rows).toBe(2);
+    });
 });
 
 describe('wallboardSiteLabel', () => {

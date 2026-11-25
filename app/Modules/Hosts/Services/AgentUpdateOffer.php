@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hosts\Services;
 
+use App\Modules\Hosts\Models\Host;
 use App\Modules\Updates\Services\ReleaseChecker;
 
 /**
@@ -17,9 +18,9 @@ class AgentUpdateOffer
     /**
      * @return array{version: string, binaries: array<string, array{url: string, sha256: string}>}|null
      */
-    public function forAgent(?string $agentVersion): ?array
+    public function forHost(Host $host, ?string $agentVersion): ?array
     {
-        if (! config('phare.agent_auto_update')) {
+        if (! config('phare.agent_auto_update') || ! $host->agent_auto_update) {
             return null;
         }
 

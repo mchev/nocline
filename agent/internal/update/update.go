@@ -77,6 +77,7 @@ type Settings struct {
 
 // MaybeApply runs at most one upgrade per cooldown when enabled and the hub version is newer.
 func MaybeApply(ctx context.Context, offer *Offer, st Settings) {
+	// Hub only sends an offer when this server is allowed; local auto_update: false opts out.
 	if offer == nil || !st.AutoUpdate {
 		return
 	}

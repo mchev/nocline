@@ -9,5 +9,6 @@ enum CheckType: string
     case Icmp = 'icmp';
     case Dns = 'dns';
     case Agent = 'agent';
+    case HostResources = 'host_resources';
     case Heartbeat = 'heartbeat';
 }

@@ -15,4 +15,5 @@ Schedule::command('phare:checks:refresh-favicons')->dailyAt('05:20');
 Schedule::command('phare:checks:refresh-frameworks')->weeklyOn(0, '05:40');
 Schedule::command('phare:hosts:refresh-providers')->weeklyOn(0, '06:00');
 Schedule::command('phare:maintenance:catch-up')->everyMinute()->withoutOverlapping();
+Schedule::command('phare:alerts:release-snoozes')->everyMinute()->withoutOverlapping();
 Schedule::command('phare:audit:prune')->dailyAt('03:45');

@@ -46,6 +46,7 @@ class CheckController extends Controller
         return Inertia::render('checks/Index', [
             'checks' => Inertia::live(function () use ($maintenance, $metrics, $history) {
                 $checks = Check::query()
+                    ->whereNotIn('type', [CheckType::Agent, CheckType::HostResources])
                     ->with(['state', 'host:id,name,enrolled_at,last_seen_at'])
                     ->orderBy('name')
                     ->limit(2000)
@@ -201,8 +202,41 @@ class CheckController extends Controller
     {
         $this->authorize('update', $check);
 
-        $check->update($request->checkData());
+        $data = $request->checkData();
+
+        if (array_key_exists('config', $data)) {
+            $data['config'] = array_merge($check->config ?? [], array_filter($data['config'], fn ($v) => $v !== null && $v !== ''));
+        }
+
+        $check->update($data);
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Check updated.')]);
+
+        return back();
+    }
+
+    public function snooze(Request $request, Check $check): RedirectResponse
+    {
+        $this->authorize('update', $check);
+
+        $data = $request->validate([
+            'hours' => ['required', 'integer', Rule::in([1, 4, 8, 24, 72])],
+        ]);
+
+        $check->update(['alerts_snoozed_until' => now()->addHours($data['hours'])]);
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Alerts snoozed for :hours h.', ['hours' => $data['hours']]),
+        ]);
+
+        return back();
+    }
+
+    public function unsnooze(Check $check): RedirectResponse
+    {
+        $this->authorize('update', $check);
+
+        $check->update(['alerts_snoozed_until' => null]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Alert snooze cleared.')]);
 
         return back();
     }
@@ -320,20 +354,11 @@ class CheckController extends Controller
             'ssl_days_remaining' => $ssl !== null && $ssl->check_error === null ? $ssl->daysRemaining() : null,
             'site_framework' => SiteFrameworkTag::fromCheck($c)?->value,
             'created_at' => $c->created_at?->toIso8601String(),
+            'config' => $c->config ?? [],
+            'alerts_snoozed_until' => $c->alerts_snoozed_until?->toIso8601String(),
         ];
     }
 
-    /**
-     * @return array{
-     *     history: list<string>,
-     *     timeline: list<array{s: string, at: string, error: ?string}>,
-     *     uptime_pct: float|null,
-     *     window_start: string,
-     *     window_end: string,
-     *     hours: float,
-     *     can_load_earlier: bool
-     * }
-     */
     /**
      * @return array{ssl: ?array{expires_on: string, days: int|null}, domain: ?array{label: string, expires_on: string, days: int|null}}
      */
@@ -344,7 +369,7 @@ class CheckController extends Controller
             ->where('check_id', $check->id)
             ->first();
 
-        $host = is_string($check->target) && $check->target !== ''
+        $host = $check->target !== ''
             ? parse_url($check->target, PHP_URL_HOST)
             : null;
         $domain = $host
@@ -364,6 +389,17 @@ class CheckController extends Controller
         ];
     }
 
+    /**
+     * @return array{
+     *     history: list<string>,
+     *     timeline: list<array{s: string, at: string, error: ?string}>,
+     *     uptime_pct: float|null,
+     *     window_start: string,
+     *     window_end: string,
+     *     hours: float,
+     *     can_load_earlier: bool
+     * }
+     */
     private function historySlice(
         Check $check,
         MaintenanceChecker $maintenance,

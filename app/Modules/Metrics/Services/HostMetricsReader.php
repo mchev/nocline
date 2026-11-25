@@ -98,6 +98,7 @@ class HostMetricsReader
             $byHost[$id]['disk_total_bytes'] = $diskBytes[$id]['disk_total_bytes'] ?? null;
         }
 
+        /** @var array<int, array{cpu: list<float|null>, mem: list<float|null>, disk: list<float|null>, cpu_now: float|null, mem_now: float|null, disk_now: float|null, disk_used_bytes: float|null, disk_total_bytes: float|null}> $byHost */
         return $byHost;
     }
 

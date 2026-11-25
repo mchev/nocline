@@ -11,4 +11,5 @@ export type GroupOption = {
     collapsed: boolean;
     position: number;
     checks_count?: number;
+    channel_ids?: number[];
 };

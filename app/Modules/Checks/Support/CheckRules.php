@@ -34,6 +34,8 @@ final class CheckRules
             'config' => ['nullable', 'array'],
             'config.keyword' => ['nullable', 'string', 'max:255'],
             'config.expected_status' => ['nullable', 'integer', 'between:100,599'],
+            'config.latency_alert_ms' => ['nullable', 'integer', 'min:100', 'max:120000'],
+            'config.latency_sustain' => ['nullable', 'integer', 'min:1', 'max:20'],
             'config.grace_sec' => ['nullable', 'integer', 'between:0,'.self::HEARTBEAT_MAX_INTERVAL_SEC],
             'category' => ['sometimes', Rule::enum(CheckCategory::class)],
             'tags' => ['nullable', 'array', 'max:20'],

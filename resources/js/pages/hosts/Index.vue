@@ -45,6 +45,12 @@ type Host = {
     metrics: HostMetrics;
     public_ipv4: string | null;
     provider_label: string | null;
+    metric_alerts?: {
+        cpu_pct: number;
+        mem_pct: number;
+        disk_pct: number;
+    };
+    resource_alert?: { active: boolean; message: string | null };
 };
 
 const props = defineProps<{
@@ -343,6 +349,9 @@ const emptyMetrics = (): HostMetrics => ({
                     :accent-color="h.color"
                     :public-ipv4="h.public_ipv4"
                     :provider-label="h.provider_label"
+                    :metric-alerts="h.metric_alerts ?? null"
+                    :resource-alert-active="h.resource_alert?.active ?? false"
+                    :resource-alert-message="h.resource_alert?.message ?? null"
                 >
                     <template v-if="canManage" #actions>
                         <Button

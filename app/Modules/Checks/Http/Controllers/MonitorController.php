@@ -11,6 +11,7 @@ use App\Modules\Checks\Services\MonitorCreator;
 use App\Modules\Checks\Support\CheckRules;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Hosts\Services\HostResourceCheckProvisioner;
 use App\Modules\Hosts\Support\AgentInstallCommand;
 use App\Modules\Probes\Models\Probe;
 use Illuminate\Http\RedirectResponse;
@@ -51,7 +52,7 @@ class MonitorController extends Controller
         return redirect()->route('dashboard');
     }
 
-    public function server(Request $request): RedirectResponse
+    public function server(Request $request, HostResourceCheckProvisioner $resourceChecks): RedirectResponse
     {
         $this->authorize('create', Check::class);
         $this->authorize('create', Host::class);
@@ -73,6 +74,8 @@ class MonitorController extends Controller
             'timeout_sec' => 10,
             'failure_threshold' => 2,
         ]);
+
+        $resourceChecks->ensure($host);
 
         return $this->showInstall($host);
     }

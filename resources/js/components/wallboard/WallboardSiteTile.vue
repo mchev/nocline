@@ -53,21 +53,14 @@ const latencyLabel = computed(() => {
 </script>
 
 <template>
-    <li
-        class="wb-site-card"
-        :class="`wb-site-card--${tone}`"
-        :title="caption"
-    >
+    <li class="wb-site-card" :class="`wb-site-card--${tone}`" :title="caption">
         <div class="wb-site-main">
             <StatusDot
                 :status="dotStatus"
                 :pulse="tone === 'down'"
                 class="wb-site-dot"
             />
-            <UptimeHistoryDots
-                v-bind="historyProps"
-                class="wb-site-history"
-            />
+            <UptimeHistoryDots v-bind="historyProps" class="wb-site-history" />
             <p
                 class="wb-site-lat numeric"
                 :class="{ 'wb-site-lat--bad': tone === 'down' }"

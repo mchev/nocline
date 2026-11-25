@@ -14,12 +14,18 @@ _Révoquer_ invalide le jeton permanent (l'agent reçoit 401). Aucun port entran
 
 ### Mise à jour automatique (recommandée)
 
-Quand `auto_update: true` dans `/etc/phare-agent/config.yaml` (activé à l'enrôlement et par `agent-update.sh`), l'agent récupère une indication dans la réponse `POST /api/v1/ingest` : version cible, URL GitHub officielle et **SHA256**. Il ne télécharge et ne remplace le binaire que si le hash correspond, garde une copie `.prev`, puis `systemctl restart phare-agent`. Au plus une tentative toutes les 6 h. Coup de frein côté hub : `PHARE_AGENT_AUTO_UPDATE=false`.
+Pour chaque serveur : **Hosts → fiche → section phare-agent** — case _Mises à jour automatiques_ (**activée par défaut** ; décocher pour forcer une mise à jour manuelle). Le hub n’envoie `agent_update` dans `POST /api/v1/ingest` que si cette option est cochée **et** si `PHARE_AGENT_AUTO_UPDATE` n’est pas à `false` dans `.env`.
+
+L’agent accepte ces mises à jour par défaut (opt-out serveur possible : `auto_update: false` dans `/etc/phare-agent/config.yaml`). Chaque offre inclut version cible, URL GitHub officielle et **SHA256** : téléchargement vérifié, sauvegarde `.prev`, `systemctl restart phare-agent`, au plus une tentative toutes les 6 h. Si l’auto est désactivée dans Phare : commande manuelle sur la fiche serveur.
 
 ### Mise à jour manuelle
 
 Sur un serveur **déjà enrôlé**, utilisez la commande du badge _mise à jour disponible_ (ou `curl -fsSL https://votre-hub/install/agent-update.sh | sudo sh`) : téléchargement du binaire + `systemctl restart` + `auto_update: true` si absent. **Ne relancez pas** la ligne d'installation complète sur un serveur en prod : elle ré-enrôle, invalide l'ancien jeton pendant que l'ancien processus tourne encore → 401 et host « hors ligne » jusqu'à un restart manuel.
 
 ## Métriques
+
+## Alertes de charge (CPU, RAM, disque)
+
+Par défaut, Phare ouvre un incident (et envoie vos canaux d’alerte) si **CPU, RAM ou disque** dépassent **90 %** pendant **5 minutes** consécutives (moyenne par minute). Réglage par serveur : fiche **Hosts → Alertes de charge** (seuils, durée, charge 1 min optionnelle). Les sparklines utilisent ces seuils pour le code couleur.
 
 Toutes les 30 s l'agent envoie des agrégats réduits (min/max/moyenne/p95) de `cpu.usage_pct`, `mem.used_bytes`, `mem.used_pct`, `disk.used_pct`, `disk.used_bytes`, `disk.total_bytes`, `load.1m`. Le hub ne conserve que des rollups : 1 min pendant 7 jours, 5 min pendant 90 jours, 1 h pendant 2 ans. Compilation de l'agent : voir `agent/README.md`.

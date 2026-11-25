@@ -34,8 +34,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string|null $color
  * @property array<string, mixed>|null $agent_meta
  * @property CarbonInterface|null $agent_meta_at
+ * @property bool $agent_auto_update
+ * @property array<string, mixed>|null $metric_alerts
  */
-#[Fillable(['group_id', 'name', 'tags', 'color'])]
+#[Fillable(['group_id', 'name', 'tags', 'color', 'agent_auto_update', 'metric_alerts'])]
 #[Hidden(['enrollment_token_hash', 'api_token_hash'])]
 #[UseFactory(HostFactory::class)]
 #[UsePolicy(HostPolicy::class)]
@@ -60,7 +62,17 @@ class Host extends Model
             'enrolled_at' => 'datetime',
             'last_seen_at' => 'datetime',
             'agent_meta_at' => 'datetime',
+            'agent_auto_update' => 'boolean',
+            'metric_alerts' => 'array',
         ];
+    }
+
+    /**
+     * @return HasOne<Check, $this>
+     */
+    public function resourcesCheck(): HasOne
+    {
+        return $this->hasOne(Check::class)->where('type', CheckType::HostResources);
     }
 
     /**
@@ -92,6 +104,6 @@ class Host extends Model
      */
     public function linkedChecks(): HasMany
     {
-        return $this->hasMany(Check::class)->where('type', '!=', CheckType::Agent);
+        return $this->hasMany(Check::class)->whereNotIn('type', [CheckType::Agent, CheckType::HostResources]);
     }
 }

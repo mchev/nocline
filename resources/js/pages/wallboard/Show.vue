@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { wallboardGridLayout } from '@/lib/wallboardLayout';
 import type { WallboardSite } from '@/types/wallboard';
 import type { HostMetrics } from '@/components/HostCard.vue';
 import WallboardHostTile from '@/components/wallboard/WallboardHostTile.vue';
@@ -68,6 +69,7 @@ onMounted(() => {
     void refresh();
     timer = setInterval(refresh, REFRESH_MS);
     tick = setInterval(() => (now.value = Date.now()), 1000);
+
 });
 
 const stale = computed(
@@ -124,6 +126,54 @@ const sortedHosts = computed(() =>
     ),
 );
 
+const hostPaneRef = ref<HTMLElement | null>(null);
+const hostGridCols = ref(1);
+let hostGridObserver: ResizeObserver | undefined;
+
+function syncHostGridColumns() {
+    const pane = hostPaneRef.value;
+    const count = sortedHosts.value.length;
+
+    if (!pane || count === 0) {
+        return;
+    }
+
+    const gap = 4;
+    const { cols } = wallboardGridLayout(
+        count,
+        pane.clientWidth,
+        pane.clientHeight,
+        gap,
+        { minCellW: 160, minCellH: 72 },
+    );
+
+    hostGridCols.value = Math.max(1, cols);
+}
+
+function bindHostGridObserver() {
+    const pane = hostPaneRef.value;
+
+    hostGridObserver?.disconnect();
+    hostGridObserver = undefined;
+
+    if (!pane || sortedHosts.value.length === 0) {
+        return;
+    }
+
+    hostGridObserver = new ResizeObserver(() => syncHostGridColumns());
+    hostGridObserver.observe(pane);
+    syncHostGridColumns();
+}
+
+watch(
+    sortedHosts,
+    async () => {
+        await nextTick();
+        bindHostGridObserver();
+    },
+    { flush: 'post' },
+);
+
 const problemLabels = computed(() => {
     const items: string[] = [];
     for (const s of downSites.value) {
@@ -165,6 +215,7 @@ const since = (iso: string | null) => {
 onBeforeUnmount(() => {
     clearInterval(timer);
     clearInterval(tick);
+    hostGridObserver?.disconnect();
 });
 </script>
 
@@ -217,7 +268,11 @@ onBeforeUnmount(() => {
                 >
                     {{ $t('ALL GOOD') }}
                 </p>
-                <p v-else-if="data === null" class="wb-topbar-wait" role="status">
+                <p
+                    v-else-if="data === null"
+                    class="wb-topbar-wait"
+                    role="status"
+                >
                     …
                 </p>
                 <time
@@ -252,10 +307,17 @@ onBeforeUnmount(() => {
 
                     <section
                         v-if="sortedHosts.length"
+                        ref="hostPaneRef"
                         class="wb-pane wb-pane--hosts"
                         :aria-label="$t('Servers')"
                     >
-                        <ul class="wb-grid wb-grid--hosts" role="list">
+                        <ul
+                            class="wb-grid wb-grid--hosts"
+                            role="list"
+                            :style="{
+                                gridTemplateColumns: `repeat(${hostGridCols}, minmax(0, 1fr))`,
+                            }"
+                        >
                             <WallboardHostTile
                                 v-for="host in sortedHosts"
                                 :key="host.id"
@@ -265,16 +327,10 @@ onBeforeUnmount(() => {
                     </section>
                 </div>
 
-                <footer
-                    v-if="lastSuccess"
-                    class="wb-footer"
-                    aria-live="polite"
-                >
+                <footer v-if="lastSuccess" class="wb-footer" aria-live="polite">
                     {{
                         $t('Last updated :date', {
-                            date: since(
-                                new Date(lastSuccess).toISOString(),
-                            ),
+                            date: since(new Date(lastSuccess).toISOString()),
                         })
                     }}
                 </footer>
@@ -496,18 +552,12 @@ onBeforeUnmount(() => {
     overflow-x: hidden;
     overflow-y: auto;
     align-content: start;
-    grid-template-columns: repeat(
-        auto-fill,
-        minmax(min(20rem, 100%), 1fr)
-    );
+    grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
     grid-auto-rows: auto;
 }
 
 .wb-grid--hosts {
-    grid-template-columns: repeat(
-        auto-fill,
-        minmax(min(var(--wb-host-min), 100%), 1fr)
-    );
+    align-content: start;
 }
 
 @container wallboard (min-height: 700px) {

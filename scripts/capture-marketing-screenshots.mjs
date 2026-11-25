@@ -21,7 +21,10 @@ const VIEWPORT = {
 };
 
 function loadDemoAuth() {
-    const manifestPath = join(import.meta.dirname, '../storage/app/phare-demo.json');
+    const manifestPath = join(
+        import.meta.dirname,
+        '../storage/app/phare-demo.json',
+    );
     try {
         const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
         return {
@@ -30,7 +33,11 @@ function loadDemoAuth() {
             wallboardToken: manifest.wallboard,
         };
     } catch {
-        return { email: 'demo@phare.test', password: 'password', wallboardToken: null };
+        return {
+            email: 'demo@phare.test',
+            password: 'password',
+            wallboardToken: null,
+        };
     }
 }
 
@@ -89,11 +96,17 @@ try {
     await shot(page, '08-incidents.png');
 
     if (wallboardToken) {
-        await page.goto(`${BASE}/wallboard/${wallboardToken}`, { waitUntil: 'domcontentloaded' });
-        await page.waitForFunction(
-            () => document.body.innerText.includes('checks OK') || document.body.innerText.includes('ALL GOOD'),
-            { timeout: 15_000 },
-        ).catch(() => {});
+        await page.goto(`${BASE}/wallboard/${wallboardToken}`, {
+            waitUntil: 'domcontentloaded',
+        });
+        await page
+            .waitForFunction(
+                () =>
+                    document.body.innerText.includes('checks OK') ||
+                    document.body.innerText.includes('ALL GOOD'),
+                { timeout: 15_000 },
+            )
+            .catch(() => {});
         await page.waitForTimeout(500);
         await shot(page, '07-wallboard.png');
     }
