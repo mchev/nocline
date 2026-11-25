@@ -63,9 +63,9 @@ class Installer
                 File::exists($config['database']) || File::put($config['database'], '');
             }
 
-            config(['database.connections.phare_setup' => $config]);
-            DB::purge('phare_setup');
-            DB::connection('phare_setup')->getPdo();
+            config(['database.connections.nocline_setup' => $config]);
+            DB::purge('nocline_setup');
+            DB::connection('nocline_setup')->getPdo();
 
             return null;
         } catch (Throwable $e) {
@@ -172,8 +172,8 @@ class Installer
             : $this->connectionConfig($data['db']);
 
         if (! $useConfigured) {
-            config(['database.connections.phare_setup' => $config, 'database.default' => 'phare_setup']);
-            DB::purge('phare_setup');
+            config(['database.connections.nocline_setup' => $config, 'database.default' => 'nocline_setup']);
+            DB::purge('nocline_setup');
         }
 
         Artisan::call('migrate', ['--force' => true]);
@@ -245,7 +245,7 @@ class Installer
                 'MAIL_PORT' => (string) ($mail['port'] ?? 587),
                 'MAIL_USERNAME' => $mail['username'] ?? '',
                 'MAIL_PASSWORD' => $mail['password'] ?? '',
-                'MAIL_FROM_ADDRESS' => $mail['from'] ?? 'phare@'.Str::after($values['APP_URL'], '://'),
+                'MAIL_FROM_ADDRESS' => $mail['from'] ?? 'nocline@'.Str::after($values['APP_URL'], '://'),
                 'MAIL_FROM_NAME' => $data['instance']['name'],
             ];
         }

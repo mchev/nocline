@@ -1,4 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" role="img" aria-label="phare">
-  <rect width="32" height="32" rx="6" fill="#F4512A"/>
-  <image x="3.5" y="3.5" width="25" height="25" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWCAYAAAA8AXHiAAAACXBIWXMAAA7EAAAOxAGVKw4bAAADOUlEQVR4nO3dS3bUMBRF0YJFBxrMf5xpkGZogBZF4krl42u/J+09ALDkE1n+EC4XAAAAAAAAAAAAONDjr4enx18PT2cfRxdfzj6ADp4H9f3HT/N2hwm649YqJa7XmZxX3Lv0ies2E3PDW/dT4tpmUja8d5MurpdMyDMfvfMT1/9MxpXPPk4Q1z8m4q+9nlGJ6w+TcNkvqkFcwto9qmH1uJYefPoVzcpxLTvwo977rRrXkoM++mXyinEtN+CzvlBYLa6lBnv2Zy8rxbXMQM+OalglriUGWSWqYYW4ph9gtaiG2ePabXDjBFaasKpRDVXm6nqe9jqmb3v8IdcSB0lG8gdv9xVri8BqOeJc7b5ibal4mVzRkVuDQ8IaBHaOM/aah4Y1COwYZ968nBLWILCMCnfDp4Y1CGwfFYIaSoQ1pAKrNOEzj+3a17MPYMvMvydhr3FVn6NSK9ZzLpEvVY7pWumwBk/z+wQ1lLwUvqbbBO+h45jbhUUPwiJCWEQIiwhhESEsIoRFhLCIEBYRwiJCWEQIiwhhESEsIoRFRLuwVvzQr+OYW3xBern0nNw9XY+/w4d/5cNaPagtY04qB1Y2LEHdVzmwUmGJ6WMqBnbIrzG6R1D7qnAuTl2xBJVRYQU7JSxBHePMwA4NS1DnOCOwQ8ISVA1HBhYNS1A1HRFYJCxB9ZB8mj9lAJWe57zFjD+I7V5C04OwiBAWEcIiYrpNY7eN+zDbBt6KRYSwiBAWEcIiYqoNY9eN+zDTBt6KRYSwiBAWEcIiQliFdL/5uDZNWDOdlBlMExa1CIsIYREhLCKmeIWQ3rhvvWpJ/p0zvNqxYr3i+4+fX26d5BlOfpKwbnhLOOK6TVgb3hOMuLYJi4j2Yc34xH2GMbUPa28fubS5HL4kLCKERYSwiBBWUd038K3D6j75M2sdFnUJiwhhESEsItqGtcLGvfMY24ZFbcIiQlhECIuIlmF13tS+V9extgyL+oRFhLCIEBYRwiKiXVhd75I+o+OY24VFD8IiQlhECIuIyP9i/xkdN6pHuDcv1f41drmwzibsfbgUEiEsIoRFhLCIEBYRwiJCWEQIiwhhAQAAAAAAwJp+A61zS58m+dYeAAAAAElFTkSuQmCC"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Nocline">
+    <rect width="32" height="32" rx="7" fill="#365CF5" />
+    <g transform="translate(4 4) scale(0.2)">
+        <path
+            d="M12 12H54L74 32H32V74L12 54ZM108 108H66L46 88H88V46L108 66Z"
+            fill="#ffffff"
+        />
+        <circle cx="60" cy="60" r="7" fill="#ffffff" />
+    </g>
 </svg>

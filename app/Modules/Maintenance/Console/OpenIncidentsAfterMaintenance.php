@@ -11,7 +11,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:maintenance:catch-up')]
+#[Signature('nocline:maintenance:catch-up')]
 #[Description('Open the incident of monitors still down once their maintenance is over')]
 class OpenIncidentsAfterMaintenance extends Command
 {

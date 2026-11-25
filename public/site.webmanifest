@@ -1,11 +1,11 @@
 {
-    "name": "phare.",
-    "short_name": "phare",
+    "name": "Nocline",
+    "short_name": "Nocline",
     "description": "Self-hosted NOC : checks, métriques, incidents, wallboard.",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#F7F6F2",
-    "theme_color": "#F4512A",
+    "background_color": "#F5F6FA",
+    "theme_color": "#365CF5",
     "icons": [
         {
             "src": "/favicon.svg",

@@ -9,7 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:heartbeats:check')]
+#[Signature('nocline:heartbeats:check')]
 #[Description('Mark heartbeat checks as down when no ping arrived within interval + grace')]
 class CheckOverdueHeartbeats extends Command
 {

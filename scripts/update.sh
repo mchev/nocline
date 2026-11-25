@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Update a Phare hub installed from a git clone: fetch the latest release tag (or the one you pass),
-# install dependencies, rebuild assets, then let `php artisan phare:update` back up and migrate.
+# Update a Nocline hub installed from a git clone: fetch the latest release tag (or the one you pass),
+# install dependencies, rebuild assets, then let `php artisan nocline:update` back up and migrate.
 # Usage: scripts/update.sh [vX.Y.Z]
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -10,7 +10,7 @@ command -v git >/dev/null || { echo "git is required." >&2; exit 1; }
 
 git fetch --tags --quiet
 TARGET="${1:-$(git tag --list 'v*' --sort=-v:refname | head -n1)}"
-[[ -n "$TARGET" ]] || { echo "No release tag found. Is this a clone of the Phare repository?" >&2; exit 1; }
+[[ -n "$TARGET" ]] || { echo "No release tag found. Is this a clone of the Nocline repository?" >&2; exit 1; }
 
 echo "Updating to $TARGET..."
 git checkout --quiet "$TARGET"
@@ -22,4 +22,4 @@ else
     echo "npm not found: using the assets already in public/build."
 fi
 
-php artisan phare:update
+php artisan nocline:update

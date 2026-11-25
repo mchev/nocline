@@ -8,11 +8,11 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:install
+#[Signature('nocline:install
     {--db=sqlite : sqlite|mysql|pgsql}
     {--db-host=127.0.0.1} {--db-port=} {--db-name=} {--db-user=} {--db-password=}
     {--admin-name=} {--admin-email=} {--admin-password=}
-    {--name=Phare} {--url=http://localhost:8000} {--locale=en} {--timezone=UTC}')]
+    {--name=Nocline} {--url=http://localhost:8000} {--locale=en} {--timezone=UTC}')]
 #[Description('Non-interactive first setup (Docker / Forge): database, migrations, first admin')]
 class InstallCommand extends Command
 {
@@ -29,7 +29,7 @@ class InstallCommand extends Command
                 'driver' => $this->option('db'),
                 'host' => $this->option('db-host'),
                 'port' => $this->option('db-port'),
-                'database' => $this->option('db-name') ?: ($this->option('db') === 'sqlite' ? '' : 'phare'),
+                'database' => $this->option('db-name') ?: ($this->option('db') === 'sqlite' ? '' : 'nocline'),
                 'username' => $this->option('db-user'),
                 'password' => $this->option('db-password'),
             ],
@@ -59,7 +59,7 @@ class InstallCommand extends Command
         }
 
         $installer->install($data);
-        $this->components->info('Phare installed. Log in at '.$data['instance']['url']);
+        $this->components->info('Nocline installed. Log in at '.$data['instance']['url']);
 
         return self::SUCCESS;
     }

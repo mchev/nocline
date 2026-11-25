@@ -2,7 +2,7 @@
 
 ## Scheduled maintenance (“no alerts during work”)
 
-Rebooting a server or deploying a site? Tell Phare first — no false alarms.
+Rebooting a server or deploying a site? Tell Nocline first — no false alarms.
 
 1. Open **Maintenance** in the menu.
 2. **Schedule maintenance** (or **Start maintenance now for 1 hour**).

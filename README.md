@@ -1,20 +1,30 @@
 <p align="center">
   <img
-    src="https://raw.githubusercontent.com/mchev/phare/main/public/brand/phare-logo-wordmark-light.png"
-    alt="phare."
-    width="200"
+    src="https://raw.githubusercontent.com/mchev/nocline/main/public/brand/nocline-symbole-signal.png"
+    alt="Nocline"
+    width="72"
+  />
+  <br />
+  <img
+    src="https://raw.githubusercontent.com/mchev/nocline/main/public/brand/nocline-wordmark.svg"
+    alt="NOCLINE"
+    width="180"
   />
 </p>
 
 <p align="center">
-  <strong>Your lighthouse in the noise.</strong><br />
-  Self-hosted operations center — uptime, host metrics, incidents, and a wallboard your team can trust.
+  <strong>Your NOC, without the team.</strong><br />
+  See what matters. Watch what’s invisible — uptime, host metrics, incidents, and a wallboard you can trust.
+</p>
+
+<p align="center">
+  <sub>Formerly <strong>Phare</strong> (renamed in 0.2.0).</sub>
 </p>
 
 <p align="center">
   <a href="LICENSE">Elastic License 2.0</a>
-  · <a href="https://github.com/mchev/phare/releases">Releases</a>
-  · <a href="https://mchev.github.io/phare/">Documentation</a>
+  · <a href="https://github.com/mchev/nocline/releases">Releases</a>
+  · <a href="https://mchev.github.io/nocline/">Documentation</a>
   · <a href="CONTRIBUTING.md">Contributing</a>
   · <a href="https://github.com/sponsors/mchev">Sponsor</a>
 </p>
@@ -23,21 +33,21 @@
   <a href="docs/media/screenshots/02-dashboard.png">
     <img
       src="docs/media/screenshots/02-dashboard.png"
-      alt="Phare dashboard — uptime, heartbeats, servers, and renewals in one console"
+      alt="Nocline dashboard — uptime, heartbeats, servers, and renewals in one console"
       width="720"
     />
   </a>
 </p>
 
 <p align="center">
-  <sub>Demo dataset · <a href="https://mchev.github.io/phare/apercu">more screenshots</a></sub>
+  <sub>Demo dataset · <a href="https://mchev.github.io/nocline/apercu">more screenshots</a></sub>
 </p>
 
 ---
 
 ## Installation
 
-**PHP 8.3+** only. SQLite is enough to try Phare; use **PostgreSQL + Redis** when you scale checks and the wallboard. Full guide: [installation](https://mchev.github.io/phare/user/installation).
+**PHP 8.3+** only. SQLite is enough to try Nocline; use **PostgreSQL + Redis** when you scale checks and the wallboard. Full guide: [installation](https://mchev.github.io/nocline/user/installation).
 
 <!-- GitHub README has no real tabs — anchor bar below is the usual pattern. -->
 <table>
@@ -53,8 +63,8 @@
 Point the web server at `public/`.
 
 ```bash
-git clone https://github.com/mchev/phare.git
-cd phare
+git clone https://github.com/mchev/nocline.git
+cd nocline
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
 cp .env.example .env
@@ -70,7 +80,7 @@ php artisan queue:work --tries=3
 php artisan schedule:work
 ```
 
-Checklist: [deploy/hub.md](docs/deploy/hub.md). Headless install: `php artisan phare:install` — [installation.md](docs/user/installation.md).
+Checklist: [deploy/hub.md](docs/deploy/hub.md). Headless install: `php artisan nocline:install` — [installation.md](docs/user/installation.md).
 
 ### Laravel Forge
 
@@ -89,20 +99,20 @@ php artisan queue:restart
 
 **Daemons:** `php artisan queue:work --sleep=3 --tries=3` and the **scheduler** (Forge scheduler or `schedule:work`).
 
-First visit: `https://your-domain/setup` (or `phare:install` once).
+First visit: `https://your-domain/setup` (or `nocline:install` once).
 
 ### Docker
 
 Hub + PostgreSQL + Redis + worker + scheduler in one Compose file.
 
 ```bash
-git clone https://github.com/mchev/phare.git
-cd phare
+git clone https://github.com/mchev/nocline.git
+cd nocline
 cp .env.docker.example .env
 docker compose up -d --build
 ```
 
-Open `http://localhost:8080/setup` (or set `PHARE_AUTO_INSTALL=true` in `.env`). Details: [docs/deploy/docker.md](docs/deploy/docker.md).
+Open `http://localhost:8080/setup` (or set `NOCLINE_AUTO_INSTALL=true` in `.env`). Details: [docs/deploy/docker.md](docs/deploy/docker.md).
 
 ---
 
@@ -113,7 +123,7 @@ Open `http://localhost:8080/setup` (or set `PHARE_AUTO_INSTALL=true` in `.env`).
 3. **Alerts** — set up a channel when prompted ([alerts & incidents](docs/user/checks-incidents-alerts.md)).
 4. **Wallboard** — optional TV link under _Wallboards_ ([sondes & wallboard](docs/user/sondes-wallboard.md)).
 
-Full walkthrough: **[Your first hour](https://mchev.github.io/phare/user/getting-started)** · all guides on [GitHub Pages](https://mchev.github.io/phare/user/installation) (English default, **Français** in the language menu).
+Full walkthrough: **[Your first hour](https://mchev.github.io/nocline/user/getting-started)** · all guides on [GitHub Pages](https://mchev.github.io/nocline/user/installation) (English default, **Français** in the language menu).
 
 ---
 
@@ -135,12 +145,12 @@ Coming from **Uptime Kuma**? **[Import guide](docs/migration-kuma.md)**.
 
 ---
 
-## How Phare compares
+## How Nocline compares
 
 <table>
 <tr>
 <th align="left"></th>
-<th align="center"><strong>Phare</strong></th>
+<th align="center"><strong>Nocline</strong></th>
 <th align="center"><a href="https://github.com/louislam/uptime-kuma"><strong>Uptime Kuma</strong></a></th>
 <th align="center"><a href="https://www.netdata.cloud/"><strong>Netdata</strong></a></th>
 <th align="center"><a href="https://ohdear.app/"><strong>Oh Dear</strong></a></th>
@@ -252,7 +262,7 @@ Coming from **Uptime Kuma**? **[Import guide](docs/migration-kuma.md)**.
 
 | Topic                              | Where to read                                                                      |
 | ---------------------------------- | ---------------------------------------------------------------------------------- |
-| **Updates**                        | `scripts/update.sh` then `php artisan phare:update` — [releases](docs/releases.md) |
+| **Updates**                        | `scripts/update.sh` then `php artisan nocline:update` — [releases](docs/releases.md) |
 | **Probes** (ICMP, external checks) | [Sondes & wallboard](docs/user/sondes-wallboard.md)                                |
 | **API & tokens**                   | [docs/api.md](docs/api.md)                                                         |
 | **Security & hardening**           | [docs/security.md](docs/security.md) · report: [SECURITY.md](SECURITY.md)          |
@@ -269,11 +279,11 @@ Architecture, modules, tests, and contribution workflow: **[CONTRIBUTING.md](CON
 
 ## License
 
-Phare is released under the **[Elastic License 2.0](LICENSE)**.
+Nocline is released under the **[Elastic License 2.0](LICENSE)**.
 
 | You can                                           | You cannot (without a separate agreement)                                                            |
 | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Self-host and use Phare for your own organisation | Offer Phare (or a substantially similar service) **as a hosted / managed product for third parties** |
+| Self-host and use Nocline for your own organisation | Offer Nocline (or a substantially similar service) **as a hosted / managed product for third parties** |
 | Modify the code for your own deployment           | Use the Elastic License restrictions to bypass the hosted-service limitation                         |
 
 **Commercial hosted or multi-tenant SaaS:** contact **martin@pegase.io**.

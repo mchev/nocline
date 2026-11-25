@@ -24,7 +24,7 @@ function kumaBackup(): string
 }
 
 it('imports supported Kuma monitors and skips the rest', function () {
-    $this->artisan('phare:import-kuma', ['file' => kumaBackup()])->assertSuccessful();
+    $this->artisan('nocline:import-kuma', ['file' => kumaBackup()])->assertSuccessful();
 
     expect(Check::count())->toBe(4);
 
@@ -43,7 +43,7 @@ it('imports supported Kuma monitors and skips the rest', function () {
 });
 
 it('imports Kuma push monitors as heartbeat checks with a fresh ping token', function () {
-    $this->artisan('phare:import-kuma', ['file' => kumaBackup()])->assertSuccessful();
+    $this->artisan('nocline:import-kuma', ['file' => kumaBackup()])->assertSuccessful();
 
     $heartbeat = Check::where('name', 'Heartbeat')->first();
     expect($heartbeat->type)->toBe(CheckType::Heartbeat)
@@ -55,11 +55,11 @@ it('imports Kuma push monitors as heartbeat checks with a fresh ping token', fun
 it('is idempotent and supports dry runs', function () {
     $file = kumaBackup();
 
-    $this->artisan('phare:import-kuma', ['file' => $file, '--dry-run' => true]);
+    $this->artisan('nocline:import-kuma', ['file' => $file, '--dry-run' => true]);
     expect(Check::count())->toBe(0);
 
-    $this->artisan('phare:import-kuma', ['file' => $file]);
-    $this->artisan('phare:import-kuma', ['file' => $file]);
+    $this->artisan('nocline:import-kuma', ['file' => $file]);
+    $this->artisan('nocline:import-kuma', ['file' => $file]);
     expect(Check::count())->toBe(4);
 });
 
@@ -95,7 +95,7 @@ it('reads monitors and tags straight from kuma.db', function () {
     $pdo->exec('INSERT INTO monitor_tag VALUES (1,1)');
     unset($pdo);
 
-    $this->artisan('phare:import-kuma', ['file' => $path])->assertSuccessful();
+    $this->artisan('nocline:import-kuma', ['file' => $path])->assertSuccessful();
 
     $check = Check::where('name', 'Blog')->first();
     expect($check->config)->toBe(['keyword' => 'Hello'])->and($check->tags)->toBe(['acme']);

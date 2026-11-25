@@ -1,6 +1,6 @@
 # Traductions (contribuer une langue)
 
-Phare est traduit via un seul fichier JSON par langue : `lang/<code>.json`.
+Nocline est traduit via un seul fichier JSON par langue : `lang/<code>.json`.
 La clé est le **texte anglais** (même convention que Laravel) ; elle sert au PHP (`__('…')`) et au front (`t('…')`).
 
 ## Ajouter une langue
@@ -8,7 +8,7 @@ La clé est le **texte anglais** (même convention que Laravel) ; elle sert au P
 1. Copier `lang/fr.json` vers `lang/<code>.json` (ex. `de.json`, `pt_BR.json`).
 2. Renseigner `"_language"` avec le nom de la langue **dans sa propre langue** (ex. `"Deutsch"`).
 3. Traduire les valeurs (garder les placeholders `:name`, `:count`… intacts).
-4. Vérifier : `php artisan phare:lang:missing <code>` liste les textes non traduits (`--fix` ajoute les clés manquantes vides).
+4. Vérifier : `php artisan nocline:lang:missing <code>` liste les textes non traduits (`--fix` ajoute les clés manquantes vides).
 5. Ouvrir une pull request. La langue apparaît automatiquement dans l'assistant d'installation et le menu utilisateur — aucun code à modifier.
 
 ## Pour les développeurs
@@ -24,8 +24,8 @@ Le site public est **bilingue** : **français** (URLs à la racine, ex. `/user/i
 
 | Langue   | Fichiers sources               | URL (GitHub Pages)                                             |
 | -------- | ------------------------------ | -------------------------------------------------------------- |
-| Français | `docs/` (hors `docs/en/`)      | [mchev.github.io/phare/](https://mchev.github.io/phare/)       |
-| English  | `docs/en/` (même arborescence) | [mchev.github.io/phare/en/](https://mchev.github.io/phare/en/) |
+| Français | `docs/` (hors `docs/en/`)      | [mchev.github.io/nocline/](https://mchev.github.io/nocline/)       |
+| English  | `docs/en/` (même arborescence) | [mchev.github.io/nocline/en/](https://mchev.github.io/nocline/en/) |
 
 ### Contribuer en anglais (ou autre langue doc)
 

@@ -1,6 +1,6 @@
 import { defineConfig, type DefaultTheme } from 'vitepress';
 
-const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'phare';
+const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'nocline';
 const base = process.env.VITEPRESS_BASE ?? `/${repo}/`;
 
 const enApiSidebar: DefaultTheme.SidebarItem = {
@@ -120,15 +120,15 @@ const frSidebar: DefaultTheme.SidebarItem[] = [
 ];
 
 const sharedTheme = {
-    logo: '/brand/phare-symbole-signal.png',
-    siteTitle: 'phare.',
+    logo: '/brand/nocline-symbole-signal.png',
+    siteTitle: 'NOCLINE',
     socialLinks: [
-        { icon: 'github' as const, link: 'https://github.com/mchev/phare' },
+        { icon: 'github' as const, link: 'https://github.com/mchev/nocline' },
     ],
     search: { provider: 'local' as const },
     footer: {
         message: 'Elastic License 2.0',
-        copyright: 'Phare',
+        copyright: 'Nocline',
     },
 };
 
@@ -142,15 +142,15 @@ export default defineConfig({
     head: [
         [
             'link',
-            { rel: 'icon', href: `${base}brand/phare-symbole-signal.png` },
+            { rel: 'icon', href: `${base}brand/nocline-symbole-signal.png` },
         ],
     ],
     locales: {
         root: {
             label: 'English',
             lang: 'en-US',
-            title: 'phare.',
-            description: 'Phare documentation — self-hosted operations center',
+            title: 'NOCLINE',
+            description: 'Nocline documentation — self-hosted operations center',
             themeConfig: {
                 ...sharedTheme,
                 nav: [
@@ -160,7 +160,7 @@ export default defineConfig({
                     { text: 'API', link: '/api' },
                     {
                         text: 'GitHub',
-                        link: 'https://github.com/mchev/phare',
+                        link: 'https://github.com/mchev/nocline',
                     },
                 ],
                 sidebar: rootSidebar,
@@ -182,9 +182,9 @@ export default defineConfig({
             label: 'Français',
             lang: 'fr-FR',
             link: '/fr/',
-            title: 'phare.',
+            title: 'NOCLINE',
             description:
-                'Documentation Phare — centre d’opérations self-hosted',
+                'Documentation Nocline — centre d’opérations self-hosted',
             themeConfig: {
                 ...sharedTheme,
                 nav: [
@@ -194,7 +194,7 @@ export default defineConfig({
                     { text: 'API', link: '/api' },
                     {
                         text: 'GitHub',
-                        link: 'https://github.com/mchev/phare',
+                        link: 'https://github.com/mchev/nocline',
                     },
                 ],
                 sidebar: frSidebar,

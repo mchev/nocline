@@ -10,6 +10,7 @@ withDefaults(
         sslStatus?: 'ok' | 'warning' | 'expired' | 'error' | 'unknown' | null;
         sslDaysRemaining?: number | null;
         siteFramework?: string | null;
+        wordpressVersion?: string | null;
         faviconSizeClass?: string;
         showFavicon?: boolean;
         showSsl?: boolean;
@@ -20,6 +21,7 @@ withDefaults(
         sslStatus: null,
         sslDaysRemaining: null,
         siteFramework: null,
+        wordpressVersion: null,
         faviconSizeClass: 'size-4',
         showFavicon: true,
         showSsl: true,
@@ -41,6 +43,12 @@ withDefaults(
             :status="sslStatus"
             :days-remaining="sslDaysRemaining"
         />
-        <CheckFrameworkBadge v-if="showFramework" :framework="siteFramework" />
+        <CheckFrameworkBadge
+            v-if="showFramework"
+            :framework="siteFramework"
+            :version="
+                siteFramework === 'wordpress' ? wordpressVersion : undefined
+            "
+        />
     </span>
 </template>

@@ -59,7 +59,7 @@ class AuditLogController extends Controller
             ],
             'users' => User::query()->orderBy('name')->get(['id', 'name']),
             'families' => AuditAction::families(),
-            'retention_days' => (int) config('phare.audit_retention_days'),
+            'retention_days' => (int) config('nocline.audit_retention_days'),
         ]);
     }
 }

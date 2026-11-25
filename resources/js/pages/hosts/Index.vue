@@ -68,7 +68,7 @@ const enrollment = computed(
 );
 const enrollCommand = computed(() =>
     enrollment.value
-        ? `phare-agent enroll --hub ${hubUrl} --token ${enrollment.value.token}`
+        ? `nocline-agent enroll --hub ${hubUrl} --token ${enrollment.value.token}`
         : '',
 );
 const select = 'h-9 rounded-md border bg-transparent px-2 text-sm';
@@ -246,7 +246,7 @@ const emptyMetrics = (): HostMetrics => ({
                 <p class="text-xs text-muted-foreground">
                     {{
                         t(
-                            'Servers running phare-agent and pushing metrics to the hub.',
+                            'Servers running nocline-agent and pushing metrics to the hub.',
                         )
                     }}
                 </p>
@@ -338,7 +338,7 @@ const emptyMetrics = (): HostMetrics => ({
             :title="t('No hosts yet')"
             :description="
                 t(
-                    'A host is a server running the phare-agent, which pushes its metrics to the hub.',
+                    'A host is a server running the nocline-agent, which pushes its metrics to the hub.',
                 )
             "
         >

@@ -1,6 +1,6 @@
 # Security
 
-This page explains, plainly, how Phare protects your data, what it does **not** protect, and how to run it safely. To report a vulnerability, see [SECURITY.md](https://github.com/mchev/phare/blob/main/SECURITY.md).
+This page explains, plainly, how Nocline protects your data, what it does **not** protect, and how to run it safely. To report a vulnerability, see [SECURITY.md](https://github.com/mchev/nocline/blob/main/SECURITY.md).
 
 ## What is stored how
 
@@ -50,7 +50,7 @@ Wallboards and status pages may be shown inside a frame on another site (TVs, em
 
 ## Browser hardening
 
-Phare sends `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, a minimal `Permissions-Policy`, `X-Frame-Options: SAMEORIGIN` (except wallboards and status pages) and, over HTTPS, `Strict-Transport-Security`.
+Nocline sends `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, a minimal `Permissions-Policy`, `X-Frame-Options: SAMEORIGIN` (except wallboards and status pages) and, over HTTPS, `Strict-Transport-Security`.
 
 There is **no Content-Security-Policy** yet. The interface relies on Inertia page data embedded in the HTML and on the Vite development server, which a strict policy would break or force to be loosened to the point of little value. A nonce-based policy is a good future improvement.
 
@@ -58,7 +58,7 @@ There is **no Content-Security-Policy** yet. The interface relies on Inertia pag
 
 Admins can see **who did what, when and from which IP** under _Activity log_. It records sign-ins (including failed ones), sign-outs, password and two-factor changes, creation / edition / deletion of users (with role changes), monitors, groups, servers, notification channels, wallboards, status pages, maintenance windows, API tokens and renewals, and every vault creation, edition, deletion and **reveal**.
 
-It stores the names of things at the time (so deleted items stay readable) and, for edits, only the **names** of the fields that changed, never their values. Passwords, tokens and vault contents are never recorded. Changes made by the system itself (agent check-ins, schedulers, automatic renewal scans) are not logged. Entries are deleted after 365 days by default (`PHARE_AUDIT_RETENTION_DAYS`, pruned daily).
+It stores the names of things at the time (so deleted items stay readable) and, for edits, only the **names** of the fields that changed, never their values. Passwords, tokens and vault contents are never recorded. Changes made by the system itself (agent check-ins, schedulers, automatic renewal scans) are not logged. Entries are deleted after 365 days by default (`NOCLINE_AUDIT_RETENTION_DAYS`, pruned daily).
 
 ## Recommended hardening
 
@@ -69,11 +69,11 @@ It stores the names of things at the time (so deleted items stay readable) and, 
 5. Keep `.env` readable only by the web user; keep `APP_KEY` and `VAULT_MASTER_KEY` out of git and back them up **separately** from the database.
 6. Back up the database regularly and test a restore. `scripts/update.sh` makes a backup before each update.
 7. Firewall the server: only 80/443 (and SSH from trusted addresses) should be open. Database and Redis must not be exposed.
-8. Keep Phare and the agents up to date; watch the update banner shown to admins.
+8. Keep Nocline and the agents up to date; watch the update banner shown to admins.
 9. Review the activity log from time to time, and revoke servers or tokens you no longer use.
 
 ## Threat model in short
 
-Phare defends against: a curious reader of the database or a leaked backup (vault, channel settings and 2FA secrets are encrypted; tokens are hashed), a stolen session on the vault (re-authentication per reveal, audit trail), token guessing on public endpoints (long random tokens, throttling), and mistakes by lower-privileged users (roles and policies on every action).
+Nocline defends against: a curious reader of the database or a leaked backup (vault, channel settings and 2FA secrets are encrypted; tokens are hashed), a stolen session on the vault (re-authentication per reveal, audit trail), token guessing on public endpoints (long random tokens, throttling), and mistakes by lower-privileged users (roles and policies on every action).
 
-It does **not** defend against: an attacker with both the database and the server's `.env` (they hold the keys), a compromised admin account without 2FA, a compromised hub server (it can read secrets when they are revealed), or a malicious server administrator. There is no telemetry: the hub makes no outgoing call except your checks, your notifications and the daily GitHub release check (`PHARE_UPDATE_CHECK=false` turns it off).
+It does **not** defend against: an attacker with both the database and the server's `.env` (they hold the keys), a compromised admin account without 2FA, a compromised hub server (it can read secrets when they are revealed), or a malicious server administrator. There is no telemetry: the hub makes no outgoing call except your checks, your notifications and the daily GitHub release check (`NOCLINE_UPDATE_CHECK=false` turns it off).

@@ -1,4 +1,4 @@
-# Votre première heure avec Phare
+# Votre première heure avec Nocline
 
 Après l’[installation](installation), suivez ce parcours une fois — il reprend le vocabulaire de l’interface.
 

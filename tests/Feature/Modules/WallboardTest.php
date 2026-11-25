@@ -80,7 +80,8 @@ it('exposes public favicon urls and serves them without authentication', functio
         'name' => 'Shop',
         'favicon_path' => 'check-favicons/99.png',
     ]);
-    Storage::disk('local')->put('check-favicons/99.png', fakePngBytes());
+    $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+    Storage::disk('local')->put('check-favicons/99.png', $png);
 
     $siteRow = collect($this->getJson(route('api.wallboard', $token))->json('sites'))
         ->firstWhere('name', 'Shop');

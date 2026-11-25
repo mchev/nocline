@@ -65,10 +65,12 @@ class SiteDetector
             $hasHealthEndpoint = true;
         }
 
-        if ($origin !== null && $laravel['score'] < self::FRAMEWORK_THRESHOLD && $wordpress['score'] < self::FRAMEWORK_THRESHOLD) {
-            $api = $this->fetch($origin.'/wp-json/', 0);
+        $apiPage = null;
 
-            if ($api !== null && $api['status'] === 200 && str_contains($api['body'], '"namespaces"')) {
+        if ($origin !== null && $laravel['score'] < self::FRAMEWORK_THRESHOLD && $wordpress['score'] < self::FRAMEWORK_THRESHOLD) {
+            $apiPage = $this->fetch($origin.'/wp-json/', 0);
+
+            if ($apiPage !== null && $apiPage['status'] === 200 && str_contains($apiPage['body'], '"namespaces"')) {
                 $wordpress['score'] += 3;
                 $wordpress['reasons'][] = __('It exposes the WordPress API.');
             }
@@ -79,6 +81,16 @@ class SiteDetector
             $laravel['score'] >= self::FRAMEWORK_THRESHOLD => SiteFramework::Laravel,
             default => SiteFramework::Unknown,
         };
+
+        $wordpressVersion = null;
+
+        if ($framework === SiteFramework::WordPress && $origin !== null) {
+            $wordpressVersion = $this->resolveWordPressVersion($origin, $page, $apiPage);
+
+            if ($wordpressVersion !== null) {
+                $wordpress['reasons'][] = __('Running WordPress :version.', ['version' => $wordpressVersion]);
+            }
+        }
 
         return new SiteInspection(
             reachable: true,
@@ -92,6 +104,7 @@ class SiteDetector
             },
             hasHealthEndpoint: $hasHealthEndpoint,
             certificateDaysLeft: $this->certificateDaysLeft($page['url']),
+            wordpressVersion: $wordpressVersion,
         );
     }
 
@@ -151,7 +164,7 @@ class SiteDetector
         }
 
         try {
-            return Http::withUserAgent('Phare-Detect/'.config('phare.version'))
+            return Http::withUserAgent('Nocline-Detect/'.config('nocline.version'))
                 ->timeout(self::TIMEOUT_SECONDS)
                 ->connectTimeout(self::TIMEOUT_SECONDS)
                 ->withOptions($options)
@@ -196,7 +209,7 @@ class SiteDetector
         }
 
         $host = strtolower(trim($parts['host'], '[]'));
-        $allowPrivate = (bool) config('phare.detect_allow_private_networks');
+        $allowPrivate = (bool) config('nocline.detect_allow_private_networks');
 
         if ($this->guard->isObfuscatedIpv4($host)) {
             return null;
@@ -343,6 +356,80 @@ class SiteDetector
 
     /**
      * @param  array{url: string, status: int, headers: array<string, array<int, string>>, body: string}  $page
+     * @param  array{url: string, status: int, headers: array<string, array<int, string>>, body: string}|null  $apiPage
+     */
+    private function resolveWordPressVersion(string $origin, array $page, ?array $apiPage): ?string
+    {
+        foreach ([$page['body'], $apiPage['body'] ?? ''] as $body) {
+            $version = $this->parseWordPressVersion($body);
+
+            if ($version !== null) {
+                return $version;
+            }
+        }
+
+        $feed = $this->fetch($origin.'/feed/', 0);
+
+        if ($feed !== null) {
+            return $this->parseWordPressVersion($feed['body']);
+        }
+
+        return null;
+    }
+
+    private function parseWordPressVersion(string $body): ?string
+    {
+        $patterns = [
+            '/<meta[^>]+name=["\']generator["\'][^>]+content=["\']WordPress\s+([0-9]+(?:\.[0-9]+){0,2})/i',
+            '/<meta[^>]+content=["\']WordPress\s+([0-9]+(?:\.[0-9]+){0,2})["\'][^>]+name=["\']generator["\']/i',
+            '/(?:generator|WordPress)[^0-9]{0,40}([0-9]+\.[0-9]+(?:\.[0-9]+)?)/i',
+            '#wordpress\.org/\?v=([0-9]+(?:\.[0-9]+){0,2})#i',
+            '#(?:\?|&)ver=([0-9]+\.[0-9]+(?:\.[0-9]+)?)(?:["\'\s&]|$)#i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $body, $matches) !== 1) {
+                continue;
+            }
+
+            $version = $this->normalizeWordPressVersion($matches[1]);
+
+            if ($version !== null) {
+                return $version;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeWordPressVersion(string $raw): ?string
+    {
+        $raw = trim($raw);
+
+        if ($raw === '' || preg_match('/^[0-9]+(?:\.[0-9]+){0,2}$/', $raw) !== 1) {
+            return null;
+        }
+
+        $parts = array_map('intval', explode('.', $raw));
+        $major = $parts[0];
+
+        if ($major < 1 || $major > 99) {
+            return null;
+        }
+
+        if (count($parts) === 1) {
+            return (string) $major;
+        }
+
+        if (count($parts) === 2) {
+            return $major.'.'.$parts[1];
+        }
+
+        return $major.'.'.$parts[1].'.'.$parts[2];
+    }
+
+    /**
+     * @param  array{url: string, status: int, headers: array<string, array<int, string>>, body: string}  $page
      */
     private function looksLikeLaravelHealthPage(array $page): bool
     {
@@ -356,7 +443,7 @@ class SiteDetector
      */
     private function isNotCatchAll(string $origin, array $healthPage): bool
     {
-        $random = $this->fetch($origin.'/phare-'.bin2hex(random_bytes(6)), 0);
+        $random = $this->fetch($origin.'/nocline-'.bin2hex(random_bytes(6)), 0);
 
         if ($random === null || $random['status'] !== 200) {
             return true;

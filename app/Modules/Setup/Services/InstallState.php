@@ -10,7 +10,12 @@ class InstallState
 {
     public function isInstalled(): bool
     {
-        if (config('phare.force_installed') || File::exists(config('phare.installed_marker'))) {
+        if (config('nocline.force_installed') || File::exists(config('nocline.installed_marker'))) {
+            return true;
+        }
+
+        $defaultMarker = storage_path('app/nocline-installed');
+        if (config('nocline.installed_marker') === $defaultMarker && File::exists(storage_path('app/phare-installed'))) {
             return true;
         }
 
@@ -24,7 +29,7 @@ class InstallState
 
     public function markInstalled(): void
     {
-        File::ensureDirectoryExists(dirname(config('phare.installed_marker')));
-        File::put(config('phare.installed_marker'), now()->toIso8601String());
+        File::ensureDirectoryExists(dirname(config('nocline.installed_marker')));
+        File::put(config('nocline.installed_marker'), now()->toIso8601String());
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:metrics:prune')]
+#[Signature('nocline:metrics:prune')]
 #[Description('Delete metric rollups beyond their retention (1m: 7d, 5m: 90d, 1h: 2y)')]
 class PruneMetricRollups extends Command
 {

@@ -1,3 +1,3 @@
-module github.com/phare/phare/agent
+module github.com/nocline/nocline/agent
 
 go 1.22

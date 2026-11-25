@@ -8,7 +8,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 
-#[Signature('phare:import-kuma {file : Uptime Kuma JSON backup or kuma.db} {--dry-run : Show what would be imported}')]
+#[Signature('nocline:import-kuma {file : Uptime Kuma JSON backup or kuma.db} {--dry-run : Show what would be imported}')]
 #[Description('Import Uptime Kuma monitors as checks')]
 class ImportKuma extends Command
 {

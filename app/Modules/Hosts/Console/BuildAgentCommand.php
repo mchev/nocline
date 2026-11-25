@@ -7,8 +7,8 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 
-#[Signature('phare:agent:build')]
-#[Description('Build Linux phare-agent binaries locally (maintainers: before tagging, or use release.yml on push tag)')]
+#[Signature('nocline:agent:build')]
+#[Description('Build Linux nocline-agent binaries locally (maintainers: before tagging, or use release.yml on push tag)')]
 class BuildAgentCommand extends Command
 {
     public function handle(): int
@@ -34,7 +34,7 @@ class BuildAgentCommand extends Command
             return self::FAILURE;
         }
 
-        $dir = config('phare.agent_binary_dir');
+        $dir = config('nocline.agent_binary_dir');
         $this->components->info("Agent binaries are in {$dir}");
 
         return self::SUCCESS;

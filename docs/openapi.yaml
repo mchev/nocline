@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-    title: Phare REST API
+    title: Nocline REST API
     version: 1.0.0
     description: >-
-        Personal-API-token REST API of a Phare hub. A token acts as its owner: the owner's role
+        Personal-API-token REST API of a Nocline hub. A token acts as its owner: the owner's role
         (admin / tech / viewer) applies on top of the token abilities (read / write).
         Human documentation: docs/api.md.
 servers:
-    - url: https://phare.example.com/api/v1
+    - url: https://nocline.example.com/api/v1
 security:
     - bearerAuth: []
 tags:
@@ -385,7 +385,7 @@ components:
         HeartbeatMessage:
             name: msg
             in: query
-            description: Error text shown in Phare on failure (max 200 characters).
+            description: Error text shown in Nocline on failure (max 200 characters).
             schema: { type: string, maxLength: 200 }
     responses:
         HeartbeatOk:

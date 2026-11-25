@@ -165,6 +165,7 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
                     :ssl-status="check.ssl_status"
                     :ssl-days-remaining="check.ssl_days_remaining"
                     :site-framework="check.site_framework"
+                    :wordpress-version="check.wordpress_version"
                 />
                 <Link
                     :href="CheckController.show.url(check.id)"
@@ -328,6 +329,7 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
                         :ssl-status="check.ssl_status"
                         :ssl-days-remaining="check.ssl_days_remaining"
                         :site-framework="check.site_framework"
+                        :wordpress-version="check.wordpress_version"
                         favicon-size-class="size-5"
                     />
                     <Link
@@ -550,6 +552,7 @@ const uptimeHistory = computed(() => monitorUptimeHistoryProps(props.check));
             :ssl-status="check.ssl_status"
             :ssl-days-remaining="check.ssl_days_remaining"
             :site-framework="check.site_framework"
+            :wordpress-version="check.wordpress_version"
             favicon-size-class="size-3.5"
         />
         <Link

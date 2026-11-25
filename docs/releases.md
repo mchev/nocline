@@ -1,8 +1,8 @@
 # Releases and upgrades
 
-Product version lives in [`VERSION`](https://github.com/mchev/phare/blob/main/VERSION). It drives hub update checks (`phare:update:check`) and **`phare-agent` downloads** (`vX.Y.Z` = `VERSION`).
+Product version lives in [`VERSION`](https://github.com/mchev/nocline/blob/main/VERSION). It drives hub update checks (`nocline:update:check`) and **`nocline-agent` downloads** (`vX.Y.Z` = `VERSION`).
 
-Official agent repo: **`mchev/phare`** (`PHARE_OFFICIAL_REPOSITORY`). Forks: set `PHARE_REPOSITORY` for banners.
+Official agent repo: **`mchev/nocline`** (`NOCLINE_OFFICIAL_REPOSITORY`). Forks: set `NOCLINE_REPOSITORY` for banners.
 
 ## Versioning
 
@@ -10,7 +10,7 @@ Official agent repo: **`mchev/phare`** (`PHARE_OFFICIAL_REPOSITORY`). Forks: set
 | ----------------- | ---------------------------------------------------- | ---------- |
 | `VERSION` file    | `X.Y.Z`                                              | `0.1.4`    |
 | Git tag / release | `vX.Y.Z`                                             | `v0.1.4`   |
-| Assets            | `phare-agent-linux-amd64`, `phare-agent-linux-arm64` | on the tag |
+| Assets            | `nocline-agent-linux-amd64`, `nocline-agent-linux-arm64` | on the tag |
 
 Tag must match `VERSION` (CI).
 
@@ -24,12 +24,12 @@ Do not create empty releases in the GitHub UI. Recovery: re-run workflow or `scr
 ## Upgrade hub
 
 ```bash
-cd /path/to/phare && scripts/update.sh    # or scripts/update.sh v0.1.4
+cd /path/to/nocline && scripts/update.sh    # or scripts/update.sh v0.1.4
 ```
 
 Forge: `git pull`, `composer install --no-dev`, `npm ci && npm run build`, `migrate --force`, `queue:restart`.
 
-`PHARE_UPDATE_CHECK=false` disables daily GitHub checks.
+`NOCLINE_UPDATE_CHECK=false` disables daily GitHub checks.
 
 ## Upgrade agents
 

@@ -7,21 +7,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 beforeEach(function () {
-    $this->tmp = sys_get_temp_dir().'/phare-setup-'.uniqid();
+    $this->tmp = sys_get_temp_dir().'/nocline-setup-'.uniqid();
     File::ensureDirectoryExists($this->tmp);
     File::put($this->tmp.'/.env', "APP_NAME=Old\nAPP_KEY=base64:abc\n");
 
     config([
-        'phare.force_installed' => false,
-        'phare.env_path' => $this->tmp.'/.env',
-        'phare.installed_marker' => $this->tmp.'/installed',
+        'nocline.force_installed' => false,
+        'nocline.env_path' => $this->tmp.'/.env',
+        'nocline.installed_marker' => $this->tmp.'/installed',
     ]);
 });
 
 afterEach(function () {
     // Restore the default connection so RefreshDatabase rolls back the right one.
     config(['database.default' => 'sqlite']);
-    DB::purge('phare_setup');
+    DB::purge('nocline_setup');
     File::deleteDirectory($this->tmp);
 });
 
@@ -54,7 +54,7 @@ it('reports database connectivity on the wizard', function () {
 });
 
 it('locks the wizard once installed and sends visitors to the login', function () {
-    config(['phare.force_installed' => true]);
+    config(['nocline.force_installed' => true]);
 
     $this->get(route('setup.show'))->assertRedirect(route('login'));
     $this->post(route('setup.store'), setupPayload())->assertRedirect(route('login'));
@@ -72,7 +72,7 @@ it('installs: migrates, creates the admin, writes .env and locks the wizard', fu
         ->toContain('APP_KEY=base64:abc')
         ->and(File::exists($this->tmp.'/installed'))->toBeTrue();
 
-    $admin = User::on('phare_setup')->where('email', 'root@example.com')->first();
+    $admin = User::on('nocline_setup')->where('email', 'root@example.com')->first();
     expect($admin->role)->toBe(UserRole::Admin)
         ->and($admin->email_verified_at)->not->toBeNull();
 });

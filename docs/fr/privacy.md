@@ -1,6 +1,6 @@
 # Données personnelles & coffre (self-hosted)
 
-Phare est **self-hosted** : l’instance que tu déploies fait de toi le **responsable de traitement** au sens RGPD.
+Nocline est **self-hosted** : l’instance que tu déploies fait de toi le **responsable de traitement** au sens RGPD.
 
 ## Données traitées
 

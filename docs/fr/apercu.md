@@ -1,12 +1,12 @@
 # Aperçu
 
-Site généré avec [VitePress](https://vitepress.dev) et publié sur [GitHub Pages](https://mchev.github.io/phare/).
+Site généré avec [VitePress](https://vitepress.dev) et publié sur [GitHub Pages](https://mchev.github.io/nocline/).
 
-Install rapide : voir le [README sur GitHub](https://github.com/mchev/phare#installation). Contribution : [CONTRIBUTING.md](https://github.com/mchev/phare/blob/main/CONTRIBUTING.md).
+Install rapide : voir le [README sur GitHub](https://github.com/mchev/nocline#installation). Contribution : [CONTRIBUTING.md](https://github.com/mchev/nocline/blob/main/CONTRIBUTING.md).
 
 ## Captures (jeu démo)
 
-`php artisan phare:demo:seed` puis `php artisan phare:demo:simulate`.
+`php artisan nocline:demo:seed` puis `php artisan nocline:demo:simulate`.
 
 |                    |                                                                                                                                                                            |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -17,7 +17,7 @@ Install rapide : voir le [README sur GitHub](https://github.com/mchev/phare#inst
 
 ## Index technique
 
-- **Agent Go** : [agent/README.md](https://github.com/mchev/phare/blob/main/agent/README.md)
-- **Modules Laravel** : [app/Modules/README.md](https://github.com/mchev/phare/blob/main/app/Modules/README.md)
-- **Package `phare/laravel`** : [packages/phare-laravel/README.md](https://github.com/mchev/phare/blob/main/packages/phare-laravel/README.md)
-- **OpenAPI** : [openapi.yaml](https://github.com/mchev/phare/blob/main/docs/openapi.yaml)
+- **Agent Go** : [agent/README.md](https://github.com/mchev/nocline/blob/main/agent/README.md)
+- **Modules Laravel** : [app/Modules/README.md](https://github.com/mchev/nocline/blob/main/app/Modules/README.md)
+- **Package `nocline/laravel`** : [packages/nocline-laravel/README.md](https://github.com/mchev/nocline/blob/main/packages/nocline-laravel/README.md)
+- **OpenAPI** : [openapi.yaml](https://github.com/mchev/nocline/blob/main/docs/openapi.yaml)

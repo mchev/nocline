@@ -32,7 +32,7 @@
             }
         </style>
 
-        <meta name="theme-color" content="#f4512a" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#365cf5" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="#252b24" media="(prefers-color-scheme: dark)">
         <link rel="manifest" href="/site.webmanifest">
         <link rel="icon" href="/favicon.ico" sizes="any">
@@ -43,7 +43,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'Phare') }}</title>
+            <title>{{ config('app.name', 'Nocline') }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

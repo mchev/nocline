@@ -23,7 +23,7 @@ class HostMetricAlerts
      */
     public static function defaults(): array
     {
-        $defaults = config('phare.metric_alerts', []);
+        $defaults = config('nocline.metric_alerts', []);
 
         return [
             'enabled' => (bool) ($defaults['enabled'] ?? true),

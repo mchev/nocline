@@ -58,6 +58,7 @@ final class WebsiteMonitorRows
                     'ssl_status' => WebsiteSslStatus::forCheck($c, $ssl),
                     'ssl_days_remaining' => $ssl !== null && $ssl->check_error === null ? $ssl->daysRemaining() : null,
                     'site_framework' => SiteFrameworkTag::fromCheck($c)?->value,
+                    'wordpress_version' => WordPressSiteMeta::version($c),
                 ];
             })
             ->sortBy([

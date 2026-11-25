@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Console\Commands\Phare;
+namespace App\Console\Commands\Nocline;
 
 use Database\Seeders\DemoSeeder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:demo:seed')]
+#[Signature('nocline:demo:seed')]
 #[Description('Seed a full demo dataset (groups, hosts, checks, status page, wallboard…) without wiping the database')]
 class SeedDemoCommand extends Command
 {

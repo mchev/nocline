@@ -1,16 +1,16 @@
 <?php
 
-namespace Phare\Laravel;
+namespace Nocline\Laravel;
 
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Sends heartbeat pings to a Phare hub. It never throws and never waits longer than the configured
+ * Sends heartbeat pings to a Nocline hub. It never throws and never waits longer than the configured
  * timeout, so a hub outage cannot break or slow the host application.
  */
-final class PhareClient
+final class NoclineClient
 {
     /**
      * @param  array<string, string>  $heartbeats  name => token
@@ -25,7 +25,7 @@ final class PhareClient
     ) {}
 
     /**
-     * Tell Phare the job ran fine. Returns whether the hub acknowledged it.
+     * Tell Nocline the job ran fine. Returns whether the hub acknowledged it.
      */
     public function heartbeat(?string $tokenOrName = null, ?string $message = null): bool
     {
@@ -33,7 +33,7 @@ final class PhareClient
     }
 
     /**
-     * Tell Phare the job failed (opens an incident right away); the optional message shows in Phare.
+     * Tell Nocline the job failed (opens an incident right away); the optional message shows in Nocline.
      */
     public function fail(?string $tokenOrName = null, ?string $message = null): bool
     {
@@ -57,7 +57,7 @@ final class PhareClient
     private function send(?string $url, ?string $message): bool
     {
         if ($url === null) {
-            $this->logger->debug('Phare ping skipped: PHARE_URL or the heartbeat token is not configured.');
+            $this->logger->debug('Nocline ping skipped: NOCLINE_URL or the heartbeat token is not configured.');
 
             return false;
         }
@@ -71,7 +71,7 @@ final class PhareClient
                 ->successful();
         } catch (Throwable $e) {
             // The exception message embeds the URL (and so the secret token): log the class only.
-            $this->logger->debug('Phare ping failed: '.$e::class);
+            $this->logger->debug('Nocline ping failed: '.$e::class);
 
             return false;
         }

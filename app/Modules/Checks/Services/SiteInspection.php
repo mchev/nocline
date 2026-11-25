@@ -5,7 +5,7 @@ namespace App\Modules\Checks\Services;
 use App\Modules\Checks\Enums\SiteFramework;
 
 /**
- * What Phare found out about a website address.
+ * What Nocline found out about a website address.
  */
 final readonly class SiteInspection
 {
@@ -20,6 +20,7 @@ final readonly class SiteInspection
         public array $reasons = [],
         public bool $hasHealthEndpoint = false,
         public ?int $certificateDaysLeft = null,
+        public ?string $wordpressVersion = null,
     ) {}
 
     public static function unreachable(): self
@@ -30,7 +31,7 @@ final readonly class SiteInspection
     /**
      * Plain-language payload for the wizard.
      *
-     * @return array{reachable: bool, final_url: ?string, status_code: ?int, framework: string, reasons: array<int, string>, has_health_endpoint: bool, certificate_days_left: ?int, summary: string, suggestions: array<int, array{key: string, label: string, description: string, default: bool}>}
+     * @return array{reachable: bool, final_url: ?string, status_code: ?int, framework: string, reasons: array<int, string>, has_health_endpoint: bool, certificate_days_left: ?int, wordpress_version: ?string, summary: string, suggestions: array<int, array{key: string, label: string, description: string, default: bool}>}
      */
     public function toResponse(): array
     {
@@ -42,6 +43,7 @@ final readonly class SiteInspection
             'reasons' => $this->reasons,
             'has_health_endpoint' => $this->hasHealthEndpoint,
             'certificate_days_left' => $this->certificateDaysLeft,
+            'wordpress_version' => $this->wordpressVersion,
             'summary' => $this->summary(),
             'suggestions' => $this->suggestions(),
         ];

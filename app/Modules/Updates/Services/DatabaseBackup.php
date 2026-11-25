@@ -25,7 +25,7 @@ class DatabaseBackup
             return null;
         }
 
-        $directory = (string) config('phare.backup_dir');
+        $directory = (string) config('nocline.backup_dir');
 
         if (! is_dir($directory) && ! mkdir($directory, 0775, true) && ! is_dir($directory)) {
             throw new \RuntimeException("Cannot create {$directory}.");

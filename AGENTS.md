@@ -1,17 +1,17 @@
-# Phare — agent instructions
+# Nocline — agent instructions
 
-Ce dépôt est **Phare** (plateforme ops self-hosted OSS).
+Ce dépôt est **Nocline** (plateforme ops self-hosted OSS).
 
 | Priorité          | Ressource                                                                 |
 | ----------------- | ------------------------------------------------------------------------- |
-| Guideline produit | `.cursor/skills/phare/SKILL.md`                                           |
-| Spec technique    | `.cursor/skills/phare/reference.md`                                       |
-| Doc (site)        | [mchev.github.io/phare](https://mchev.github.io/phare/) · sources `docs/` |
+| Guideline produit | `.cursor/skills/nocline/SKILL.md`                                           |
+| Spec technique    | `.cursor/skills/nocline/reference.md`                                       |
+| Doc (site)        | [mchev.github.io/nocline](https://mchev.github.io/nocline/) · sources `docs/` |
 | Roadmap           | `docs/roadmap.md`                                                         |
 | Agent Go          | `agent/README.md`                                                         |
 | Modules Laravel   | `app/Modules/README.md`                                                   |
 
-Activer la skill **phare** pour tout travail checks, sondes, métriques, incidents, wallboard ou coffre.
+Activer la skill **nocline** pour tout travail checks, sondes, métriques, incidents, wallboard ou coffre.
 
 ---
 
@@ -199,7 +199,7 @@ Use Wayfinder to generate TypeScript functions for Laravel routes. Import from `
 
 ## Running Tests
 
-- Run the narrowest set of tests that covers the change. Pass a file path or `--filter=testName` to `php artisan test --compact`.
+- Run the narrowest set of tests that covers the change. Prefer `vendor/bin/pest --compact` (or `composer test`) over `php artisan test` in scripted/CI environments — with a TTY, `artisan test` can stall for minutes on output. Pass a file path or `--filter=testName`.
 - Rerun a test after each change to it.
 - Run `vendor/bin/pest` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
 

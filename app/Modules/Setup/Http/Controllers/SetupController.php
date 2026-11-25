@@ -74,7 +74,7 @@ class SetupController extends Controller
         session(['locale' => $data['instance']['locale']]);
 
         // Full page load: the session/cache drivers changed with the new .env, so start from a clean state.
-        session()->flash('status', __('Phare is installed. Sign in with the administrator account.'));
+        session()->flash('status', __('Nocline is installed. Sign in with the administrator account.'));
 
         return Inertia::location(route('login'));
     }

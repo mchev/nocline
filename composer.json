@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "phare/phare",
+    "name": "nocline/nocline",
     "type": "project",
-    "description": "Phare — self-hosted NOC (checks, probes, metrics, incidents, wallboard).",
+    "description": "Nocline — self-hosted NOC (checks, probes, metrics, incidents, wallboard).",
     "keywords": [
         "laravel",
         "monitoring",
@@ -69,16 +69,25 @@
             "Composer\\Config::disableProcessTimeout",
             "npm run check",
             "npm run types:check",
-            "@test"
+            "@php artisan config:clear --ansi",
+            "@lint:check",
+            "@types:check",
+            "@test:pest:parallel"
         ],
         "types:check": [
             "phpstan analyse"
+        ],
+        "test:pest": [
+            "@php vendor/bin/pest --compact"
+        ],
+        "test:pest:parallel": [
+            "@php vendor/bin/pest --compact --parallel"
         ],
         "test": [
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",
-            "@php artisan test"
+            "@test:pest"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

@@ -27,7 +27,7 @@ const select =
     <PageContainer>
         <PageHeader
             :title="$t('Users')"
-            :description="$t('People who can sign in to this Phare instance.')"
+            :description="$t('People who can sign in to this Nocline instance.')"
         />
 
         <Form

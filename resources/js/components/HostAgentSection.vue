@@ -142,7 +142,7 @@ function onAgentAutoUpdateChange(event: Event) {
                     id="host-agent-heading"
                     class="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
                 >
-                    {{ t('phare-agent') }}
+                    {{ t('nocline-agent') }}
                 </h2>
                 <span class="chip text-xs" :class="statusChip.class">{{
                     statusChip.label

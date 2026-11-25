@@ -18,8 +18,8 @@ Pas de rotation automatique de la clé maître pour l'instant (prévue ; à docu
 Menu **Renouvellements** : tout est **automatique** et en lecture seule. Il n'y a rien à saisir : ajoutez un site à surveiller (check HTTP) et l'expiration de son nom de domaine et de son certificat SSL apparaissent ici.
 
 - **Résumé en haut** : « N éléments expirent dans les 30 prochains jours ». La liste est groupée par urgence : _Expiré_, _Sous 30 jours_, _Plus tard_, avec le site, le groupe, la date et « dans N jours ».
-- **Domaines** : chaque nuit (03:00) Phare interroge RDAP (service public, sans clé) pour lire la date d'expiration du nom de domaine de chaque check HTTP actif. Un seul élément par domaine, même s'il est partagé par plusieurs sites. Si la date est introuvable (extension non prise en charge, adresse IP, `localhost`, `.test`, `.local`, service injoignable), le domaine n'est pas ajouté et l'ancienne date est conservée.
-- **SSL** : chaque nuit (02:30), Phare lit le certificat de chaque check `https` (une ligne par check, sans historique).
+- **Domaines** : chaque nuit (03:00) Nocline interroge RDAP (service public, sans clé) pour lire la date d'expiration du nom de domaine de chaque check HTTP actif. Un seul élément par domaine, même s'il est partagé par plusieurs sites. Si la date est introuvable (extension non prise en charge, adresse IP, `localhost`, `.test`, `.local`, service injoignable), le domaine n'est pas ajouté et l'ancienne date est conservée.
+- **SSL** : chaque nuit (02:30), Nocline lit le certificat de chaque check `https` (une ligne par check, sans historique).
 - **Nouveau site** : à la création d'un check HTTP, le domaine et le SSL sont actualisés en arrière-plan.
 - **Actualiser maintenant** (admin et tech) : relance la lecture pour tous les sites (limité à 3 fois par minute). Nécessite un worker de files actif.
 - Les anciennes lignes saisies à la main restent affichées en lecture seule ; elles ne sont plus modifiables ni créables.

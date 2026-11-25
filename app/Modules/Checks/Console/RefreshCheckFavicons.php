@@ -10,7 +10,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:checks:refresh-favicons
+#[Signature('nocline:checks:refresh-favicons
     {--all : Refresh every website check, not only stale ones}
     {--stale-days=7 : Re-fetch when older than this many days}')]
 #[Description('Re-download website favicons and flag when the icon fingerprint changes')]

@@ -34,7 +34,7 @@ const select =
     'h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40 focus-visible:outline-none';
 const enrollCommand = computed(() =>
     enrollment.value
-        ? `phare-agent enroll --hub ${hubUrl} --token ${enrollment.value.token}`
+        ? `nocline-agent enroll --hub ${hubUrl} --token ${enrollment.value.token}`
         : '',
 );
 

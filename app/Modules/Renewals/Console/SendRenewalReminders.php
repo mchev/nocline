@@ -9,7 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:renewals:remind')]
+#[Signature('nocline:renewals:remind')]
 #[Description('Send one reminder per crossed threshold (30/14/7/1 days by default) for upcoming expirations')]
 class SendRenewalReminders extends Command
 {

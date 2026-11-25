@@ -140,11 +140,11 @@ it('records a vault reveal in the audit log without the secret', function () {
 });
 
 it('prunes entries older than the retention period', function () {
-    config(['phare.audit_retention_days' => 30]);
+    config(['nocline.audit_retention_days' => 30]);
     $old = AuditLog::create(['action' => 'check.created', 'created_at' => now()->subDays(31)]);
     $recent = AuditLog::create(['action' => 'check.created', 'created_at' => now()->subDays(29)]);
 
-    $this->artisan('phare:audit:prune')->assertSuccessful();
+    $this->artisan('nocline:audit:prune')->assertSuccessful();
 
     expect(AuditLog::find($old->id))->toBeNull()->and(AuditLog::find($recent->id))->not->toBeNull();
 });

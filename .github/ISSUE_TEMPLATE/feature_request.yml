@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Phare must stay usable by someone who knows nothing about IT. Tell us about the problem first; the solution can come after.
+        Nocline must stay usable by someone who knows nothing about IT. Tell us about the problem first; the solution can come after.
         Want to add a notification channel? See `docs/contributing/notification-adapters.md` and use the `adapter` label.
   - type: textarea
     id: problem

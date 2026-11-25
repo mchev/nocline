@@ -27,6 +27,8 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    private const OVERVIEW_WEBSITE_LIMIT = 40;
+
     /** @var array{problems: list<array<string, mixed>>, maintenance: list<array<string, mixed>>}|null */
     private ?array $problemsCache = null;
 
@@ -129,6 +131,7 @@ class DashboardController extends Controller
      * @return array{
      *     sites: list<array<string, mixed>>,
      *     servers: list<array<string, mixed>>,
+     *     object_storage: list<array<string, mixed>>,
      *     heartbeats: list<array<string, mixed>>,
      *     renewals: list<array<string, mixed>>
      * }
@@ -138,20 +141,29 @@ class DashboardController extends Controller
         $sites = Check::query()
             ->with('state')
             ->where('category', CheckCategory::Website)
-            ->orderBy('name')
-            ->limit(40)
             ->get()
             ->reject(fn (Check $c) => SiteHealthCompanion::looksLikeHealthCompanion($c))
             ->values();
         $hosts = $this->enrolledHosts();
         $series = $metrics->forHosts($hosts, 24);
 
+        $objectStorage = Check::query()
+            ->with('state')
+            ->whereJsonContains('tags', 'object-storage')
+            ->orderBy('name')
+            ->limit(40)
+            ->get();
+        $osMaint = array_flip($maintenance->activeCheckIds($objectStorage));
+
         $heartbeats = Check::query()
             ->with('state')
             ->where('type', CheckType::Heartbeat)
             ->orderBy('name')
-            ->limit(40)
-            ->get();
+            ->limit(60)
+            ->get()
+            ->reject(fn (Check $c) => in_array('object-storage', $c->tags ?? [], true))
+            ->values()
+            ->take(40);
         $hbMaint = array_flip($maintenance->activeCheckIds($heartbeats));
 
         $renewals = Renewal::query()
@@ -160,10 +172,14 @@ class DashboardController extends Controller
             ->limit(20)
             ->get(['id', 'label', 'kind', 'expires_on']);
 
-        $tracked = $sites->concat($heartbeats)->unique('id');
+        $tracked = $sites->concat($objectStorage)->concat($heartbeats)->unique('id');
         $histories = $history->forChecks($tracked, $maintenance, null, HistoryWindow::dashboard());
 
-        $siteRows = app(WebsiteMonitorRows::class)->rows($sites);
+        $siteRows = array_slice(
+            app(WebsiteMonitorRows::class)->rows($sites),
+            0,
+            self::OVERVIEW_WEBSITE_LIMIT,
+        );
 
         $serverRows = $hosts->map(function (Host $h) use ($series, $releaseChecker) {
             $m = $series[$h->id] ?? [
@@ -193,6 +209,26 @@ class DashboardController extends Controller
 
         $serverRows = array_values($serverRows);
 
+        $objectStorageRows = $objectStorage->map(fn (Check $c) => [
+            'id' => $c->id,
+            'name' => $c->name,
+            'target' => $c->target,
+            'status' => $c->state?->status->value ?? 'unknown',
+            'since_at' => $c->state?->since_at?->toIso8601String(),
+            'latency_ms' => $c->state?->last_latency_ms,
+            'in_maintenance' => isset($osMaint[$c->id]),
+            'enabled' => $c->enabled,
+            'grace_sec' => $c->type === CheckType::Heartbeat ? $c->heartbeatGraceSeconds() : null,
+            'history' => $histories[$c->id]['history'] ?? [],
+            'timeline' => $histories[$c->id]['timeline'] ?? [],
+            'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
+        ])->sortBy([
+            fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']),
+            fn (array $row) => $row['name'],
+        ])->values()->all();
+
+        $objectStorageRows = array_values($objectStorageRows);
+
         $heartbeatRows = $heartbeats->map(fn (Check $c) => [
             'id' => $c->id,
             'name' => $c->name,
@@ -214,6 +250,7 @@ class DashboardController extends Controller
         return [
             'sites' => $siteRows,
             'servers' => $serverRows,
+            'object_storage' => $objectStorageRows,
             'heartbeats' => $heartbeatRows,
             'renewals' => array_values($renewals->map(fn (Renewal $r) => [
                 'id' => $r->id,

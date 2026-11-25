@@ -33,7 +33,7 @@ A failure opens one **incident** per check until it recovers. A `tech` or `admin
 
 ### Snooze
 
-On a check or from **Incidents**: **Snooze 4h** stops notifications (incident still visible). When snooze ends, if the incident is still open and was not notified, alerting resumes (`phare:alerts:release-snoozes` every minute).
+On a check or from **Incidents**: **Snooze 4h** stops notifications (incident still visible). When snooze ends, if the incident is still open and was not notified, alerting resumes (`nocline:alerts:release-snoozes` every minute).
 
 ### Slow HTTP responses
 

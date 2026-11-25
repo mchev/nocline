@@ -1,6 +1,6 @@
 name: release
 
-# Push a tag vX.Y.Z (VERSION file must match) → build phare-agent and attach Linux binaries to the GitHub release.
+# Push a tag vX.Y.Z (VERSION file must match) → build nocline-agent and attach Linux binaries to the GitHub release.
 # To fix an empty release: Actions → release → Run workflow → enter the tag (e.g. v0.1.0).
 on:
   push:
@@ -41,18 +41,18 @@ jobs:
           go-version-file: agent/go.mod
 
       - name: Build the agent
-        run: PHARE_AGENT_BINARY_DIR="$PWD/dist" scripts/build-agent.sh
+        run: NOCLINE_AGENT_BINARY_DIR="$PWD/dist" scripts/build-agent.sh
 
       - name: SHA256 checksums
         run: |
           for arch in amd64 arm64; do
-            sha256sum "dist/phare-agent-linux-$arch" | awk '{print $1}' >"dist/phare-agent-linux-$arch.sha256"
+            sha256sum "dist/nocline-agent-linux-$arch" | awk '{print $1}' >"dist/nocline-agent-linux-$arch.sha256"
           done
 
       - name: Verify agent binaries
         run: |
           for arch in amd64 arm64; do
-            file="dist/phare-agent-linux-$arch"
+            file="dist/nocline-agent-linux-$arch"
             test -f "$file"
             test "$(stat -c%s "$file")" -gt 1000000
           done
@@ -61,11 +61,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.name }}
-          name: Phare ${{ steps.tag.outputs.name }}
+          name: Nocline ${{ steps.tag.outputs.name }}
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
-            dist/phare-agent-linux-amd64
-            dist/phare-agent-linux-arm64
-            dist/phare-agent-linux-amd64.sha256
-            dist/phare-agent-linux-arm64.sha256
+            dist/nocline-agent-linux-amd64
+            dist/nocline-agent-linux-arm64
+            dist/nocline-agent-linux-amd64.sha256
+            dist/nocline-agent-linux-arm64.sha256

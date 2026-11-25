@@ -16,6 +16,7 @@ use App\Modules\Checks\Support\HistoryWindow;
 use App\Modules\Checks\Support\SiteFrameworkTag;
 use App\Modules\Checks\Support\SiteHealthCompanion;
 use App\Modules\Checks\Support\WebsiteSslStatus;
+use App\Modules\Checks\Support\WordPressSiteMeta;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
@@ -97,6 +98,7 @@ class CheckController extends Controller
                         'ssl_status' => WebsiteSslStatus::forCheck($c, $ssl),
                         'ssl_days_remaining' => $ssl !== null && $ssl->check_error === null ? $ssl->daysRemaining() : null,
                         'site_framework' => SiteFrameworkTag::fromCheck($c)?->value,
+                        'wordpress_version' => WordPressSiteMeta::version($c),
                     ];
                 })->values();
             }, $live),
@@ -353,6 +355,7 @@ class CheckController extends Controller
             'ssl_status' => WebsiteSslStatus::forCheck($c, $ssl),
             'ssl_days_remaining' => $ssl !== null && $ssl->check_error === null ? $ssl->daysRemaining() : null,
             'site_framework' => SiteFrameworkTag::fromCheck($c)?->value,
+            'wordpress_version' => WordPressSiteMeta::version($c),
             'created_at' => $c->created_at?->toIso8601String(),
             'config' => $c->config ?? [],
             'alerts_snoozed_until' => $c->alerts_snoozed_until?->toIso8601String(),

@@ -5,28 +5,28 @@ Official Compose stack: **web app + PostgreSQL + Redis + queue worker + schedule
 ## Quick start
 
 ```bash
-git clone https://github.com/mchev/phare.git
-cd phare
+git clone https://github.com/mchev/nocline.git
+cd nocline
 cp .env.docker.example .env
 docker compose up -d --build
 ```
 
-Open `http://localhost:8080/setup` and finish the wizard (or set `PHARE_AUTO_INSTALL=true` in `.env` before `up` — see below).
+Open `http://localhost:8080/setup` and finish the wizard (or set `NOCLINE_AUTO_INSTALL=true` in `.env` before `up` — see below).
 
-Persistent data: Docker volumes `phare-storage`, `phare-postgres`. Back up volumes before upgrades.
+Persistent data: Docker volumes `nocline-storage`, `nocline-postgres`. Back up volumes before upgrades.
 
 ## Auto-install (optional)
 
 In `.env` (copied from `.env.docker.example`):
 
 ```env
-PHARE_AUTO_INSTALL=true
-PHARE_INSTALL_ADMIN_EMAIL=admin@example.com
-PHARE_INSTALL_ADMIN_PASSWORD=ChangeMe-Secret1!
-PHARE_INSTALL_URL=http://localhost:8080
+NOCLINE_AUTO_INSTALL=true
+NOCLINE_INSTALL_ADMIN_EMAIL=admin@example.com
+NOCLINE_INSTALL_ADMIN_PASSWORD=ChangeMe-Secret1!
+NOCLINE_INSTALL_URL=http://localhost:8080
 ```
 
-Password must meet the same rules as the wizard (12+ chars, mixed case, digit, symbol). On first boot the container runs `phare:install` against the `postgres` service, then locks `/setup`.
+Password must meet the same rules as the wizard (12+ chars, mixed case, digit, symbol). On first boot the container runs `nocline:install` against the `postgres` service, then locks `/setup`.
 
 ## Architecture
 
@@ -43,7 +43,7 @@ All PHP containers share the same image built from the repo `Dockerfile` (assets
 ## Customize
 
 - **Port:** change `APP_PORT` in `.env` (default `8080`).
-- **Public URL** for agents: set `PHARE_PUBLIC_URL` after you put a reverse proxy in front.
+- **Public URL** for agents: set `NOCLINE_PUBLIC_URL` after you put a reverse proxy in front.
 - **SQLite-only experiment:** not the default Compose profile — see [installation](../user/installation) for manual SQLite on a VPS.
 
 ## Production notes

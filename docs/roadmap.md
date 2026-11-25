@@ -40,8 +40,8 @@ Aligned with the [product guideline](/guideline/SKILL).
 - [x] Setup wizard (language first)
 - [x] Check organisation (group, category, tags, bulk actions)
 - [x] Auto-detection on website add (Laravel/WordPress, SSRF-safe)
-- [x] REST API v1 + heartbeats + `phare/laravel` package (unpublished)
+- [x] REST API v1 + heartbeats + `nocline/laravel` package (unpublished)
 - [x] No public registration
-- [x] GitHub release checks + `scripts/update.sh` + `phare:update`
+- [x] GitHub release checks + `scripts/update.sh` + `nocline:update`
 - [x] Official **Docker Compose** stack
 - [ ] One-click agent upgrade from UI (later)

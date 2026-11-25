@@ -1,6 +1,6 @@
 # Privacy and vault data (self-hosted)
 
-Phare is **self-hosted**: the instance you operate makes **you** the data controller (GDPR sense).
+Nocline is **self-hosted**: the instance you operate makes **you** the data controller (GDPR sense).
 
 ## Data processed
 

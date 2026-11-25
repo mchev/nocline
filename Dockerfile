@@ -50,10 +50,10 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/zz-docker.conf
-COPY docker/entrypoint.sh /usr/local/bin/phare-entrypoint.sh
-RUN chmod +x /usr/local/bin/phare-entrypoint.sh
+COPY docker/entrypoint.sh /usr/local/bin/nocline-entrypoint.sh
+RUN chmod +x /usr/local/bin/nocline-entrypoint.sh
 
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/local/bin/phare-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/nocline-entrypoint.sh"]
 CMD ["web"]

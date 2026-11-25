@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import AppWordmark from '@/components/AppWordmark.vue';
 import { home } from '@/routes';
 import { t } from '@/lib/i18n';
 
@@ -26,11 +27,7 @@ const { title = '', description = '' } = defineProps<{
                 >
                     <AppLogoIcon class="size-4" />
                 </span>
-                <span
-                    class="font-display text-lg font-semibold tracking-tight lowercase"
-                >
-                    phare<span class="text-primary">.</span>
-                </span>
+                <AppWordmark class="h-[1.125rem]" />
             </Link>
 
             <header v-if="title" class="space-y-1.5">

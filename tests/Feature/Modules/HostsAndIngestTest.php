@@ -88,7 +88,7 @@ it('prunes rollups beyond retention', function () {
     $row(300, 80);
     $row(300, 100);
 
-    $this->artisan('phare:metrics:prune')->assertSuccessful();
+    $this->artisan('nocline:metrics:prune')->assertSuccessful();
 
     expect(MetricRollup::count())->toBe(2);
 });
@@ -115,8 +115,8 @@ it('rolls 1m buckets into weighted 5m and 1h buckets idempotently', function () 
         ]);
     }
 
-    $this->artisan('phare:metrics:rollup')->assertSuccessful();
-    $this->artisan('phare:metrics:rollup')->assertSuccessful();
+    $this->artisan('nocline:metrics:rollup')->assertSuccessful();
+    $this->artisan('nocline:metrics:rollup')->assertSuccessful();
 
     $five = MetricRollup::where('bucket_size', 300)->sole();
     $hour = MetricRollup::where('bucket_size', 3600)->sole();

@@ -65,7 +65,7 @@ func execHTTP(ctx context.Context, c Check) Result {
 	if err != nil {
 		return finish(c, start, err, nil)
 	}
-	req.Header.Set("User-Agent", "phare-probe/1")
+	req.Header.Set("User-Agent", "nocline-probe/1")
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy:             nil,

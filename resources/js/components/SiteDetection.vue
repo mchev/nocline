@@ -15,6 +15,7 @@ type Suggestion = {
 type Detection = {
     reachable: boolean;
     framework: 'laravel' | 'wordpress' | 'unknown';
+    wordpress_version?: string | null;
     reasons: string[];
     summary: string;
     suggestions: Suggestion[];
@@ -163,6 +164,21 @@ defineExpose({ inspect });
                     <CircleHelp v-else class="size-4" aria-hidden="true" />
                 </span>
                 <span class="min-w-0 pt-1">{{ result.summary }}</span>
+            </p>
+
+            <p
+                v-if="
+                    result.reachable &&
+                    result.framework === 'wordpress' &&
+                    result.wordpress_version
+                "
+                class="ps-10 text-xs font-medium text-foreground"
+            >
+                {{
+                    t('WordPress :version', {
+                        version: result.wordpress_version,
+                    })
+                }}
             </p>
 
             <ul

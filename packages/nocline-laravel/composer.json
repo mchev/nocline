@@ -1,8 +1,8 @@
 {
-    "name": "phare/laravel",
-    "description": "Phare client for Laravel: ping your Phare hub from the scheduler and from jobs (heartbeat / dead man's switch monitoring).",
+    "name": "nocline/laravel",
+    "description": "Nocline client for Laravel: ping your Nocline hub from the scheduler and from jobs (heartbeat / dead man's switch monitoring).",
     "type": "library",
-    "keywords": ["laravel", "phare", "heartbeat", "cron", "monitoring", "scheduler"],
+    "keywords": ["laravel", "nocline", "heartbeat", "cron", "monitoring", "scheduler"],
     "require": {
         "php": "^8.2",
         "illuminate/console": "^11.0|^12.0|^13.0",
@@ -11,16 +11,16 @@
     },
     "autoload": {
         "psr-4": {
-            "Phare\\Laravel\\": "src/"
+            "Nocline\\Laravel\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Phare\\Laravel\\PhareServiceProvider"
+                "Nocline\\Laravel\\NoclineServiceProvider"
             ],
             "aliases": {
-                "Phare": "Phare\\Laravel\\Facades\\Phare"
+                "Nocline": "Nocline\\Laravel\\Facades\\Nocline"
             }
         }
     },

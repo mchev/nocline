@@ -1,7 +1,7 @@
 services:
     app:
         build: .
-        image: phare-hub:local
+        image: nocline-hub:local
         restart: unless-stopped
         ports:
             - '${APP_PORT:-8080}:8080'
@@ -11,7 +11,7 @@ services:
             APP_ENV: production
             APP_DEBUG: 'false'
         volumes:
-            - phare-storage:/var/www/html/storage
+            - nocline-storage:/var/www/html/storage
         depends_on:
             postgres:
                 condition: service_healthy
@@ -19,7 +19,7 @@ services:
                 condition: service_started
 
     worker:
-        image: phare-hub:local
+        image: nocline-hub:local
         restart: unless-stopped
         command: ['worker']
         env_file:
@@ -28,13 +28,13 @@ services:
             APP_ENV: production
             APP_DEBUG: 'false'
         volumes:
-            - phare-storage:/var/www/html/storage
+            - nocline-storage:/var/www/html/storage
         depends_on:
             app:
                 condition: service_started
 
     scheduler:
-        image: phare-hub:local
+        image: nocline-hub:local
         restart: unless-stopped
         command: ['scheduler']
         env_file:
@@ -43,7 +43,7 @@ services:
             APP_ENV: production
             APP_DEBUG: 'false'
         volumes:
-            - phare-storage:/var/www/html/storage
+            - nocline-storage:/var/www/html/storage
         depends_on:
             app:
                 condition: service_started
@@ -52,13 +52,13 @@ services:
         image: postgres:16-alpine
         restart: unless-stopped
         environment:
-            POSTGRES_DB: phare
-            POSTGRES_USER: phare
-            POSTGRES_PASSWORD: phare
+            POSTGRES_DB: nocline
+            POSTGRES_USER: nocline
+            POSTGRES_PASSWORD: nocline
         volumes:
-            - phare-postgres:/var/lib/postgresql/data
+            - nocline-postgres:/var/lib/postgresql/data
         healthcheck:
-            test: ['CMD-SHELL', 'pg_isready -U phare -d phare']
+            test: ['CMD-SHELL', 'pg_isready -U nocline -d nocline']
             interval: 5s
             timeout: 5s
             retries: 10
@@ -68,5 +68,5 @@ services:
         restart: unless-stopped
 
 volumes:
-    phare-storage:
-    phare-postgres:
+    nocline-storage:
+    nocline-postgres:

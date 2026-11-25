@@ -11,7 +11,7 @@ it('returns a curl install line to refresh an enrolled agent', function () {
 
     $response->assertOk()
         ->assertJsonStructure(['command', 'hub_version'])
-        ->assertJsonPath('hub_version', (string) config('phare.version'));
+        ->assertJsonPath('hub_version', (string) config('nocline.version'));
 
     expect($response->json('command'))->toContain('/install/agent-update.sh');
 });

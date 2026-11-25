@@ -50,13 +50,13 @@ const snippets = computed(() => [
     },
     {
         key: 'fail',
-        title: t('Also tell Phare when the task fails'),
+        title: t('Also tell Nocline when the task fails'),
         text: `/path/to/your-script.sh && ${curl.value} || ${curl.value.replace(props.url, `${props.url}/fail`)}`,
     },
     {
         key: 'laravel',
-        title: t('Laravel scheduler (package phare/laravel)'),
-        text: `// .env: PHARE_URL=${props.url.split('/api/')[0]}\n$schedule->command('backup:run')->daily()\n    ->pingPhareOnSuccess('${token.value}')\n    ->pingPhareOnFailure('${token.value}');`,
+        title: t('Laravel scheduler (package nocline/laravel)'),
+        text: `// .env: NOCLINE_URL=${props.url.split('/api/')[0]}\n$schedule->command('backup:run')->daily()\n    ->pingNoclineOnSuccess('${token.value}')\n    ->pingNoclineOnFailure('${token.value}');`,
     },
 ]);
 </script>
@@ -70,7 +70,7 @@ const snippets = computed(() => [
             :title="t('Connect “:name”', { name: check.name })"
             :description="
                 t(
-                    ':frequency, your task must visit the address below. If Phare hears nothing for :minutes minutes longer than expected, we warn you.',
+                    ':frequency, your task must visit the address below. If Nocline hears nothing for :minutes minutes longer than expected, we warn you.',
                     {
                         frequency: frequencyLabel(check.interval_sec),
                         minutes: Math.max(1, Math.round(check.grace_sec / 60)),
@@ -117,7 +117,7 @@ const snippets = computed(() => [
                     >
                         {{
                             t(
-                                'Warning: this address (localhost or .test) cannot be reached from another machine. Set the public address of Phare (APP_URL) first.',
+                                'Warning: this address (localhost or .test) cannot be reached from another machine. Set the public address of Nocline (APP_URL) first.',
                             )
                         }}
                     </p>

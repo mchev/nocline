@@ -2,13 +2,13 @@
 
 ## Monitor a scheduled task (heartbeat)
 
-Backups, cron, Laravel scheduler: **the job pings Phare**. Missed pings trigger alerts.
+Backups, cron, Laravel scheduler: **the job pings Nocline**. Missed pings trigger alerts.
 
 1. **Add monitor → Something else → Scheduled task** — name and expected frequency (minute, hour, day…).
-2. Phare shows a secret URL and copy-paste examples (cron, backup script, Laravel). The page updates when the first ping arrives.
+2. Nocline shows a secret URL and copy-paste examples (cron, backup script, Laravel). The page updates when the first ping arrives.
 3. Grace period (default 10% of interval, at least 60s) reduces false positives.
 
-In Laravel, `phare/laravel` (`packages/phare-laravel`) adds `->pingPhareOnSuccess('token')` and `->pingPhareOnFailure('token')`; it never slows the app if Phare is unreachable.
+In Laravel, `nocline/laravel` (`packages/nocline-laravel`) adds `->pingNoclineOnSuccess('token')` and `->pingNoclineOnFailure('token')`; it never slows the app if Nocline is unreachable.
 
 ## API tokens
 
@@ -16,4 +16,4 @@ In Laravel, `phare/laravel` (`packages/phare-laravel`) adds `->pingPhareOnSucces
 
 ## Automatic site detection
 
-When adding a website, Phare detects Laravel or WordPress and may suggest monitoring `/up`. See [Add monitors](surveiller#automatic-detection).
+When adding a website, Nocline detects Laravel or WordPress and may suggest monitoring `/up`. See [Add monitors](surveiller#automatic-detection).

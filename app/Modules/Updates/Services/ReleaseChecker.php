@@ -8,11 +8,11 @@ use Throwable;
 
 /**
  * Compares the installed version with the latest GitHub release. The result is cached: web requests
- * only ever read the cache, the daily `phare:update:check` command is the only thing that calls GitHub.
+ * only ever read the cache, the daily `nocline:update:check` command is the only thing that calls GitHub.
  */
 class ReleaseChecker
 {
-    private const CACHE_KEY = 'phare:latest-release';
+    private const CACHE_KEY = 'nocline:latest-release';
 
     /**
      * Ask GitHub for the latest release and cache it. Returns null when the check is disabled or fails.
@@ -21,14 +21,14 @@ class ReleaseChecker
      */
     public function refresh(): ?array
     {
-        $repository = config('phare.repository');
+        $repository = config('nocline.repository');
 
-        if (! config('phare.update_check') || ! is_string($repository) || $repository === '') {
+        if (! config('nocline.update_check') || ! is_string($repository) || $repository === '') {
             return null;
         }
 
         try {
-            $response = Http::acceptJson()->timeout(10)->withUserAgent('phare/'.config('phare.version'))
+            $response = Http::acceptJson()->timeout(10)->withUserAgent('nocline/'.config('nocline.version'))
                 ->get("https://api.github.com/repos/{$repository}/releases/latest");
         } catch (Throwable) {
             return null;
@@ -59,7 +59,7 @@ class ReleaseChecker
     {
         $cached = Cache::get(self::CACHE_KEY);
 
-        if (! is_array($cached) || ! config('phare.update_check') || ! is_string($cached['version'] ?? null)) {
+        if (! is_array($cached) || ! config('nocline.update_check') || ! is_string($cached['version'] ?? null)) {
             return null;
         }
 
@@ -70,7 +70,7 @@ class ReleaseChecker
             'published_at' => is_string($cached['published_at'] ?? null) ? $cached['published_at'] : null,
         ];
 
-        return version_compare($release['version'], (string) config('phare.version'), '>') ? $release : null;
+        return version_compare($release['version'], (string) config('nocline.version'), '>') ? $release : null;
     }
 
     /**
@@ -80,6 +80,6 @@ class ReleaseChecker
     {
         return $agentVersion !== null
             && preg_match('/^\d+\.\d+/', $agentVersion) === 1
-            && version_compare($agentVersion, (string) config('phare.version'), '<');
+            && version_compare($agentVersion, (string) config('nocline.version'), '<');
     }
 }

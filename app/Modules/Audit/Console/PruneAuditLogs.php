@@ -7,13 +7,13 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:audit:prune {--days= : Keep this many days (default: config phare.audit_retention_days)}')]
+#[Signature('nocline:audit:prune {--days= : Keep this many days (default: config nocline.audit_retention_days)}')]
 #[Description('Delete activity log entries older than the retention period')]
 class PruneAuditLogs extends Command
 {
     public function handle(): int
     {
-        $days = max(1, (int) ($this->option('days') ?: config('phare.audit_retention_days')));
+        $days = max(1, (int) ($this->option('days') ?: config('nocline.audit_retention_days')));
 
         $deleted = AuditLog::query()->where('created_at', '<', now()->subDays($days))->delete();
 

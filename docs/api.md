@@ -1,23 +1,23 @@
-# Phare REST API (v1)
+# Nocline REST API (v1)
 
 Everything the UI does for checks and groups can be automated with the REST API. JSON only, base path `/api/v1`.
 
 - [Authentication](#authentication)
 - [Conventions](#conventions) (pagination, errors, rate limits)
 - [Endpoints](#endpoints): [me](#current-user) · [checks](#checks) · [groups](#groups) · [hosts](#hosts) · [website monitor](#create-website-monitor)
-- [Heartbeat](#heartbeat-scheduled-task-monitoring) (public ping endpoint) and the [`phare/laravel` package](https://github.com/mchev/phare/tree/main/packages/phare-laravel)
+- [Heartbeat](#heartbeat-scheduled-task-monitoring) (public ping endpoint) and the [`nocline/laravel` package](https://github.com/mchev/nocline/tree/main/packages/nocline-laravel)
 - Machine-readable spec: [openapi.yaml](openapi.yaml) (OpenAPI 3.1)
 
-In the examples, `$PHARE` is your hub URL (`https://phare.example.com`) and `$TOKEN` a personal API token.
+In the examples, `$NOCLINE` is your hub base URL (`https://nocline.example.com`) and `$TOKEN` a personal API token.
 
 ## Authentication
 
-Create a token in **Settings → API tokens**. Choose _Look only_ (`read`) or _Look and change_ (`read` + `write`), and an optional expiry. The secret (`phr_` followed by 40 characters) is shown **once**; Phare only stores its SHA-256 hash. Lost? Revoke it and create another.
+Create a token in **Settings → API tokens**. Choose _Look only_ (`read`) or _Look and change_ (`read` + `write`), and an optional expiry. The secret (`phr_` followed by 40 characters) is shown **once**; Nocline only stores its SHA-256 hash. Lost? Revoke it and create another.
 
 Send it as a bearer token:
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" -H "Accept: application/json" $PHARE/api/v1/me
+curl -H "Authorization: Bearer $TOKEN" -H "Accept: application/json" $NOCLINE/api/v1/me
 ```
 
 A token acts as **its owner**: the owner's role (`admin` / `tech` / `viewer`) still applies on top of the token abilities.
@@ -72,7 +72,7 @@ Single resources are wrapped in `data`.
 The user behind the token and what the token may do.
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" $PHARE/api/v1/me
+curl -H "Authorization: Bearer $TOKEN" $NOCLINE/api/v1/me
 ```
 
 ```json
@@ -120,7 +120,7 @@ The validation rules are the ones of the web form.
 Filters: `group_id`, `type`, `enabled` (`0`/`1`), `per_page`, `page`.
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" "$PHARE/api/v1/checks?type=http&enabled=1&per_page=50"
+curl -H "Authorization: Bearer $TOKEN" "$NOCLINE/api/v1/checks?type=http&enabled=1&per_page=50"
 ```
 
 #### Create a check
@@ -128,7 +128,7 @@ curl -H "Authorization: Bearer $TOKEN" "$PHARE/api/v1/checks?type=http&enabled=1
 `POST /checks`
 
 ```bash
-curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $PHARE/api/v1/checks -d '{
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $NOCLINE/api/v1/checks -d '{
   "name": "Shop", "type": "http", "target": "https://shop.example.com",
   "group_id": 3, "category": "website", "tags": ["prod"], "interval_sec": 60,
   "config": {"keyword": "Add to cart"}
@@ -148,7 +148,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
 Send only the fields to change (`PUT` is accepted and behaves the same). The conditional rules are applied to the stored check completed with your fields.
 
 ```bash
-curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $PHARE/api/v1/checks/12 -d '{"enabled": false}'
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $NOCLINE/api/v1/checks/12 -d '{"enabled": false}'
 ```
 
 #### Delete a check
@@ -193,7 +193,7 @@ Fields: `id`, `parent_id`, `name`, `color` (`#RRGGBB` or null), `layout` (`list`
 | `DELETE /groups/{id}` | sub-groups move up one level, its checks become ungrouped. `204`                       |
 
 ```bash
-curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $PHARE/api/v1/groups -d '{"name": "Production", "parent_id": 1}'
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $NOCLINE/api/v1/groups -d '{"name": "Production", "parent_id": 1}'
 ```
 
 ### Hosts
@@ -217,7 +217,7 @@ Read only (servers are enrolled with the agent, see `agent/README.md`). Fields: 
 | `group_id` or `group_name` | optional; `group_name` finds or creates a top-level group (needs the right to create groups) |
 
 ```bash
-curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $PHARE/api/v1/monitors/website \
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" $NOCLINE/api/v1/monitors/website \
   -d '{"url": "client-site.com", "group_name": "Acme"}'
 ```
 
@@ -225,9 +225,9 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
 
 ## Heartbeat (scheduled task monitoring)
 
-A _heartbeat_ check is the reverse of an uptime check: your job pings Phare, and Phare raises an incident when the pings stop (a "dead man's switch" for cron jobs, Laravel schedulers, backups).
+A _heartbeat_ check is the reverse of an uptime check: your job pings Nocline, and Nocline raises an incident when the pings stop (a "dead man's switch" for cron jobs, Laravel schedulers, backups).
 
-Create one from the UI (_Monitor → Something else → A scheduled task_, which shows ready-to-paste snippets) or with `POST /checks` and `"type": "heartbeat"`. Its `heartbeat_url` looks like `$PHARE/api/v1/heartbeat/<token>`.
+Create one from the UI (_Monitor → Something else → A scheduled task_, which shows ready-to-paste snippets) or with `POST /checks` and `"type": "heartbeat"`. Its `heartbeat_url` looks like `$NOCLINE/api/v1/heartbeat/<token>`.
 
 ### Ping endpoint
 
@@ -240,17 +240,17 @@ No authentication; the random token in the path is the credential. `GET` or `POS
 
 ```bash
 # end of a backup script
-curl -fsS -m 10 --retry 3 -o /dev/null $PHARE/api/v1/heartbeat/$HEARTBEAT_TOKEN
+curl -fsS -m 10 --retry 3 -o /dev/null $NOCLINE/api/v1/heartbeat/$HEARTBEAT_TOKEN
 
 # crontab, with failure reporting
-0 3 * * * /usr/local/bin/backup.sh && curl -fsS -m 10 -o /dev/null $PHARE/api/v1/heartbeat/$T || curl -fsS -m 10 -o /dev/null "$PHARE/api/v1/heartbeat/$T/fail?msg=backup+failed"
+0 3 * * * /usr/local/bin/backup.sh && curl -fsS -m 10 -o /dev/null $NOCLINE/api/v1/heartbeat/$T || curl -fsS -m 10 -o /dev/null "$NOCLINE/api/v1/heartbeat/$T/fail?msg=backup+failed"
 ```
 
 The answer is `200` with the plain text `ok`. Any unknown or malformed token gets the same `404` `{"message": "Not found."}` as every unknown URL. A **paused** check answers `ok` and ignores the ping. The endpoint is throttled to 120 requests per minute per IP address.
 
 ### When does it go down?
 
-A scheduled command (`phare:heartbeats:check`, every minute) marks a heartbeat down when
+A scheduled command (`nocline:heartbeats:check`, every minute) marks a heartbeat down when
 
 > now > last ping (or creation date if it never pinged) + `interval_sec` + grace
 
@@ -265,4 +265,4 @@ The token is stored in clear in a unique column (it has to be looked up from the
 
 ### Laravel
 
-The [`phare/laravel`](https://github.com/mchev/phare/tree/main/packages/phare-laravel) package adds `->pingPhareOnSuccess('token')` / `->pingPhareOnFailure('token')` to the scheduler, a `Phare::heartbeat()` facade and `php artisan phare:ping`. It never throws and uses a 3 s timeout.
+The [`nocline/laravel`](https://github.com/mchev/nocline/tree/main/packages/nocline-laravel) package adds `->pingNoclineOnSuccess('token')` / `->pingNoclineOnFailure('token')` to the scheduler, a `Nocline::heartbeat()` facade and `php artisan nocline:ping`. It never throws and uses a 3 s timeout.

@@ -1,4 +1,4 @@
-# Phare — référence technique
+# Nocline — référence technique
 
 ## Estimation volume (ordre de grandeur)
 
@@ -18,7 +18,7 @@ groups
   id, parent_id? (auto-référence, imbriquable), name, color?, layout (list|grid|compact), collapsed bool, position
 ```
 
-`group_id` (nullable) remplace l'ancien `client_id` sur hosts, checks, wallboards, vault_entries, renewals. Un wallboard ciblant un groupe inclut ses sous-groupes. L'import Kuma mappe les groupes Kuma vers des groupes Phare imbriqués.
+`group_id` (nullable) remplace l'ancien `client_id` sur hosts, checks, wallboards, vault_entries, renewals. Un wallboard ciblant un groupe inclut ses sous-groupes. L'import Kuma mappe les groupes Kuma vers des groupes Nocline imbriqués.
 
 ## Schéma conceptuel (checks)
 
@@ -101,7 +101,7 @@ Rotation MEK (v2) : re-wrap des DEK sans exposer les secrets en clair dans un jo
 ## Agent Go — structure v1
 
 ```
-cmd/phare-agent/
+cmd/nocline-agent/
 internal/
   collect/   # cpu, mem, disk, load (host role)
   probe/     # icmp, http, tcp, dns, ssl (probe role)
@@ -109,7 +109,7 @@ internal/
   enroll/    # one-time token
 ```
 
-Configuration `/etc/phare-agent/config.yaml` :
+Configuration `/etc/nocline-agent/config.yaml` :
 
 ```yaml
 hub_url: https://ops.example.com
@@ -174,7 +174,7 @@ Cache Redis TTL 10 s ; stale si &gt; 90 s sans refresh réussi.
     - `all` : down si toutes sondes down sur la fenêtre ;
     - `any` : down si une sonde voit down (détection rapide) ;
     - `majority` : défaut recommandé pour HTTP ; ICMP souvent `any` sur sonde **external** seule.
-5. Déploiement recommandé Phare (usage interne) :
+5. Déploiement recommandé Nocline (usage interne) :
     - **probe-primary** : même réseau que le hub (checks admin / internes) ;
     - **probe-external-eu** : VPS OVH/Hetzner/etc. (vue client réelle) ;
     - option **probe-home** : désactivé par défaut (faux positifs si box down).
@@ -201,7 +201,7 @@ Kuma comparé : Kuma exécute tout depuis le conteneur unique ; nous **séparons
 
 ## Migration depuis stack actuelle
 
-- Uptime Kuma : import monitors (`phare:import-kuma` ou UI) — voir [migration-kuma.md](/migration-kuma) (EN) · [/fr/migration-kuma](/fr/migration-kuma) (FR).
+- Uptime Kuma : import monitors (`nocline:import-kuma` ou UI) — voir [migration-kuma.md](/migration-kuma) (EN) · [/fr/migration-kuma](/fr/migration-kuma) (FR).
 - Wallboard : URL jeton + `GET /api/wallboard/{token}` (voir module Wallboards).
 
 ## Décisions actées (2026-11)
@@ -212,7 +212,7 @@ Kuma comparé : Kuma exécute tout depuis le conteneur unique ; nous **séparons
 | ICMP / checks  | **Sondes** (agent `role=probe`), modèle Kuma **enrichi** (résultats structurés, multi-sonde, quorum) ; pas d'ICMP depuis PHP. |
 | Coffre         | **Confiance maximale** : MEK hors BDD, libsodium, audit, re-auth/2FA à la révélation, pas de secrets dans logs.               |
 | GPU            | **Hors périmètre** jusqu'à nouvel ordre.                                                                                      |
-| Nom produit    | **Phare** (repo `phare`, binaires `phare-agent`).                                                                             |
+| Nom produit    | **Nocline** (repo `nocline`, binaires `nocline-agent`).                                                                             |
 
 ## Pistes v2 (non engagées)
 

@@ -1,41 +1,39 @@
 ---
-name: phare
+name: nocline
 description: >-
-    Conçoit et implémente Phare — plateforme ops self-hosted OSS (uptime, perf,
+    Conçoit et implémente Nocline — plateforme ops self-hosted OSS (uptime, perf,
     alertes, coffre, renewals, wallboard) pour ~50 sites multi-providers. Utiliser
-    quand l'utilisateur dit Phare, remplace Kuma/Netdata, agent phare, sonde,
+    quand l'utilisateur dit Nocline, remplace Kuma/Netdata, agent nocline, sonde,
     wallboard NOC, métriques, Laravel Inertia Vue, ou coffre secrets.
 ---
 
-# Phare — guideline produit & technique
+# Nocline — guideline produit & technique
 
-**Phare** : console + wallboard + agents (métaphore du phare — voir l'état de l'infra de loin).
+**Nocline** : console + wallboard + agents (métaphore du phare — voir l'état de l'infra de loin).
 
 | Identité            | Valeur                                                             |
 | ------------------- | ------------------------------------------------------------------ |
-| Nom affiché (UI)    | **phare.** (tout en minuscules, point orange)                      |
-| Nom produit / légal | Phare                                                              |
-| Repo OSS visé       | `phare/phare` (ou org perso + nom `phare`)                         |
-| Binaires            | `phare-agent`, `phare-probe` (même binaire, rôle config)           |
-| App Laravel         | namespace / package `Phare`                                        |
+| Nom affiché (UI)    | **NOCLINE** (wordmark caps, symbole « champ de veille »)           |
+| Nom produit / légal | Nocline                                                              |
+| Repo OSS visé       | `nocline/nocline` (ou org perso + nom `nocline`)                         |
+| Binaires            | `nocline-agent`, `nocline-probe` (même binaire, rôle config)           |
+| App Laravel         | namespace / Nocline                                        |
 | Tagline             | _« Self-hosted NOC : checks, métriques, incidents, wallboard. »_   |
-| Baseline (FR)       | _Un repère dans le bruit_ · _Gardez le cap. Même quand tout dort._ |
+| Baseline (FR)       | _Voir l’essentiel. Veiller sur l’invisible._ · _Votre NOC, sans l’équipe_ |
 
-**Source de vérité (git).** Copie Cursor : `.cursor/skills/phare/SKILL.md` (même contenu).
+**Source de vérité (git).** Copie Cursor : `.cursor/skills/nocline/SKILL.md` (même contenu).
 
 ## Identité visuelle (2026)
 
 | Rôle                            | Token                        | Hex       |
 | ------------------------------- | ---------------------------- | --------- |
-| **Signal** (accent, CTA, icône) | `--phare-signal` / `primary` | `#F4512A` |
-| **Nuit** (texte, fond sombre)   | `--phare-nuit`               | `#252B24` |
-| **Brume** (fond clair)          | `--phare-brume`              | `#F7F6F2` |
+| **Lien** (accent, CTA, icône) | `--nocline-lien` / `primary` | `#365CF5` |
+| **Réseau** (texte, fond sombre) | `--nocline-reseau` | `#202536` |
+| **Cloud** (fond clair) | `--nocline-cloud` | `#F5F6FA` |
 
-- **Symbole (source)** : `public/brand/phare-symbole-signal.png` (Signal sur fond transparent, porte en relief blanc).
-- **Symbole UI** : `public/brand/phare-symbole-brume.png` (Brume, porte transparente) — `AppLogoIcon.vue` sur fond `primary`.
-- **Favicon / PWA** : `public/favicon.svg`, `public/favicon.ico`, `public/apple-touch-icon.png` (dérivés du symbole officiel).
-- **Logo principal** : symbole + wordmark `phare.` — `AppLogo.vue`, fichiers référence `public/brand/phare-logo-wordmark-{light,dark}.png`.
-- **PWA** : `public/site.webmanifest` (`theme_color` Signal, `background_color` Brume).
+- **Symbole / wordmark** : `public/brand/nocline-symbole.svg`, `nocline-wordmark.svg` — `AppLogoIcon`, `AppWordmark`, `AppLogo`.
+- **Favicon** : `public/favicon.svg` (fond Lien, symbole blanc).
+- **PWA** : `theme_color` Lien, `background_color` Cloud.
 - **CSS** : tokens dans `resources/css/app.css` (plus de thème teal « coastal »).
 - **Ne pas** réintroduire violet SaaS 2020 ni teal 195° comme primaire sans demande explicite.
 
@@ -143,7 +141,7 @@ Chaque module : `routes`, `policies`, `jobs`, `models` ; pas de dépendances cir
 
 ## Agent serveur (spec résumée)
 
-- Binaire `phare-agent` : install script `curl | sh` avec token d'enrôlement **à usage unique**.
+- Binaire `nocline-agent` : install script `curl | sh` avec token d'enrôlement **à usage unique**.
 - Collecte : `/proc`, cgroups, `statvfs` ; **pas** GPU ni eBPF en v1.
 - **Rôle probe** (même binaire) : exécute les checks assignés (ICMP si `cap_net_raw`, HTTP, TCP, SSL expiry, DNS…) et renvoie résultats structurés — voir section Sondes.
 - Budget : &lt; 0,5 % CPU en continu, &lt; 50 Mo RAM ; intervalle défaut 30 s.
@@ -160,7 +158,7 @@ Chaque module : `routes`, `policies`, `jobs`, `models` ; pas de dépendances cir
 ## UI / UX
 
 - Console : dashboard **dense** type NOC, pas un SaaS marketing.
-- Couleurs sémantiques Phare (ok / down / warn / maint).
+- Couleurs sémantiques Nocline (ok / down / warn / maint).
 - **Test du novice** : avant de livrer un écran, se demander « quelqu'un qui n'y connaît rien sait-il quoi faire ici en 5 secondes ? ». Un état vide propose toujours l'action suivante ; les statuts sont dits en phrases (« Tout fonctionne », « 2 choses demandent votre attention »).
 - Mobile : consultation oui ; admin lourd non prioritaire MVP.
 
@@ -192,7 +190,7 @@ Assistant d'installation, accessible **uniquement tant que l'instance n'est pas 
 3. **Instance** : nom, URL publique du hub (utilisée par les commandes d'enrôlement agent), langue par défaut (fr/en), fuseau horaire.
 4. **Mail** : SMTP optionnel avec envoi de test (alertes).
 5. **Clé coffre** (phase 2) : génération de `VAULT_MASTER_KEY` distincte de `APP_KEY`, avec avertissement « perte = secrets irrécupérables ».
-6. Équivalent CLI non interactif (`php artisan phare:install`) pour Docker / Forge.
+6. Équivalent CLI non interactif (`php artisan nocline:install`) pour Docker / Forge.
 
 Tests : accès verrouillé après install, rejet d'une connexion BDD invalide, création idempotente de l'admin.
 
@@ -217,7 +215,7 @@ Quand tu codes ce produit :
 2. **Toujours** séparer ingest agent (API haute fréquence) et UI (lecture rollups/cache).
 3. **Ne pas** ajouter de dépendance lourde (Elastic, full Prometheus stack) sans demande explicite.
 4. **Tests** : politique de rétention et transitions d'état des checks en priorité.
-5. **Nom de code** : **Phare** (`phare`, `phare-agent`) — ne pas réintroduire d'anciens noms de code.
+5. **Nom de code** : **Nocline** (`nocline-agent`, `nocline:*`) — ne pas réintroduire d'anciens noms de code (Phare, `phare-agent`, etc.).
 
 ## Documentation (obligatoire à chaque évolution produit)
 

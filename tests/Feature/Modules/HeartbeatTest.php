@@ -106,11 +106,11 @@ it('keeps a never-pinged check unknown until created_at + interval + grace has p
     $check = heartbeat(interval: 600);   // grace defaults to 60 s
 
     $this->travel(659)->seconds();
-    $this->artisan('phare:heartbeats:check')->assertSuccessful();
+    $this->artisan('nocline:heartbeats:check')->assertSuccessful();
     expect(status($check))->toBe(CheckStatus::Unknown);
 
     $this->travel(2)->seconds();
-    $this->artisan('phare:heartbeats:check');
+    $this->artisan('nocline:heartbeats:check');
     expect(status($check))->toBe(CheckStatus::Down)
         ->and($check->state()->first()->last_error)->toBe('No ping received in time')
         ->and(Incident::open()->count())->toBe(1);
@@ -122,15 +122,15 @@ it('marks an overdue heartbeat down once, honours the grace period and recovers 
     $this->get("/api/v1/heartbeat/{$check->heartbeat_token}");
 
     $this->travel(3600 + 299)->seconds();
-    $this->artisan('phare:heartbeats:check');
+    $this->artisan('nocline:heartbeats:check');
     expect(status($check))->toBe(CheckStatus::Up);
 
     $this->travel(2)->seconds();
-    $this->artisan('phare:heartbeats:check');
+    $this->artisan('nocline:heartbeats:check');
     $this->travel(60)->seconds();
-    $this->artisan('phare:heartbeats:check');
+    $this->artisan('nocline:heartbeats:check');
     $this->travel(60)->seconds();
-    $this->artisan('phare:heartbeats:check');
+    $this->artisan('nocline:heartbeats:check');
 
     expect(status($check))->toBe(CheckStatus::Down)
         ->and(CheckEvent::count())->toBe(2)
@@ -138,7 +138,7 @@ it('marks an overdue heartbeat down once, honours the grace period and recovers 
 
     $this->get("/api/v1/heartbeat/{$check->heartbeat_token}");
     expect(status($check))->toBe(CheckStatus::Up);
-    $this->artisan('phare:heartbeats:check');
+    $this->artisan('nocline:heartbeats:check');
     expect(status($check))->toBe(CheckStatus::Up)->and(CheckEvent::count())->toBe(3);
 });
 
@@ -149,7 +149,7 @@ it('does not flap: a ping each interval keeps it up with a single event', functi
     for ($i = 0; $i < 10; $i++) {
         $this->get("/api/v1/heartbeat/{$check->heartbeat_token}");
         $this->travel(61)->seconds();
-        $this->artisan('phare:heartbeats:check');
+        $this->artisan('nocline:heartbeats:check');
     }
 
     expect(status($check))->toBe(CheckStatus::Up)->and(CheckEvent::count())->toBe(1);
@@ -161,13 +161,13 @@ it('does not evaluate paused checks or other check types', function () {
     $http = Check::factory()->create();
     $this->travel(1)->days();
 
-    $this->artisan('phare:heartbeats:check')->assertSuccessful();
+    $this->artisan('nocline:heartbeats:check')->assertSuccessful();
 
     expect(status($paused))->toBe(CheckStatus::Unknown)->and(status($http))->toBe(CheckStatus::Unknown);
 });
 
 it('is scheduled every minute', function () {
-    $this->artisan('schedule:list')->expectsOutputToContain('phare:heartbeats:check')->assertSuccessful();
+    $this->artisan('schedule:list')->expectsOutputToContain('nocline:heartbeats:check')->assertSuccessful();
 });
 
 it('validates heartbeat checks through the web form and generates the token', function () {

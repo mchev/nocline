@@ -48,7 +48,7 @@ beforeEach(function () {
 it('detects a Laravel 11 site with a real health page and a session cookie', function () {
     Http::fake([
         'https://shop.example.com/up' => Http::response(DETECT_HEALTH_PAGE),
-        'https://shop.example.com/phare-*' => Http::response('Not found', 404),
+        'https://shop.example.com/nocline-*' => Http::response('Not found', 404),
         'https://shop.example.com' => Http::response('<html></html>', 200, ['Set-Cookie' => ['laravel_session=abc; path=/; HttpOnly', 'XSRF-TOKEN=xyz; path=/']]),
         '*' => Http::response('', 404),
     ]);
@@ -61,7 +61,7 @@ it('detects a Laravel 11 site with a real health page and a session cookie', fun
         ->and($result->certificateDaysLeft)->toBeIn([39, 40])
         ->and($result->toResponse()['suggestions'][0]['key'])->toBe('watch_health');
 
-    Http::assertSent(fn (Request $r) => str_starts_with($r->header('User-Agent')[0], 'Phare-Detect/'));
+    Http::assertSent(fn (Request $r) => str_starts_with($r->header('User-Agent')[0], 'Nocline-Detect/'));
 });
 
 it('does not take a catch-all SPA for a health endpoint', function () {
@@ -90,7 +90,9 @@ it('detects a WordPress site', function () {
 
     $result = app(SiteDetector::class)->inspect('https://blog.example.com');
 
-    expect($result->framework)->toBe(SiteFramework::WordPress)->and($result->hasHealthEndpoint)->toBeFalse();
+    expect($result->framework)->toBe(SiteFramework::WordPress)
+        ->and($result->wordpressVersion)->toBe('6.5')
+        ->and($result->hasHealthEndpoint)->toBeFalse();
 });
 
 it('detects WordPress through its API when the homepage gives nothing away', function () {
@@ -100,6 +102,15 @@ it('detects WordPress through its API when the homepage gives nothing away', fun
     ]);
 
     expect(app(SiteDetector::class)->inspect('https://blog.example.com')->framework)->toBe(SiteFramework::WordPress);
+});
+
+it('reads WordPress version from the RSS feed when the homepage hides it', function () {
+    Http::fake([
+        'https://blog.example.com/feed/' => Http::response('<?xml version="1.0"?><rss><channel><generator>https://wordpress.org/?v=6.7.2</generator></channel></rss>'),
+        '*' => Http::response('<html><link href="/wp-content/themes/x/style.css"></html>'),
+    ]);
+
+    expect(app(SiteDetector::class)->inspect('https://blog.example.com')->wordpressVersion)->toBe('6.7.2');
 });
 
 it('reports an unreachable site neutrally', function () {
@@ -178,7 +189,7 @@ it('refuses a host name that does not resolve', function () {
 });
 
 it('can be allowed to reach private networks by configuration', function () {
-    config(['phare.detect_allow_private_networks' => true]);
+    config(['nocline.detect_allow_private_networks' => true]);
     fakeDetectDns(['app.test' => ['127.0.0.1']]);
     Http::fake(['*' => Http::response('<html></html>')]);
 

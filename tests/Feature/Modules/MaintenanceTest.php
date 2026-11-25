@@ -159,12 +159,12 @@ it('opens the incident of a check that is still down after the maintenance', fun
     $window = MaintenanceWindow::factory()->create(['check_id' => $check->id]);
     app(CheckResultRecorder::class)->record($check, false, null, 'boom');
 
-    $this->artisan('phare:maintenance:catch-up')->assertSuccessful();
+    $this->artisan('nocline:maintenance:catch-up')->assertSuccessful();
     expect(Incident::count())->toBe(0);
 
     $window->update(['ends_at' => now()->subMinute()]);
-    $this->artisan('phare:maintenance:catch-up')->assertSuccessful();
-    $this->artisan('phare:maintenance:catch-up')->assertSuccessful();
+    $this->artisan('nocline:maintenance:catch-up')->assertSuccessful();
+    $this->artisan('nocline:maintenance:catch-up')->assertSuccessful();
 
     expect(Incident::count())->toBe(1)->and(Incident::first()->last_error)->toBe('boom');
     Event::assertDispatchedTimes(IncidentOpened::class, 1);

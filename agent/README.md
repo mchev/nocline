@@ -1,4 +1,4 @@
-# phare-agent
+# nocline-agent
 
 Binaire unique, deux rôles :
 
@@ -9,27 +9,27 @@ Binaire unique, deux rôles :
 
 ## Spec complète
 
-Voir [`.cursor/skills/phare/reference.md`](../.cursor/skills/phare/reference.md) (structure, config, protocole hub ↔ probe).
+Voir [`.cursor/skills/nocline/reference.md`](../.cursor/skills/nocline/reference.md) (structure, config, protocole hub ↔ probe).
 
 ## Build (local)
 
 ```bash
 cd agent
-go build -o bin/phare-agent ./cmd/phare-agent
+go build -o bin/nocline-agent ./cmd/nocline-agent
 ```
 
 ## Usage (role `host`)
 
 ```bash
-phare-agent enroll --hub https://ops.example.com --token <TOKEN_ENROLLEMENT> [--config /etc/phare-agent/config.yaml]
-phare-agent [-config /etc/phare-agent/config.yaml]   # boucle de collecte + push
+nocline-agent enroll --hub https://ops.example.com --token <TOKEN_ENROLLEMENT> [--config /etc/nocline-agent/config.yaml]
+nocline-agent [-config /etc/nocline-agent/config.yaml]   # boucle de collecte + push
 ```
 
 `enroll` : `POST /api/v1/enroll` (token à usage unique) → écrit la config en mode `0600` avec le token permanent.
 
 ## Config
 
-`/etc/phare-agent/config.yaml` (YAML plat, parser maison, stdlib uniquement) :
+`/etc/nocline-agent/config.yaml` (YAML plat, parser maison, stdlib uniquement) :
 
 ```yaml
 hub_url: https://ops.example.com
@@ -41,7 +41,7 @@ auto_update: true # défaut : applique agent_update du hub (mettre false pour re
 
 ## Mise à jour automatique
 
-Sur chaque push accepté (202), le hub peut renvoyer `agent_update` lorsque le serveur est autorisé dans Phare (version + URL + SHA256). Par défaut l'agent applique l'offre (`auto_update` absent ou `true`). Vérif SHA256, `.prev`, `systemctl restart phare-agent`, cooldown **6 h**. Refus : décocher sur la fiche serveur, `PHARE_AGENT_AUTO_UPDATE=false` sur le hub, ou `auto_update: false` dans la config agent.
+Sur chaque push accepté (202), le hub peut renvoyer `agent_update` lorsque le serveur est autorisé dans Nocline (version + URL + SHA256). Par défaut l'agent applique l'offre (`auto_update` absent ou `true`). Vérif SHA256, `.prev`, `systemctl restart nocline-agent`, cooldown **6 h**. Refus : décocher sur la fiche serveur, `NOCLINE_AGENT_AUTO_UPDATE=false` sur le hub, ou `auto_update: false` dans la config agent.
 
 ## Fonctionnement
 
@@ -52,8 +52,8 @@ Sur chaque push accepté (202), le hub peut renvoyer `agent_update` lorsque le s
 ## Rôle `probe`
 
 ```bash
-phare-agent enroll --hub https://ops.example.com --token prb_...   # écrit role: probe depuis la réponse du hub
-phare-agent -config /etc/phare-agent/config.yaml
+nocline-agent enroll --hub https://ops.example.com --token prb_...   # écrit role: probe depuis la réponse du hub
+nocline-agent -config /etc/nocline-agent/config.yaml
 ```
 
 ```yaml
@@ -67,7 +67,7 @@ capabilities: [http, tcp, dns] # défaut http,tcp,dns ; ajouter icmp pour le pin
 - Poll `GET /api/v1/probe/work?capabilities=…` (Bearer), exécution concurrente (pool de 8, `timeout_sec` respecté), puis `POST /api/v1/probe/results` (≤ 200 résultats par requête, attend 202, retry exponentiel 1 s → 30 s). 401 : log + nouvel essai toutes les 5 min.
 - `http` : GET sans suivi de redirection ; ok si statut == `expected_status` (sinon < 400) et mot-clé présent (lecture ≤ 1 Mio) ; métadonnées `http_status`, `ssl_days_remaining` (https). `tcp` : dial `host:port`. `dns` : `LookupHost`. `icmp` : echo request sur socket raw `ip4:icmp`.
 - `icmp` n'est annoncé que s'il est listé dans `capabilities` **et** qu'une socket raw peut être ouverte au démarrage (sinon avertissement et capability retirée). Il faut `CAP_NET_RAW` :
-    - binaire : `sudo setcap cap_net_raw+ep /usr/local/bin/phare-agent`
+    - binaire : `sudo setcap cap_net_raw+ep /usr/local/bin/nocline-agent`
     - Docker : `cap_add: [NET_RAW]` (`--cap-add NET_RAW`)
 - Aucun port entrant ; mémoire bornée (corps HTTP lus ≤ 1 Mio, pool fixe).
 

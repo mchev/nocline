@@ -70,7 +70,7 @@ class ChannelController extends Controller
         $this->authorize('update', $channel);
 
         try {
-            $registry->make($channel->type)->send($channel->config, new AlertMessage('test', __('Phare test notification'), __('If you read this, the channel works.')));
+            $registry->make($channel->type)->send($channel->config, new AlertMessage('test', __('Nocline test notification'), __('If you read this, the channel works.')));
             Inertia::flash('toast', ['type' => 'success', 'message' => __('Test notification sent.')]);
         } catch (Throwable $e) {
             Inertia::flash('toast', ['type' => 'error', 'message' => __('Test failed: :error', ['error' => mb_substr($e->getMessage(), 0, 200)])]);

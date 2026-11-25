@@ -30,7 +30,7 @@ class InstallController extends Controller
                 'agentDownloadPrefix' => escapeshellarg($agentBinary->releaseDownloadPrefix()),
                 'agentReleaseTag' => $agentBinary->releaseTag(),
             ])->render()
-            : "#!/bin/sh\necho 'This install link has expired. Open Phare and generate a new command.' >&2\nexit 1\n";
+            : "#!/bin/sh\necho 'This install link has expired. Open Nocline and generate a new command.' >&2\nexit 1\n";
 
         return response($body, 200, ['Content-Type' => 'text/x-shellscript; charset=utf-8', 'Cache-Control' => 'no-store']);
     }
@@ -52,7 +52,7 @@ class InstallController extends Controller
         abort_unless(in_array($arch, AgentBinary::supportedArchitectures(), true), 404);
 
         if ($file = $agentBinary->localPath($arch)) {
-            return response()->download($file, 'phare-agent', ['Content-Type' => 'application/octet-stream']);
+            return response()->download($file, 'nocline-agent', ['Content-Type' => 'application/octet-stream']);
         }
 
         return redirect()->away($agentBinary->releaseDownloadUrl($arch));

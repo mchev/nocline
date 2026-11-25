@@ -10,9 +10,9 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:checks:refresh-frameworks
+#[Signature('nocline:checks:refresh-frameworks
     {--all : Re-detect every website, not only those missing a framework tag}')]
-#[Description('Detect Laravel / WordPress on website monitors and store framework tags')]
+#[Description('Detect Laravel / WordPress on website monitors, framework tags, and WordPress core version')]
 class RefreshSiteFrameworks extends Command
 {
     public function handle(SiteFrameworkSync $sync): int

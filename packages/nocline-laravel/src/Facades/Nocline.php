@@ -1,21 +1,21 @@
 <?php
 
-namespace Phare\Laravel\Facades;
+namespace Nocline\Laravel\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Phare\Laravel\PhareClient;
+use Nocline\Laravel\NoclineClient;
 
 /**
  * @method static bool heartbeat(?string $tokenOrName = null, ?string $message = null)
  * @method static bool fail(?string $tokenOrName = null, ?string $message = null)
  * @method static string|null urlFor(?string $tokenOrName = null, bool $fail = false)
  *
- * @see PhareClient
+ * @see NoclineClient
  */
-class Phare extends Facade
+class Nocline extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return PhareClient::class;
+        return NoclineClient::class;
     }
 }

@@ -1,6 +1,6 @@
-# Roadmap Phare
+# Roadmap Nocline
 
-Alignée sur la [skill produit Phare](/guideline/SKILL).
+Alignée sur la [skill produit Nocline](/guideline/SKILL).
 
 ## Phase 1 — MVP
 
@@ -36,12 +36,12 @@ Alignée sur la [skill produit Phare](/guideline/SKILL).
 ## Transverse
 
 - [x] Doc utilisateur `docs/` (EN par défaut + FR)
-- [x] i18n ouverte aux contributeurs (`lang/<code>.json`, EN par défaut, FR ; `phare:lang:missing`)
+- [x] i18n ouverte aux contributeurs (`lang/<code>.json`, EN par défaut, FR ; `nocline:lang:missing`)
 - [x] Assistant d'installation pas à pas (langue d'abord)
 - [x] Organisation des checks : groupe / catégorie / tags, groupement, filtres, actions groupées, édition
 - [x] Détection automatique à l'ajout d'un site (Laravel / WordPress, page `/up`, garde SSRF)
-- [x] API REST v1 (tokens personnels hachés, `docs/api.md` + OpenAPI), heartbeat / tâches planifiées (dead man's switch), package `phare/laravel` (non publié)
+- [x] API REST v1 (tokens personnels hachés, `docs/api.md` + OpenAPI), heartbeat / tâches planifiées (dead man's switch), package `nocline/laravel` (non publié)
 - [x] Pas d'inscription publique ; gestion des utilisateurs par l'admin
-- [x] Mises à jour : check des releases GitHub, bannière admin, `scripts/update.sh` + `phare:update` (sauvegarde, migrations), release automatisée (agent Linux)
+- [x] Mises à jour : check des releases GitHub, bannière admin, `scripts/update.sh` + `nocline:update` (sauvegarde, migrations), release automatisée (agent Linux)
 - [x] Stack **Docker Compose** officielle
 - [ ] Mise à jour de l'agent en un clic (UI)

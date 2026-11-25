@@ -1,4 +1,4 @@
-# Deploying the Phare hub (VPS / Forge)
+# Deploying the Nocline hub (VPS / Forge)
 
 ## Requirements
 
@@ -17,9 +17,9 @@ For a bundled stack, use **[Docker](docker)** first, then adapt the same env var
 ## Environment (beyond Laravel defaults)
 
 ```env
-APP_NAME=Phare
+APP_NAME=Nocline
 
-# Vault — from /setup or phare:install; back up separately from the DB
+# Vault — from /setup or nocline:install; back up separately from the DB
 # VAULT_MASTER_KEY=
 
 # Production example (Redis):
@@ -28,10 +28,10 @@ QUEUE_CONNECTION=redis
 SESSION_DRIVER=redis
 
 # Public URL for agent enrollment commands:
-# PHARE_PUBLIC_URL=https://phare.example.com
+# NOCLINE_PUBLIC_URL=https://nocline.example.com
 ```
 
-First deploy: open the URL (`/setup`) or run `php artisan phare:install` — see [installation](../user/installation).
+First deploy: open the URL (`/setup`) or run `php artisan nocline:install` — see [installation](../user/installation).
 
 ## Backups
 
@@ -45,9 +45,9 @@ Back up the database **and** `VAULT_MASTER_KEY` separately. Never run `migrate:f
 
 ## Probes
 
-Install `phare-agent` with `role=probe` on an external VPS for outside-in checks; ICMP needs `CAP_NET_RAW` (see [technical reference](../guideline/reference)).
+Install `nocline-agent` with `role=probe` on an external VPS for outside-in checks; ICMP needs `CAP_NET_RAW` (see [technical reference](../guideline/reference)).
 
 ## Updates
 
-- Daily release check (`phare:update:check`); disable with `PHARE_UPDATE_CHECK=false`.
-- Apply: `scripts/update.sh` then `php artisan phare:update` — see [releases](../fr/releases).
+- Daily release check (`nocline:update:check`); disable with `NOCLINE_UPDATE_CHECK=false`.
+- Apply: `scripts/update.sh` then `php artisan nocline:update` — see [releases](../fr/releases).

@@ -1,4 +1,4 @@
-// Package config charge et écrit /etc/phare-agent/config.yaml (sous-ensemble YAML plat, sans dépendance).
+// Package config charge et écrit /etc/nocline-agent/config.yaml (sous-ensemble YAML plat, sans dépendance).
 package config
 
 import (
@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	DefaultPath        = "/etc/phare-agent/config.yaml"
+	DefaultPath        = "/etc/nocline-agent/config.yaml"
+	LegacyDefaultPath  = "/etc/phare-agent/config.yaml"
 	DefaultIntervalSec = 30
 	// DefaultProbeIntervalSec : période de poll des probes.
 	DefaultProbeIntervalSec = 15

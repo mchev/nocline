@@ -108,7 +108,7 @@ watch(
                 >
                     {{
                         t(
-                            'The server must reach this Phare hub and GitHub over HTTPS. Existing config in /etc/phare-agent/config.yaml is kept.',
+                            'The server must reach this Nocline hub and GitHub over HTTPS. Existing config in /etc/nocline-agent/config.yaml is kept.',
                         )
                     }}
                 </p>

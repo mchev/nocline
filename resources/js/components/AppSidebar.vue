@@ -8,7 +8,6 @@ import {
     Globe,
     KeyRound,
     LayoutGrid,
-    Plus,
     Radar,
     Server,
     Siren,
@@ -23,7 +22,6 @@ import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
-    SidebarGroup,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
@@ -120,22 +118,6 @@ const navSections = computed<NavSection[]>(() => {
         </SidebarHeader>
 
         <SidebarContent>
-            <SidebarGroup v-if="canManage" class="pb-0">
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            as-child
-                            class="justify-center bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                            :tooltip="t('Add a monitor')"
-                        >
-                            <Link href="/monitor/new">
-                                <Plus />
-                                <span>{{ t('Add a monitor') }}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarGroup>
             <NavMain :sections="navSections" />
         </SidebarContent>
 

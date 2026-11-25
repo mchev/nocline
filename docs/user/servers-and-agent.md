@@ -5,22 +5,22 @@
 ## Enroll a server
 
 1. **Servers** → name (+ optional group) → _Add_. An enrollment token is shown **once** (valid 24h, single use). **Token** generates a new one. The binary comes from the **official GitHub release** matching your hub version — the server must reach `github.com` over HTTPS.
-2. On the server: `phare-agent enroll --hub https://your-hub --token <token>`. The permanent token is written to `/etc/phare-agent/config.yaml` (mode `0600`).
-3. Run `phare-agent` (systemd recommended). The server shows **online** after the first push; **offline** after ~3 minutes without data.
+2. On the server: `nocline-agent enroll --hub https://your-hub --token <token>`. The permanent token is written to `/etc/nocline-agent/config.yaml` (mode `0600`).
+3. Run `nocline-agent` (systemd recommended). The server shows **online** after the first push; **offline** after ~3 minutes without data.
 
 _Revoke_ invalidates the permanent token (the agent gets 401). No inbound port is required: the agent pushes to the hub over HTTPS.
 
 ## Delete a server (admin)
 
-**Servers** list or server page → **Delete server** (modal). On the hub: record and API token removed, metric history cleared; linked monitors stay but are detached from this server. The agent **keeps running** on the machine until you stop it — the modal shows systemd commands to remove the service, binary (`/usr/local/bin/phare-agent`), and config (`/etc/phare-agent/`).
+**Servers** list or server page → **Delete server** (modal). On the hub: record and API token removed, metric history cleared; linked monitors stay but are detached from this server. The agent **keeps running** on the machine until you stop it — the modal shows systemd commands to remove the service, binary (`/usr/local/bin/nocline-agent`), and config (`/etc/nocline-agent/`).
 
 ## Update the agent
 
 ### Automatic updates (recommended)
 
-Per server: **Servers → server page → phare-agent section** — _Automatic updates_ (on by default). The hub offers updates via ingest only when this is enabled and `PHARE_AGENT_AUTO_UPDATE` is not `false` in `.env`.
+Per server: **Servers → server page → nocline-agent section** — _Automatic updates_ (on by default). The hub offers updates via ingest only when this is enabled and `NOCLINE_AGENT_AUTO_UPDATE` is not `false` in `.env`.
 
-The agent accepts updates by default (`auto_update: false` in `/etc/phare-agent/config.yaml` opts out). Downloads are verified (SHA256), with at most one attempt every 6 hours.
+The agent accepts updates by default (`auto_update: false` in `/etc/nocline-agent/config.yaml` opts out). Downloads are verified (SHA256), with at most one attempt every 6 hours.
 
 ### Manual update
 
@@ -32,6 +32,6 @@ The server page shows **CPU, RAM, disk** over **24h**, **7 days**, or **30 days*
 
 ## Load alerts
 
-By default Phare opens an incident if **CPU, RAM, or disk** stays above **90%** for **5 consecutive minutes** (per-minute average). Per server: **Servers → Load alerts** (thresholds, duration, optional 1 min load). Sparklines use the same thresholds for colors.
+By default Nocline opens an incident if **CPU, RAM, or disk** stays above **90%** for **5 consecutive minutes** (per-minute average). Per server: **Servers → Load alerts** (thresholds, duration, optional 1 min load). Sparklines use the same thresholds for colors.
 
 Every 30s the agent sends reduced aggregates; the hub stores rollups only (7d @ 1 min, 90d @ 5 min, 2y @ 1h). Building the agent: `agent/README.md`.

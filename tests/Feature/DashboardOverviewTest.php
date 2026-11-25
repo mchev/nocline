@@ -58,6 +58,47 @@ it('exposes a live overview with sites servers and heartbeats', function () {
             ->where('overview.heartbeats.0.name', 'Nightly job'));
 });
 
+it('includes object storage monitors in overview and excludes them from heartbeats', function () {
+    $user = User::factory()->create();
+
+    $s3 = Check::factory()->create([
+        'name' => 'OVH backup',
+        'category' => CheckCategory::Other,
+        'type' => CheckType::Http,
+        'target' => 'https://s3.example.test/health.txt',
+        'tags' => ['object-storage', 'ovh', 's3-bucket'],
+    ]);
+    $s3->state()->update([
+        'status' => CheckStatus::Up,
+        'last_latency_ms' => 88,
+    ]);
+
+    $hb = Check::factory()->heartbeat()->create([
+        'name' => 'Cron sync',
+        'category' => CheckCategory::Other,
+    ]);
+    $hb->state()->update(['status' => CheckStatus::Up]);
+
+    $backupHb = Check::factory()->heartbeat()->create([
+        'name' => 'S3 backup ping',
+        'category' => CheckCategory::Other,
+        'tags' => ['object-storage', 'hetzner', 's3-backup'],
+    ]);
+    $backupHb->state()->update(['status' => CheckStatus::Up]);
+
+    $response = $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('overview.object_storage', 2)
+            ->has('overview.heartbeats', 1)
+            ->where('overview.heartbeats.0.name', 'Cron sync'));
+
+    $objectStorage = collect($response->viewData('page')['props']['overview']['object_storage']);
+    expect($objectStorage->pluck('name')->all())->toEqualCanonicalizing(['OVH backup', 'S3 backup ping']);
+    expect($objectStorage->firstWhere('name', 'OVH backup')['latency_ms'])->toBe(88);
+});
+
 it('orders overview sections with problems first', function () {
     $user = User::factory()->create();
 

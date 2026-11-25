@@ -1,11 +1,11 @@
 # Versions et releases
 
-Phare a **une version produit** (fichier [`VERSION`](https://github.com/mchev/phare/blob/main/VERSION) à la racine du repo). Elle sert à :
+Nocline a **une version produit** (fichier [`VERSION`](https://github.com/mchev/nocline/blob/main/VERSION) à la racine du repo). Elle sert à :
 
-- comparer le hub avec les releases GitHub (`phare:update:check`) ;
-- construire l’URL de téléchargement de **`phare-agent`** (`vX.Y.Z` = contenu de `VERSION`).
+- comparer le hub avec les releases GitHub (`nocline:update:check`) ;
+- construire l’URL de téléchargement de **`nocline-agent`** (`vX.Y.Z` = contenu de `VERSION`).
 
-Repo officiel des binaires agent : **`mchev/phare`** (`PHARE_OFFICIAL_REPOSITORY`). Le hub peut suivre un fork pour les mises à jour via `PHARE_REPOSITORY`.
+Repo officiel des binaires agent : **`mchev/nocline`** (`NOCLINE_OFFICIAL_REPOSITORY`). Le hub peut suivre un fork pour les mises à jour via `NOCLINE_REPOSITORY`.
 
 ---
 
@@ -15,7 +15,7 @@ Repo officiel des binaires agent : **`mchev/phare`** (`PHARE_OFFICIAL_REPOSITORY
 | ------------------------ | ---------------------------------------------------- | --------------------- |
 | Fichier `VERSION`        | `X.Y.Z` (sans préfixe `v`)                           | `0.1.0`               |
 | Tag git / release GitHub | `vX.Y.Z`                                             | `v0.1.0`              |
-| Assets agent             | `phare-agent-linux-amd64`, `phare-agent-linux-arm64` | sur la release du tag |
+| Assets agent             | `nocline-agent-linux-amd64`, `nocline-agent-linux-arm64` | sur la release du tag |
 
 Le workflow release vérifie que `v$(cat VERSION)` == tag poussé.
 
@@ -43,11 +43,11 @@ git push origin v0.1.1
 
 ### Ce que fait GitHub Actions
 
-Workflow [`.github/workflows/release.yml`](https://github.com/mchev/phare/blob/main/.github/workflows/release.yml), déclenché par le **push du tag** `v*` :
+Workflow [`.github/workflows/release.yml`](https://github.com/mchev/nocline/blob/main/.github/workflows/release.yml), déclenché par le **push du tag** `v*` :
 
 1. Checkout du tag.
 2. Vérification `VERSION` ↔ tag.
-3. Build Go : `phare-agent-linux-amd64` et `arm64`.
+3. Build Go : `nocline-agent-linux-amd64` et `arm64`.
 4. Création ou **mise à jour** de la release GitHub avec ces fichiers joint.
 
 **À ne pas faire** : créer une release vide dans l’UI GitHub (tag sans binaires) → les installs `curl | sh` répondent 404.
@@ -62,7 +62,7 @@ Workflow [`.github/workflows/release.yml`](https://github.com/mchev/phare/blob/m
 Vérification :
 
 ```bash
-curl -fsSI "https://github.com/mchev/phare/releases/download/v0.1.0/phare-agent-linux-amd64" | head -3
+curl -fsSI "https://github.com/mchev/nocline/releases/download/v0.1.0/nocline-agent-linux-amd64" | head -3
 ```
 
 ---
@@ -72,7 +72,7 @@ curl -fsSI "https://github.com/mchev/phare/releases/download/v0.1.0/phare-agent-
 ### Installation par `git clone` (VPS)
 
 ```bash
-cd /chemin/vers/phare
+cd /chemin/vers/nocline
 scripts/update.sh           # dernier tag v*
 # ou version précise :
 scripts/update.sh v0.1.1
@@ -83,7 +83,7 @@ Le script :
 - refuse s’il reste des modifications locales non commitées ;
 - `git fetch` + checkout du tag ;
 - `composer install --no-dev`, `npm ci && npm run build` ;
-- `php artisan phare:update` (sauvegarde BDD si SQLite, maintenance, `migrate --force`, caches, `queue:restart`).
+- `php artisan nocline:update` (sauvegarde BDD si SQLite, maintenance, `migrate --force`, caches, `queue:restart`).
 
 ### Laravel Forge (deploy script typique)
 
@@ -103,9 +103,9 @@ Après un tag, déployer **le commit/tag** qui contient le nouveau `VERSION`. Au
 
 ### Bannière « mise à jour disponible »
 
-- Commande planifiée : `phare:update:check` (quotidien).
-- Compare `VERSION` local au dernier tag GitHub (`PHARE_REPOSITORY`, souvent `mchev/phare`).
-- Désactiver les appels sortants : `PHARE_UPDATE_CHECK=false`.
+- Commande planifiée : `nocline:update:check` (quotidien).
+- Compare `VERSION` local au dernier tag GitHub (`NOCLINE_REPOSITORY`, souvent `mchev/nocline`).
+- Désactiver les appels sortants : `NOCLINE_UPDATE_CHECK=false`.
 
 ---
 
@@ -115,7 +115,7 @@ Après un tag, déployer **le commit/tag** qui contient le nouveau `VERSION`. Au
 - Après upgrade du hub, **relancer** la commande d’installation depuis l’UI (_Generate a new command_ si le jeton a expiré).
 - Les serveurs doivent atteindre **`github.com`** (HTTPS) et le hub (enrôlement).
 
-L’install one-liner ne cible que **Linux amd64/arm64** (voir [agent/README.md](https://github.com/mchev/phare/blob/main/agent/README.md)).
+L’install one-liner ne cible que **Linux amd64/arm64** (voir [agent/README.md](https://github.com/mchev/nocline/blob/main/agent/README.md)).
 
 ---
 
@@ -134,7 +134,7 @@ flowchart LR
   subgraph ops
     E --> F["curl install on servers"]
     C --> G["scripts/update.sh on hub"]
-    G --> H[phare:update migrate]
+    G --> H[nocline:update migrate]
   end
 ```
 
@@ -145,5 +145,5 @@ flowchart LR
 - [deploy/hub.md](deploy/hub.md) — prérequis prod, Forge, variables d’environnement
 - [user/installation.md](user/installation.md) — premier install hub
 - [user/hosts-agent.md](/fr/user/hosts-agent) — enrôlement serveur
-- [CONTRIBUTING.md](https://github.com/mchev/phare/blob/main/CONTRIBUTING.md) — releases (résumé mainteneur)
-- [README.md](https://github.com/mchev/phare/blob/main/README.md) — vue d’ensemble (anglais)
+- [CONTRIBUTING.md](https://github.com/mchev/nocline/blob/main/CONTRIBUTING.md) — releases (résumé mainteneur)
+- [README.md](https://github.com/mchev/nocline/blob/main/README.md) — vue d’ensemble (anglais)

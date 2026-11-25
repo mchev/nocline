@@ -8,7 +8,7 @@ use App\Modules\Checks\Models\CheckState;
 use Carbon\CarbonInterface;
 
 /**
- * Heartbeat (dead man's switch) checks: a scheduled job pings Phare; silence past interval + grace means down.
+ * Heartbeat (dead man's switch) checks: a scheduled job pings Nocline; silence past interval + grace means down.
  * Everything goes through CheckResultRecorder so events, incidents and alerts behave as for any other check.
  */
 class HeartbeatService

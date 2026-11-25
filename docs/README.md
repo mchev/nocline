@@ -1,7 +1,7 @@
 # Documentation sources
 
-- **Published**: [mchev.github.io/phare](https://mchev.github.io/phare/user/installation) (VitePress + GitHub Pages, workflow `docs.yml`).
-- **Local**: `npm run docs:dev` → `http://localhost:5173/phare/`
+- **Published**: [mchev.github.io/nocline](https://mchev.github.io/nocline/user/installation) (VitePress + GitHub Pages, workflow `docs.yml`).
+- **Local**: `npm run docs:dev` → `http://localhost:5173/nocline/`
 - **Build**: `npm run docs:build`
 
 ## Layout

@@ -161,7 +161,9 @@ const isHeartbeat = computed(() => service.kind === 'heartbeat');
 const isObjectStorage = computed(() => service.kind === 'object_storage');
 const needsProbe = computed(() => ['ping', 'dns'].includes(service.kind));
 const storageProvider = computed(() =>
-    props.object_storage_providers.find((p) => p.value === objectStorage.provider),
+    props.object_storage_providers.find(
+        (p) => p.value === objectStorage.provider,
+    ),
 );
 const storageRegions = computed(() => storageProvider.value?.regions ?? []);
 const storageNeedsEndpoint = computed(
@@ -194,7 +196,8 @@ function submitObjectStorage() {
     const payload = {
         provider: objectStorage.provider,
         region:
-            storageNeedsEndpoint.value && !storageProvider.value?.show_region_with_endpoint
+            storageNeedsEndpoint.value &&
+            !storageProvider.value?.show_region_with_endpoint
                 ? null
                 : objectStorage.region,
         level: objectStorage.level,
@@ -478,7 +481,9 @@ const containerSize = computed(() => (kind.value ? 'narrow' : 'default'));
                     @submit.prevent="submitObjectStorage"
                 >
                     <div class="field-stack">
-                        <Label for="os-provider">{{ t('Cloud provider') }}</Label>
+                        <Label for="os-provider">{{
+                            t('Cloud provider')
+                        }}</Label>
                         <select
                             id="os-provider"
                             v-model="objectStorage.provider"
@@ -494,7 +499,9 @@ const containerSize = computed(() => (kind.value ? 'narrow' : 'default'));
                         </select>
                     </div>
                     <div v-if="storageNeedsEndpoint" class="field-stack">
-                        <Label for="os-endpoint">{{ t('S3 endpoint (host only)') }}</Label>
+                        <Label for="os-endpoint">{{
+                            t('S3 endpoint (host only)')
+                        }}</Label>
                         <Input
                             id="os-endpoint"
                             v-model="objectStorage.endpoint_host"
@@ -507,7 +514,9 @@ const containerSize = computed(() => (kind.value ? 'narrow' : 'default'));
                             autocorrect="off"
                             autocapitalize="none"
                         />
-                        <InputError :message="objectStorage.errors.endpoint_host" />
+                        <InputError
+                            :message="objectStorage.errors.endpoint_host"
+                        />
                         <p
                             v-if="objectStorage.provider === 'laravel_cloud'"
                             class="field-hint"
@@ -552,7 +561,9 @@ const containerSize = computed(() => (kind.value ? 'narrow' : 'default'));
                                 value="platform"
                             />
                             <span>{{
-                                t('The storage service answers (recommended first step)')
+                                t(
+                                    'The storage service answers (recommended first step)',
+                                )
                             }}</span>
                         </label>
                         <label class="flex cursor-pointer gap-2 text-sm">
@@ -598,7 +609,7 @@ const containerSize = computed(() => (kind.value ? 'narrow' : 'default'));
                         <p class="field-hint">
                             {{
                                 t(
-                                    'Create this file in the bucket and allow public read (or use a stable public URL). Phare checks it returns HTTP success.',
+                                    'Create this file in the bucket and allow public read (or use a stable public URL). Nocline checks it returns HTTP success.',
                                 )
                             }}
                         </p>
@@ -635,10 +646,15 @@ const containerSize = computed(() => (kind.value ? 'narrow' : 'default'));
                         size="lg"
                         :disabled="
                             objectStorage.processing ||
-                            (storageNeedsEndpoint && !objectStorage.endpoint_host) ||
+                            (storageNeedsEndpoint &&
+                                !objectStorage.endpoint_host) ||
                             (isBucketLevel && !objectStorage.bucket)
                         "
-                        >{{ isBackupLevel ? t('Continue') : t('Start monitoring') }}</Button
+                        >{{
+                            isBackupLevel
+                                ? t('Continue')
+                                : t('Start monitoring')
+                        }}</Button
                     >
                 </form>
 
@@ -792,7 +808,7 @@ const containerSize = computed(() => (kind.value ? 'narrow' : 'default'));
                         <p class="field-hint">
                             {{
                                 t(
-                                    'Your task will tell Phare each time it runs. If Phare hears nothing for a little longer than this, we warn you.',
+                                    'Your task will tell Nocline each time it runs. If Nocline hears nothing for a little longer than this, we warn you.',
                                 )
                             }}
                         </p>

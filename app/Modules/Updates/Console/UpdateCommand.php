@@ -12,7 +12,7 @@ use Throwable;
  * Everything that must happen once the new code is in place (scripts/update.sh fetches it):
  * back up, maintenance mode, migrate, refresh caches, restart workers. Never resets data.
  */
-#[Signature('phare:update {--skip-backup : Do not back up the database (you did it yourself)}')]
+#[Signature('nocline:update {--skip-backup : Do not back up the database (you did it yourself)}')]
 #[Description('Finish an update: back up, migrate, refresh caches, restart workers')]
 class UpdateCommand extends Command
 {
@@ -37,7 +37,7 @@ class UpdateCommand extends Command
             $this->callSilently('up');
         }
 
-        $this->components->info('Phare is now running version '.config('phare.version').'.');
+        $this->components->info('Nocline is now running version '.config('nocline.version').'.');
 
         return self::SUCCESS;
     }

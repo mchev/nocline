@@ -14,7 +14,7 @@ class EnvWriter
      */
     public function write(array $values, ?string $path = null): void
     {
-        $path ??= config('phare.env_path');
+        $path ??= config('nocline.env_path');
         $contents = File::exists($path) ? File::get($path) : '';
 
         foreach ($values as $key => $value) {

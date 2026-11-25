@@ -24,4 +24,5 @@ export type WallboardSite = {
     ssl_status?: 'ok' | 'warning' | 'expired' | 'error' | 'unknown' | null;
     ssl_days_remaining?: number | null;
     site_framework?: string | null;
+    wordpress_version?: string | null;
 };

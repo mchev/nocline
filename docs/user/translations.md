@@ -2,7 +2,7 @@
 
 ## Application UI
 
-Phare is translated with one JSON file per locale: `lang/<code>.json`.
+Nocline is translated with one JSON file per locale: `lang/<code>.json`.
 Keys are **English text** (same convention as Laravel); used in PHP (`__('…')`) and the front end (`t('…')`).
 
 ### Add a UI language
@@ -10,7 +10,7 @@ Keys are **English text** (same convention as Laravel); used in PHP (`__('…')`
 1. Copy `lang/fr.json` to `lang/<code>.json` (e.g. `de.json`, `pt_BR.json`).
 2. Set `"_language"` to the language name **in that language** (e.g. `"Deutsch"`).
 3. Translate values (keep placeholders `:name`, `:count`, …).
-4. Check: `php artisan phare:lang:missing <code>` lists missing strings (`--fix` adds empty keys).
+4. Check: `php artisan nocline:lang:missing <code>` lists missing strings (`--fix` adds empty keys).
 5. Open a pull request. The locale appears in setup and the user menu automatically.
 
 ### For developers
@@ -26,8 +26,8 @@ The docs site uses [VitePress i18n](https://vitepress.dev/guide/i18n):
 
 | Locale                | Sources                                 | URL                                                  |
 | --------------------- | --------------------------------------- | ---------------------------------------------------- |
-| **English** (default) | `docs/` root — `user/`, `deploy/`, etc. | `https://mchev.github.io/phare/user/installation`    |
-| **Français**          | `docs/fr/`                              | `https://mchev.github.io/phare/fr/user/installation` |
+| **English** (default) | `docs/` root — `user/`, `deploy/`, etc. | `https://mchev.github.io/nocline/user/installation`    |
+| **Français**          | `docs/fr/`                              | `https://mchev.github.io/nocline/fr/user/installation` |
 
 Shared pages (`api.md`, `guideline/`, `contributing/`) live at the root and are linked from both locales.
 

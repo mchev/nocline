@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" role="img" aria-label="Nocline">
+    <path
+        d="M12 12H54L74 32H32V74L12 54ZM108 108H66L46 88H88V46L108 66Z"
+        fill="currentColor"
+    />
+    <circle cx="60" cy="60" r="7" fill="currentColor" />
+</svg>

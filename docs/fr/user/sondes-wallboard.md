@@ -2,10 +2,10 @@
 
 ## Sondes
 
-Une sonde est le même binaire `phare-agent` avec `role: probe`. Elle exécute les checks depuis un autre point du réseau (ex. un VPS externe) : http, tcp, dns et icmp (icmp nécessite `CAP_NET_RAW` : `setcap cap_net_raw+ep` ou `cap_add: NET_RAW` sous Docker). Le hub ne fait jamais d'ICMP lui-même.
+Une sonde est le même binaire `nocline-agent` avec `role: probe`. Elle exécute les checks depuis un autre point du réseau (ex. un VPS externe) : http, tcp, dns et icmp (icmp nécessite `CAP_NET_RAW` : `setcap cap_net_raw+ep` ou `cap_add: NET_RAW` sous Docker). Le hub ne fait jamais d'ICMP lui-même.
 
 1. Menu **Sondes** (admin) > nom + rôle (`primary` : même réseau que le hub, `external` : vue Internet) > _Ajouter_.
-2. Sur la machine : `phare-agent enroll --hub https://votre-hub --token <jeton prb_…>`, puis lancez `phare-agent`.
+2. Sur la machine : `nocline-agent enroll --hub https://votre-hub --token <jeton prb_…>`, puis lancez `nocline-agent`.
 3. Dans un check, choisissez **Exécution : sondes** (obligatoire pour icmp/dns) et un **quorum** :
     - _majorité_ (défaut) : down si plus de la moitié des sondes voient une panne ;
     - _une seule_ : down dès qu'une sonde voit une panne (détection rapide) ;
@@ -19,7 +19,7 @@ Menu **Wallboards** (admin) : créer un écran (optionnellement limité à un gr
 
 Sur une borne tactile, masquez le curseur système (`unclutter -idle 0.01 -root`) et, si besoin, ajustez `--force-device-scale-factor` dans le lanceur Chromium.
 
-- Rafraîchissement toutes les 15 s ; la page lit une API agrégée mise en cache 10 s (`/api/wallboard/<jeton>`). Après un déploiement (nouveau build front ou bump `VERSION`), l'API expose `hub_revision` : si elle change, l'écran se **recharge tout seul** (kiosk inclus). Optionnel : `PHARE_DEPLOY_REVISION` dans `.env` pour forcer la valeur au déploiement.
+- Rafraîchissement toutes les 15 s ; la page lit une API agrégée mise en cache 10 s (`/api/wallboard/<jeton>`). Après un déploiement (nouveau build front ou bump `VERSION`), l'API expose `hub_revision` : si elle change, l'écran se **recharge tout seul** (kiosk inclus). Optionnel : `NOCLINE_DEPLOY_REVISION` dans `.env` pour forcer la valeur au déploiement.
 - Si plus aucune donnée n'arrive pendant 90 s, un bandeau **« Données périmées »** s'affiche et les dernières valeurs restent visibles.
 - Contenu : bandeau **TOUT VA BIEN / ATTENTION** (pulsation si problème), **liste des noms en panne** en gros quand il y a une alerte, grille de tuiles **sites** (jusqu’à ~60, favicon inclus) et bande **serveurs** en bas — typo et colonnes adaptées à la taille de l’écran (10″ → TV). Les icônes de sites sont servies via l’URL du wallboard (`/wallboard/<jeton>/favicon/<id>`), pas via la console connectée.
 

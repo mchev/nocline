@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\Finder;
 
-#[Signature('phare:lang:missing {locale? : Check one locale (default: all)} {--fix : Add missing keys to the file with an empty value}')]
+#[Signature('nocline:lang:missing {locale? : Check one locale (default: all)} {--fix : Add missing keys to the file with an empty value}')]
 #[Description('List UI strings used in code (t(), $t(), __()) that are missing from lang/<locale>.json')]
 class LangMissing extends Command
 {

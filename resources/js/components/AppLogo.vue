@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import AppWordmark from '@/components/AppWordmark.vue';
 </script>
 
 <template>
@@ -11,10 +12,6 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
     <div
         class="ml-2 grid min-w-0 flex-1 text-left leading-none group-data-[collapsible=icon]:hidden"
     >
-        <span
-            class="font-display text-[1.05rem] font-semibold tracking-tight text-foreground lowercase"
-        >
-            phare<span class="text-primary">.</span>
-        </span>
+        <AppWordmark class="h-[1rem] max-w-[5.5rem]" />
     </div>
 </template>

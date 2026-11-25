@@ -89,7 +89,7 @@ it('adds a server: host + presence check, then shows a one-line install command'
 it('serves an agent update script without enrollment', function () {
     $script = $this->get(route('install.agent-update'))->assertOk()->getContent();
     expect($script)->toStartWith('#!/bin/sh')
-        ->toContain('phare-agent-linux-')
+        ->toContain('nocline-agent-linux-')
         ->toContain('Restarting the agent')
         ->not->toContain('Connecting this server');
 });
@@ -99,7 +99,7 @@ it('serves a working installer script for a valid token only', function () {
     $token = $host->issueEnrollmentToken();
 
     $script = $this->get(route('install.script', $token))->assertOk()->getContent();
-    expect($script)->toStartWith('#!/bin/sh')->toContain("TOKEN='{$token}'")->toContain('releases/download/')->toContain('phare-agent-linux-');
+    expect($script)->toStartWith('#!/bin/sh')->toContain("TOKEN='{$token}'")->toContain('releases/download/')->toContain('nocline-agent-linux-');
 
     $this->get(route('install.script', 'phe_wrong'))->assertOk()->assertSee('expired');
     Host::enrollWithToken($token);
@@ -108,24 +108,24 @@ it('serves a working installer script for a valid token only', function () {
 
 it('redirects agent downloads to the official versioned GitHub release', function () {
     config([
-        'phare.official_repository' => 'mchev/phare',
-        'phare.version' => '0.1.0',
-        'phare.agent_download_url' => null,
-        'phare.agent_binary_dir' => sys_get_temp_dir().'/no-agent-'.uniqid(),
+        'nocline.official_repository' => 'mchev/nocline',
+        'nocline.version' => '0.1.0',
+        'nocline.agent_download_url' => null,
+        'nocline.agent_binary_dir' => sys_get_temp_dir().'/no-agent-'.uniqid(),
     ]);
     $this->get(route('install.binary', 'linux-amd64'))
-        ->assertRedirect('https://github.com/mchev/phare/releases/download/v0.1.0/phare-agent-linux-amd64');
+        ->assertRedirect('https://github.com/mchev/nocline/releases/download/v0.1.0/nocline-agent-linux-amd64');
     $this->get(route('install.binary', 'linux-mips'))->assertNotFound();
 
-    config(['phare.agent_download_url' => 'https://dl.example.com/phare-agent-linux-{arch}']);
-    $this->get(route('install.binary', 'linux-arm64'))->assertRedirect('https://dl.example.com/phare-agent-linux-arm64');
+    config(['nocline.agent_download_url' => 'https://dl.example.com/nocline-agent-linux-{arch}']);
+    $this->get(route('install.binary', 'linux-arm64'))->assertRedirect('https://dl.example.com/nocline-agent-linux-arm64');
 });
 
 it('can serve a locally built agent binary in development', function () {
-    $dir = sys_get_temp_dir().'/phare-agent-'.uniqid();
+    $dir = sys_get_temp_dir().'/nocline-agent-'.uniqid();
     mkdir($dir, 0777, true);
-    file_put_contents($dir.'/phare-agent-linux-amd64', str_repeat('x', 2048));
-    config(['phare.agent_binary_dir' => $dir]);
+    file_put_contents($dir.'/nocline-agent-linux-amd64', str_repeat('x', 2048));
+    config(['nocline.agent_binary_dir' => $dir]);
     $this->get(route('install.binary', 'linux-amd64'))->assertOk();
 });
 

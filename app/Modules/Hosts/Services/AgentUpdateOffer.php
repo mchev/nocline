@@ -20,7 +20,7 @@ class AgentUpdateOffer
      */
     public function forHost(Host $host, ?string $agentVersion): ?array
     {
-        if (! config('phare.agent_auto_update') || ! $host->agent_auto_update) {
+        if (! config('nocline.agent_auto_update') || ! $host->agent_auto_update) {
             return null;
         }
 
@@ -28,7 +28,7 @@ class AgentUpdateOffer
             return null;
         }
 
-        $version = ltrim((string) config('phare.version'), 'vV');
+        $version = ltrim((string) config('nocline.version'), 'vV');
         $binaries = [];
 
         foreach (AgentBinary::supportedArchitectures() as $arch) {

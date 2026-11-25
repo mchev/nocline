@@ -57,7 +57,7 @@ function revoke(token: Token) {
             :title="$t('API tokens')"
             :description="
                 $t(
-                    'A token lets another program (a script, your website back-office…) use Phare on your behalf, without your password.',
+                    'A token lets another program (a script, your website back-office…) use Nocline on your behalf, without your password.',
                 )
             "
         />
@@ -177,7 +177,7 @@ function revoke(token: Token) {
                 :icon="KeyRound"
                 :title="
                     $t(
-                        'You have no token yet. Create one above when a program needs to talk to Phare.',
+                        'You have no token yet. Create one above when a program needs to talk to Nocline.',
                     )
                 "
             />

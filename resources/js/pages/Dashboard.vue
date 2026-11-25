@@ -5,8 +5,10 @@ import {
     BellRing,
     CheckCircle2,
     Globe,
+    HardDrive,
     HeartPulse,
     Hourglass,
+    Plus,
     Server,
     ShieldAlert,
     TriangleAlert,
@@ -18,6 +20,7 @@ import MonitorIdentityBadges from '@/components/MonitorIdentityBadges.vue';
 import HostController from '@/actions/App/Modules/Hosts/Http/Controllers/HostController';
 import HostCard, { type HostMetrics } from '@/components/HostCard.vue';
 import PageContainer from '@/components/ui-kit/PageContainer.vue';
+import { Button } from '@/components/ui/button';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import UptimeHistoryDots from '@/components/ui-kit/UptimeHistoryDots.vue';
 import type { UptimeHistoryDot } from '@/types/checks';
@@ -40,6 +43,7 @@ import { index as checksIndex } from '@/routes/checks';
 import { index as hostsIndex } from '@/routes/hosts';
 import { index as incidentsIndex } from '@/routes/incidents';
 import { index as renewalsIndex } from '@/routes/renewals';
+import { create as monitorCreate } from '@/routes/monitor';
 
 type Overview = {
     sites: {
@@ -61,6 +65,7 @@ type Overview = {
         ssl_status?: 'ok' | 'warning' | 'expired' | 'error' | 'unknown' | null;
         ssl_days_remaining?: number | null;
         site_framework?: string | null;
+        wordpress_version?: string | null;
     }[];
     servers: {
         id: number;
@@ -81,6 +86,24 @@ type Overview = {
         in_maintenance: boolean;
         enabled: boolean;
         grace_sec: number;
+        history?: UptimeHistoryDot[];
+        timeline?: {
+            s: UptimeHistoryDot;
+            at: string;
+            error?: string | null;
+        }[];
+        uptime_24h_pct?: number | null;
+    }[];
+    object_storage: {
+        id: number;
+        name: string;
+        target: string;
+        status: string;
+        since_at: string | null;
+        latency_ms: number | null;
+        in_maintenance: boolean;
+        enabled: boolean;
+        grace_sec: number | null;
         history?: UptimeHistoryDot[];
         timeline?: {
             s: UptimeHistoryDot;
@@ -120,6 +143,10 @@ const props = defineProps<{
 
 const page = usePage();
 const canManageHosts = computed(
+    () =>
+        (page.props.auth as { user: { role: string } }).user.role !== 'viewer',
+);
+const canManageMonitors = computed(
     () =>
         (page.props.auth as { user: { role: string } }).user.role !== 'viewer',
 );
@@ -196,6 +223,10 @@ const { el: heartbeatsEl, count: heartbeatsCount } = useListFit({
     itemHeight: 44,
     max: 40,
 });
+const { el: objectStorageEl, count: objectStorageCount } = useListFit({
+    itemHeight: 44,
+    max: 40,
+});
 const { el: renewalsEl, count: renewalsCount } = useListFit({
     itemHeight: 40,
     max: 20,
@@ -219,12 +250,18 @@ watch(
 
 const hasSites = computed(() => props.overview.sites.length > 0);
 const hasHeartbeats = computed(() => props.overview.heartbeats.length > 0);
+const hasObjectStorage = computed(
+    () => (props.overview.object_storage?.length ?? 0) > 0,
+);
 const hasRenewals = computed(() => props.overview.renewals.length > 0);
 const hasServers = computed(() => props.overview.servers.length > 0);
 
 const showSitesPanel = computed(() => layout.value.sites && hasSites.value);
 const showHeartbeatsPanel = computed(
     () => layout.value.heartbeats && hasHeartbeats.value,
+);
+const showObjectStoragePanel = computed(
+    () => layout.value.object_storage && hasObjectStorage.value,
 );
 const showServersPanel = computed(
     () => layout.value.servers && hasServers.value,
@@ -236,6 +273,9 @@ const visibleSites = computed(() =>
 );
 const visibleHeartbeats = computed(() =>
     props.overview.heartbeats.slice(0, heartbeatsCount.value),
+);
+const visibleObjectStorage = computed(() =>
+    (props.overview.object_storage ?? []).slice(0, objectStorageCount.value),
 );
 const visibleRenewals = computed(() =>
     props.overview.renewals.slice(0, renewalsCount.value),
@@ -263,6 +303,13 @@ const hiddenHeartbeats = computed(() =>
     Math.max(
         0,
         props.overview.heartbeats.length - visibleHeartbeats.value.length,
+    ),
+);
+const hiddenObjectStorage = computed(() =>
+    Math.max(
+        0,
+        (props.overview.object_storage?.length ?? 0) -
+            visibleObjectStorage.value.length,
     ),
 );
 const hiddenRenewals = computed(() =>
@@ -316,6 +363,7 @@ const visiblePanelCount = computed(
     () =>
         [
             showSitesPanel.value,
+            showObjectStoragePanel.value,
             showHeartbeatsPanel.value,
             hasRenewalsPanel.value,
             showServersPanel.value,
@@ -445,7 +493,7 @@ const starts = [
     >
         <header class="board-top shrink-0">
             <div
-                class="board-top-bar flex flex-wrap items-center gap-x-3 gap-y-2 surface px-3 py-2"
+                class="board-top-bar flex flex-nowrap items-center gap-x-3 surface px-3 py-2"
                 role="status"
                 aria-live="polite"
             >
@@ -476,7 +524,7 @@ const starts = [
                 </div>
 
                 <nav
-                    class="board-stats flex min-w-0 flex-1 flex-wrap items-center gap-1.5 border-border sm:border-l sm:pl-3"
+                    class="board-stats flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto border-border sm:border-l sm:pl-3"
                     :aria-label="t('Quick stats')"
                 >
                     <Link
@@ -514,7 +562,25 @@ const starts = [
                     </Link>
                 </nav>
 
-                <DashboardLayoutDialog v-model="layout" />
+                <div class="ml-auto flex shrink-0 items-center gap-2">
+                    <Button
+                        v-if="canManageMonitors"
+                        as-child
+                        size="sm"
+                        class="h-8 gap-1.5"
+                    >
+                        <Link :href="monitorCreate.url()">
+                            <Plus class="size-4" aria-hidden="true" />
+                            <span class="hidden sm:inline">{{
+                                t('Add a monitor')
+                            }}</span>
+                            <span class="sr-only sm:hidden">{{
+                                t('Add a monitor')
+                            }}</span>
+                        </Link>
+                    </Button>
+                    <DashboardLayoutDialog v-model="layout" />
+                </div>
             </div>
 
             <Link
@@ -725,6 +791,7 @@ const starts = [
                                     :ssl-status="s.ssl_status"
                                     :ssl-days-remaining="s.ssl_days_remaining"
                                     :site-framework="s.site_framework"
+                                    :wordpress-version="s.wordpress_version"
                                 />
                                 <span
                                     class="min-w-0 truncate text-sm font-semibold text-foreground"
@@ -828,6 +895,98 @@ const starts = [
                             >
                                 {{ relativeAgo(h.since_at) }}
                             </p>
+                        </Link>
+                    </li>
+                </ul>
+            </section>
+
+            <section
+                v-if="showObjectStoragePanel"
+                class="panel flex min-h-0 min-w-0 flex-col overflow-hidden surface"
+                :aria-label="t('Object storage')"
+            >
+                <header
+                    class="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2"
+                >
+                    <h2
+                        class="flex items-center gap-2 font-display text-sm font-semibold"
+                    >
+                        <HardDrive
+                            class="size-3.5 text-primary"
+                            aria-hidden="true"
+                        />
+                        {{ t('Object storage') }}
+                    </h2>
+                    <div
+                        class="flex flex-wrap items-center justify-end gap-x-2 gap-y-0.5 text-xs"
+                    >
+                        <span class="hidden text-muted-foreground sm:inline">{{
+                            historyPanelHint
+                        }}</span>
+                        <span
+                            v-if="hiddenObjectStorage"
+                            class="text-muted-foreground"
+                            >+{{ hiddenObjectStorage }}</span
+                        >
+                        <Link
+                            :href="checksIndex()"
+                            class="text-primary hover:underline"
+                            >{{ t('See all') }}</Link
+                        >
+                    </div>
+                </header>
+                <ul
+                    ref="objectStorageEl"
+                    class="min-h-0 flex-1 divide-y overflow-x-visible overflow-y-auto py-0.5"
+                >
+                    <li v-for="o in visibleObjectStorage" :key="o.id">
+                        <Link
+                            :href="checkMonitorHref(o.id)"
+                            class="board-row board-row-monitor min-h-[2.75rem] px-3 py-2 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                            :class="
+                                rowProblemClass(
+                                    o.status,
+                                    o.enabled,
+                                    o.in_maintenance,
+                                )
+                            "
+                            :aria-label="o.name"
+                        >
+                            <StatusDot
+                                class="shrink-0"
+                                :status="
+                                    asDot(o.status, o.enabled, o.in_maintenance)
+                                "
+                                :pulse="o.enabled && o.status === 'down'"
+                            />
+                            <span
+                                class="board-row-main min-w-0 truncate text-sm font-semibold text-foreground"
+                                :title="o.name"
+                            >
+                                {{ o.name }}
+                            </span>
+                            <UptimeHistoryDots
+                                v-bind="monitorUptimeHistoryProps(o)"
+                                class="col-history"
+                            />
+                            <p
+                                v-if="o.latency_ms !== null"
+                                class="justify-self-end text-right numeric text-xs tabular-nums"
+                                :class="latencyClass(o.latency_ms)"
+                            >
+                                {{ o.latency_ms }}<span class="ml-0.5">ms</span>
+                            </p>
+                            <p
+                                v-else-if="o.grace_sec !== null"
+                                class="justify-self-end text-right text-xs text-muted-foreground tabular-nums"
+                            >
+                                {{ relativeAgo(o.since_at) }}
+                            </p>
+                            <span
+                                v-else
+                                class="justify-self-end text-xs text-muted-foreground"
+                                >—</span
+                            >
                         </Link>
                     </li>
                 </ul>

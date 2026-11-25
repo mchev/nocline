@@ -129,13 +129,13 @@ it('runs due http checks through the scheduler command', function () {
     $ko = Check::factory()->create(['target' => 'https://ko.test', 'failure_threshold' => 1]);
     $icmp = Check::factory()->create(['type' => CheckType::Icmp, 'target' => '1.1.1.1']);
 
-    $this->artisan('phare:checks:run-due')->assertSuccessful();
+    $this->artisan('nocline:checks:run-due')->assertSuccessful();
 
     expect($ok->state()->first()->status)->toBe(CheckStatus::Up)
         ->and($ko->state()->first()->status)->toBe(CheckStatus::Down)
         ->and($icmp->state()->first()->status)->toBe(CheckStatus::Unknown);
 
-    $this->artisan('phare:checks:run-due')->assertSuccessful();
+    $this->artisan('nocline:checks:run-due')->assertSuccessful();
     expect(CheckEvent::count())->toBe(2);
 });
 
@@ -145,7 +145,7 @@ it('supports keyword matching and agent heartbeat checks', function () {
     $host = Host::factory()->enrolled()->create(['last_seen_at' => now()]);
     $agent = Check::factory()->create(['type' => CheckType::Agent, 'host_id' => $host->id, 'target' => '']);
 
-    $this->artisan('phare:checks:run-due')->assertSuccessful();
+    $this->artisan('nocline:checks:run-due')->assertSuccessful();
 
     expect($kw->state()->first()->status)->toBe(CheckStatus::Down)
         ->and($agent->state()->first()->status)->toBe(CheckStatus::Up);
@@ -188,7 +188,7 @@ it('prunes old check events and alert deliveries only', function () {
     CheckEvent::create(['check_id' => $check->id, 'from_status' => 'unknown', 'to_status' => 'up', 'at' => now()->subDays(500)]);
     CheckEvent::create(['check_id' => $check->id, 'from_status' => 'up', 'to_status' => 'down', 'at' => now()->subDays(10)]);
 
-    $this->artisan('phare:checks:prune')->assertSuccessful();
+    $this->artisan('nocline:checks:prune')->assertSuccessful();
 
     expect(CheckEvent::count())->toBe(1);
 });

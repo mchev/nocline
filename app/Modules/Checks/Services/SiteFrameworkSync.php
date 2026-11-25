@@ -7,6 +7,8 @@ use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Enums\SiteFramework;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Support\SiteFrameworkTag;
+use App\Modules\Checks\Support\WordPressSiteMeta;
+use Illuminate\Support\Carbon;
 
 /**
  * Detects Laravel / WordPress and stores it as check tags (visible badges in the UI).
@@ -47,17 +49,66 @@ class SiteFrameworkSync
             ->values()
             ->all();
 
-        if ($tags === ($check->tags ?? [])) {
+        $updates = [];
+
+        if ($tags !== ($check->tags ?? [])) {
+            $updates['tags'] = $tags;
+        }
+
+        if ($framework === SiteFramework::WordPress) {
+            $config = $check->config ?? [];
+            $previous = $config['wordpress'] ?? [];
+            $next = $previous;
+            $next['detected_at'] = now()->toIso8601String();
+
+            if ($inspection->wordpressVersion !== null) {
+                $next['version'] = $inspection->wordpressVersion;
+            }
+
+            if ($next !== $previous) {
+                $config['wordpress'] = $next;
+                $updates['config'] = $config;
+            }
+        }
+
+        if ($updates === []) {
             return false;
         }
 
-        $check->update(['tags' => $tags]);
+        $check->update($updates);
 
         return true;
     }
 
     public function needsSync(Check $check): bool
     {
-        return $this->appliesTo($check) && ! SiteFrameworkTag::hasFrameworkTag($check);
+        if (! $this->appliesTo($check)) {
+            return false;
+        }
+
+        if (! SiteFrameworkTag::hasFrameworkTag($check)) {
+            return true;
+        }
+
+        return $this->shouldRefreshWordPressMeta($check);
+    }
+
+    public function shouldRefreshWordPressMeta(Check $check, int $staleDays = 7): bool
+    {
+        if (SiteFrameworkTag::fromCheck($check) !== SiteFramework::WordPress) {
+            return false;
+        }
+
+        if (WordPressSiteMeta::version($check) === null) {
+            return true;
+        }
+
+        $detectedAt = WordPressSiteMeta::detectedAtIso($check);
+
+        if ($detectedAt === null) {
+            return true;
+        }
+
+        return Carbon::parse($detectedAt)->lt(now()->subDays($staleDays));
     }
 }

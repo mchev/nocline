@@ -1,6 +1,6 @@
 # Overview
 
-Screenshots use the demo dataset (`php artisan phare:demo:seed` then `phare:demo:simulate` — maintainers only).
+Screenshots use the demo dataset (`php artisan nocline:demo:seed` then `nocline:demo:simulate` — maintainers only).
 
 | Area              |                                                                                                                                                         |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -9,6 +9,6 @@ Screenshots use the demo dataset (`php artisan phare:demo:seed` then `phare:demo
 | **Servers & ops** | [Agents](/media/screenshots/06-servers.png) · [Incidents](/media/screenshots/08-incidents.png) · [Wallboard](/media/screenshots/07-wallboard.png)       |
 | **Setup**         | [Wizard](/media/screenshots/01-setup-welcome.png)                                                                                                       |
 
-Install paths: [Installation](/user/installation) · [Docker](/deploy/docker) · [GitHub README](https://github.com/mchev/phare#installation).
+Install paths: [Installation](/user/installation) · [Docker](/deploy/docker) · [GitHub README](https://github.com/mchev/nocline#installation).
 
 Captions in French: [Aperçu (FR)](/fr/apercu).

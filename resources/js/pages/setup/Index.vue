@@ -35,7 +35,7 @@ const props = defineProps<{
 
 defineOptions({
     layout: {
-        title: 'Welcome to Phare',
+        title: 'Welcome to Nocline',
         description: 'Set up your instance in a few steps',
     },
 });
@@ -63,7 +63,7 @@ const form = useForm({
     db: prefillDb(),
     admin: { name: '', email: '', password: '', password_confirmation: '' },
     instance: {
-        name: 'Phare',
+        name: 'Nocline',
         url: props.defaults.url,
         locale: props.locale,
         timezone: props.defaults.timezone,
@@ -636,7 +636,7 @@ function err(key: string): string | undefined {
                 @click="install"
             >
                 <Loader2 v-if="form.processing" class="size-4 animate-spin" />
-                {{ t('Install Phare') }}
+                {{ t('Install Nocline') }}
             </Button>
         </div>
     </div>

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
- * phare-agent Linux binaries: published on the official GitHub repo (see .github/workflows/release.yml).
+ * nocline-agent Linux binaries: published on the official GitHub repo (see .github/workflows/release.yml).
  * Hubs never need Go — monitored servers download from those releases (version = hub VERSION file).
  */
 class AgentBinary
@@ -24,7 +24,7 @@ class AgentBinary
 
     public function releaseTag(): string
     {
-        $version = trim((string) config('phare.version'));
+        $version = trim((string) config('nocline.version'));
 
         if ($version === '') {
             return 'v0.0.0';
@@ -35,14 +35,14 @@ class AgentBinary
 
     public function releaseDownloadUrl(string $arch): string
     {
-        $custom = config('phare.agent_download_url');
+        $custom = config('nocline.agent_download_url');
         if (is_string($custom) && $custom !== '') {
             return str_replace('{arch}', $arch, $custom);
         }
 
         return sprintf(
-            'https://github.com/%s/releases/download/%s/phare-agent-linux-%s',
-            config('phare.official_repository'),
+            'https://github.com/%s/releases/download/%s/nocline-agent-linux-%s',
+            config('nocline.official_repository'),
             $this->releaseTag(),
             $arch,
         );
@@ -53,7 +53,7 @@ class AgentBinary
      */
     public function releaseDownloadPrefix(): string
     {
-        $custom = config('phare.agent_download_url');
+        $custom = config('nocline.agent_download_url');
         if (is_string($custom) && $custom !== '') {
             $needle = '{arch}';
             $pos = strpos($custom, $needle);
@@ -65,8 +65,8 @@ class AgentBinary
         }
 
         return sprintf(
-            'https://github.com/%s/releases/download/%s/phare-agent-linux-',
-            config('phare.official_repository'),
+            'https://github.com/%s/releases/download/%s/nocline-agent-linux-',
+            config('nocline.official_repository'),
             $this->releaseTag(),
         );
     }
@@ -76,14 +76,14 @@ class AgentBinary
      */
     public function localPath(string $arch): ?string
     {
-        $path = rtrim((string) config('phare.agent_binary_dir'), '/')."/phare-agent-linux-{$arch}";
+        $path = rtrim((string) config('nocline.agent_binary_dir'), '/')."/nocline-agent-linux-{$arch}";
 
         return is_file($path) ? $path : null;
     }
 
     public function checksumSidecarUrl(string $arch): string
     {
-        $custom = config('phare.agent_download_url');
+        $custom = config('nocline.agent_download_url');
         if (is_string($custom) && $custom !== '') {
             $needle = '{arch}';
             $pos = strpos($custom, $needle);
@@ -95,8 +95,8 @@ class AgentBinary
         }
 
         return sprintf(
-            'https://github.com/%s/releases/download/%s/phare-agent-linux-%s.sha256',
-            config('phare.official_repository'),
+            'https://github.com/%s/releases/download/%s/nocline-agent-linux-%s.sha256',
+            config('nocline.official_repository'),
             $this->releaseTag(),
             $arch,
         );
@@ -114,12 +114,12 @@ class AgentBinary
             return hash_file('sha256', $local) ?: null;
         }
 
-        $cacheKey = 'phare:agent-sha256:'.config('phare.version').':'.$arch;
+        $cacheKey = 'nocline:agent-sha256:'.config('nocline.version').':'.$arch;
 
         return Cache::remember($cacheKey, now()->addDays(self::CHECKSUM_CACHE_DAYS), function () use ($arch): ?string {
             try {
                 $response = Http::timeout(15)
-                    ->withUserAgent('phare/'.config('phare.version'))
+                    ->withUserAgent('nocline/'.config('nocline.version'))
                     ->get($this->checksumSidecarUrl($arch));
             } catch (Throwable) {
                 return null;

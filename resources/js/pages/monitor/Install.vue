@@ -94,7 +94,7 @@ function regenerate() {
                         >
                             {{
                                 t(
-                                    'Warning: this address (localhost or .test) cannot be reached from another machine. Set the public address of Phare (APP_URL) first.',
+                                    'Warning: this address (localhost or .test) cannot be reached from another machine. Set the public address of Nocline (APP_URL) first.',
                                 )
                             }}
                         </p>

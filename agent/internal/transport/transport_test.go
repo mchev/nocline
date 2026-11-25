@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/phare/phare/agent/internal/collect"
+	"github.com/nocline/nocline/agent/internal/collect"
 )
 
 func batch() Batch {

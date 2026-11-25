@@ -8,7 +8,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:hosts:refresh-providers')]
+#[Signature('nocline:hosts:refresh-providers')]
 #[Description('Guess host cloud provider from public IP (ASN) when the agent did not report it')]
 class RefreshHostProviders extends Command
 {

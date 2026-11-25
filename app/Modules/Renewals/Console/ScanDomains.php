@@ -9,7 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:renewals:scan-domains')]
+#[Signature('nocline:renewals:scan-domains')]
 #[Description('Record the registration expiry (RDAP) of the domain of every enabled http check, one renewal per domain')]
 class ScanDomains extends Command
 {

@@ -9,7 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:renewals:scan-ssl')]
+#[Signature('nocline:renewals:scan-ssl')]
 #[Description('Record the latest SSL expiry of every https check as an ssl renewal (one row per check, no history)')]
 class ScanSslCertificates extends Command
 {

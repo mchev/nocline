@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/phare/phare/agent/internal/meta"
+	"github.com/nocline/nocline/agent/internal/meta"
 )
 
 // Result est la réponse 201 du hub.

@@ -43,7 +43,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'version' => config('phare.version'),
+            'version' => config('nocline.version'),
             'update' => fn () => $request->user()?->isAdmin() ? app(ReleaseChecker::class)->available() : null,
             'wallboardUrl' => fn () => $request->session()->get('wallboard_url'),
             'enrollment' => fn () => $request->session()->get('enrollment'),

@@ -26,12 +26,12 @@ func TestVersionOlder(t *testing.T) {
 }
 
 func TestApplyVerifiesSHA256AndReplaces(t *testing.T) {
-	content := append([]byte("#!/bin/sh\necho phare-test-agent\n"), make([]byte, minBinaryBytes)...)
+	content := append([]byte("#!/bin/sh\necho nocline-test-agent\n"), make([]byte, minBinaryBytes)...)
 	sum := sha256.Sum256(content)
 	hash := hex.EncodeToString(sum[:])
 
 	dir := t.TempDir()
-	execPath := filepath.Join(dir, "phare-agent")
+	execPath := filepath.Join(dir, "nocline-agent")
 	if err := os.WriteFile(execPath, []byte("#!/bin/sh\nold\n"), 0o755); err != nil {
 		t.Fatal(err)
 	}

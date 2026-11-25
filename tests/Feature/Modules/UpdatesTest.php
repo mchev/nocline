@@ -8,17 +8,17 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     Cache::flush();
-    config(['phare.version' => '1.0.0', 'phare.repository' => 'acme/phare', 'phare.update_check' => true]);
+    config(['nocline.version' => '1.0.0', 'nocline.repository' => 'acme/nocline', 'nocline.update_check' => true]);
 });
 
 it('caches the latest GitHub release and reports a newer one', function () {
-    Http::fake(['api.github.com/repos/acme/phare/releases/latest' => Http::response([
-        'tag_name' => 'v1.2.0', 'html_url' => 'https://github.com/acme/phare/releases/tag/v1.2.0', 'body' => 'Notes', 'published_at' => '2026-11-01T00:00:00Z',
+    Http::fake(['api.github.com/repos/acme/nocline/releases/latest' => Http::response([
+        'tag_name' => 'v1.2.0', 'html_url' => 'https://github.com/acme/nocline/releases/tag/v1.2.0', 'body' => 'Notes', 'published_at' => '2026-11-01T00:00:00Z',
     ])]);
 
     expect(app(ReleaseChecker::class)->available())->toBeNull();
 
-    $this->artisan('phare:update:check')->assertSuccessful();
+    $this->artisan('nocline:update:check')->assertSuccessful();
 
     expect(app(ReleaseChecker::class)->available())->toMatchArray(['version' => '1.2.0']);
 });
@@ -26,7 +26,7 @@ it('caches the latest GitHub release and reports a newer one', function () {
 it('reports nothing when already up to date', function () {
     Http::fake(['api.github.com/*' => Http::response(['tag_name' => 'v1.0.0', 'html_url' => 'x'])]);
 
-    $this->artisan('phare:update:check')->assertSuccessful();
+    $this->artisan('nocline:update:check')->assertSuccessful();
 
     expect(app(ReleaseChecker::class)->available())->toBeNull();
 });
@@ -38,7 +38,7 @@ it('ignores GitHub errors', function () {
 });
 
 it('never contacts GitHub when the check is disabled', function () {
-    config(['phare.update_check' => false]);
+    config(['nocline.update_check' => false]);
     Http::fake();
 
     expect(app(ReleaseChecker::class)->refresh())->toBeNull();
@@ -46,7 +46,7 @@ it('never contacts GitHub when the check is disabled', function () {
 });
 
 it('shows the update to admins only', function () {
-    Cache::put('phare:latest-release', ['version' => '2.0.0', 'url' => 'u', 'notes' => '', 'published_at' => null]);
+    Cache::put('nocline:latest-release', ['version' => '2.0.0', 'url' => 'u', 'notes' => '', 'published_at' => null]);
 
     $this->actingAs(User::factory()->admin()->create())->get(route('dashboard'))
         ->assertInertia(fn ($page) => $page->where('update.version', '2.0.0')->where('version', '1.0.0'));
@@ -65,10 +65,10 @@ it('flags agents older than the hub', function () {
 });
 
 it('copies the sqlite database file into the backup directory', function () {
-    $dir = sys_get_temp_dir().'/phare-bk-'.uniqid();
+    $dir = sys_get_temp_dir().'/nocline-bk-'.uniqid();
     $db = tempnam(sys_get_temp_dir(), 'db');
     file_put_contents($db, 'data');
-    config(['phare.backup_dir' => $dir, 'database.connections.backup_test' => ['driver' => 'sqlite', 'database' => $db]]);
+    config(['nocline.backup_dir' => $dir, 'database.connections.backup_test' => ['driver' => 'sqlite', 'database' => $db]]);
 
     $backup = app(DatabaseBackup::class);
     $path = $backup->copy('backup_test');

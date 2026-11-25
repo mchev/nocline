@@ -3,7 +3,7 @@
  *
  * Prereqs:
  *   scripts/e2e-serve.sh 8099
- *   php artisan phare:demo:seed && php artisan phare:demo:simulate --once (e2e env)
+ *   php artisan nocline:demo:seed && php artisan nocline:demo:simulate --once (e2e env)
  *
  * Usage:
  *   npx playwright@latest install chromium
@@ -13,28 +13,28 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 
-const BASE = process.env.PHARE_SCREENSHOT_URL ?? 'http://127.0.0.1:8099';
+const BASE = process.env.NOCLINE_SCREENSHOT_URL ?? 'http://127.0.0.1:8099';
 const OUT = join(import.meta.dirname, '../docs/media/screenshots');
 const VIEWPORT = {
-    width: Number(process.env.PHARE_SCREENSHOT_WIDTH ?? 1920),
-    height: Number(process.env.PHARE_SCREENSHOT_HEIGHT ?? 1080),
+    width: Number(process.env.NOCLINE_SCREENSHOT_WIDTH ?? 1920),
+    height: Number(process.env.NOCLINE_SCREENSHOT_HEIGHT ?? 1080),
 };
 
 function loadDemoAuth() {
     const manifestPath = join(
         import.meta.dirname,
-        '../storage/app/phare-demo.json',
+        '../storage/app/nocline-demo.json',
     );
     try {
         const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
         return {
-            email: manifest.login?.demo_email ?? 'demo@phare.test',
+            email: manifest.login?.demo_email ?? 'demo@nocline.test',
             password: manifest.login?.demo_password ?? 'password',
             wallboardToken: manifest.wallboard,
         };
     } catch {
         return {
-            email: 'demo@phare.test',
+            email: 'demo@nocline.test',
             password: 'password',
             wallboardToken: null,
         };

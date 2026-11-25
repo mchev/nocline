@@ -36,14 +36,14 @@ yarn-error.log
 /.cursor
 !.cursor/skills/
 !.cursor/skills/**
-!.cursor/rules/phare-product.mdc
+!.cursor/rules/nocline-product.mdc
 /.factory
 /.grok
 /.junie
 /.kiro
 /.pi
 /.mcp.json
-# AGENTS.md (Boost) — versionner si tu veux partager les consignes Phare en tête de fichier
+# AGENTS.md (Boost) — versionner si tu veux partager les consignes Nocline en tête de fichier
 /CLAUDE.md
 /boost.json
 /opencode.json

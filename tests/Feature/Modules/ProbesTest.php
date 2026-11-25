@@ -56,7 +56,7 @@ it('leases due probe checks once per interval and filters by capability', functi
 it('does not run probe checks from the hub scheduler', function () {
     $check = Check::factory()->create(['execution' => CheckExecution::Probe]);
 
-    $this->artisan('phare:checks:run-due')->assertSuccessful();
+    $this->artisan('nocline:checks:run-due')->assertSuccessful();
 
     expect($check->state()->first()->status)->toBe(CheckStatus::Unknown);
 });

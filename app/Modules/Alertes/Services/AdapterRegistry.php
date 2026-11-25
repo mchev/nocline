@@ -10,7 +10,7 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Discovers every NotificationAdapter in app/Modules/Alertes/Adapters (drop a file, it is registered)
- * plus classes listed in config('phare.notification_adapters') for third-party packages.
+ * plus classes listed in config('nocline.notification_adapters') for third-party packages.
  */
 #[Singleton]
 class AdapterRegistry
@@ -29,7 +29,7 @@ class AdapterRegistry
             return $this->adapters;
         }
 
-        $classes = (array) config('phare.notification_adapters', []);
+        $classes = (array) config('nocline.notification_adapters', []);
 
         foreach (Finder::create()->files()->in(__DIR__.'/../Adapters')->name('*.php') as $file) {
             $classes[] = 'App\\Modules\\Alertes\\Adapters\\'.$file->getBasename('.php');

@@ -10,7 +10,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:checks:run-due')]
+#[Signature('nocline:checks:run-due')]
 #[Description('Execute hub-local checks (http, tcp, agent) whose next_run_at is due')]
 class RunDueChecks extends Command
 {

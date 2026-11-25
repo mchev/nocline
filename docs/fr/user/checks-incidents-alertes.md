@@ -33,7 +33,7 @@ Sur **Groupes → modifier un groupe** : cochez les **canaux d’alerte** à uti
 
 ### Snooze
 
-Sur la fiche d’un check ou depuis **Incidents** : **Snooze 4 h** coupe les notifications (incident toujours visible). À l’expiration, si l’incident est encore ouvert et n’avait pas été notifié, l’envoi repart (`phare:alerts:release-snoozes` chaque minute).
+Sur la fiche d’un check ou depuis **Incidents** : **Snooze 4 h** coupe les notifications (incident toujours visible). À l’expiration, si l’incident est encore ouvert et n’avait pas été notifié, l’envoi repart (`nocline:alerts:release-snoozes` chaque minute).
 
 ### Lenteur HTTP
 

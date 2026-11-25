@@ -14,8 +14,8 @@ use PDO;
 use Throwable;
 
 /**
- * Imports Uptime Kuma monitors (JSON backup or the kuma.db SQLite file) as Phare checks.
- * Kuma groups become (nested) Phare groups. Notification channels are not imported; paused monitors are imported disabled.
+ * Imports Uptime Kuma monitors (JSON backup or the kuma.db SQLite file) as Nocline checks.
+ * Kuma groups become (nested) Nocline groups. Notification channels are not imported; paused monitors are imported disabled.
  */
 class KumaImporter
 {
@@ -125,7 +125,7 @@ class KumaImporter
     }
 
     /**
-     * Find or create the nested Phare group that mirrors the monitor's chain of Kuma groups.
+     * Find or create the nested Nocline group that mirrors the monitor's chain of Kuma groups.
      *
      * @param  array<string, mixed>  $m
      * @param  array<int|string|null, array<string, mixed>>  $byId

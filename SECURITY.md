@@ -1,10 +1,10 @@
 # Security policy
 
-Phare stores credentials (vault), talks to your servers (agents) and sends alerts: we take security reports seriously.
+Nocline stores credentials (vault), talks to your servers (agents) and sends alerts: we take security reports seriously.
 
 ## Supported versions
 
-Phare is young. Only the **latest release** receives security fixes. Please update (`scripts/update.sh`) before reporting, if you can.
+Nocline is young. Only the **latest release** receives security fixes. Please update (`scripts/update.sh`) before reporting, if you can.
 
 | Version        | Supported |
 | -------------- | --------- |
@@ -18,7 +18,7 @@ Phare is young. Only the **latest release** receives security fixes. Please upda
 1. Preferred: use GitHub's private reporting: **Security → Report a vulnerability** on the repository page.
 2. Or write to **martin@pegase.io**.
 
-Please include what you found, how to reproduce it, the Phare version, and the impact you think it has. Do not include real production secrets.
+Please include what you found, how to reproduce it, the Nocline version, and the impact you think it has. Do not include real production secrets.
 
 ## What to expect
 
@@ -33,9 +33,9 @@ These are targets from a small volunteer team, not guarantees.
 
 ## Scope
 
-In scope: the hub (Laravel app), the `phare-agent` binary, the install script served by the hub, the public endpoints (agent enrollment and ingest, probe API, wallboards, status pages, heartbeats) and the vault.
+In scope: the hub (Laravel app), the `nocline-agent` binary, the install script served by the hub, the public endpoints (agent enrollment and ingest, probe API, wallboards, status pages, heartbeats) and the vault.
 
-Out of scope: vulnerabilities in your own infrastructure or third-party services Phare talks to, missing hardening of a deployment that ignores `docs/security.md`, denial of service by volume, social engineering, and reports from automated scanners without a demonstrated impact.
+Out of scope: vulnerabilities in your own infrastructure or third-party services Nocline talks to, missing hardening of a deployment that ignores `docs/security.md`, denial of service by volume, social engineering, and reports from automated scanners without a demonstrated impact.
 
 ## Safe harbour
 
@@ -47,6 +47,6 @@ If you act in good faith, avoid privacy violations, data destruction and service
 - Vault secrets are encrypted with XChaCha20-Poly1305 (libsodium), one key per entry wrapped by `VAULT_MASTER_KEY`; every reveal needs the current password and is logged.
 - Notification channel settings are encrypted at rest with `APP_KEY`.
 - Two-factor authentication (TOTP) and passkeys are available; sensitive actions are throttled and audited.
-- No telemetry. The only outgoing call of the hub itself is the daily GitHub release check, which can be disabled (`PHARE_UPDATE_CHECK=false`).
+- No telemetry. The only outgoing call of the hub itself is the daily GitHub release check, which can be disabled (`NOCLINE_UPDATE_CHECK=false`).
 
 Details: [docs/security.md](docs/security.md).

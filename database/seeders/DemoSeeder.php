@@ -28,11 +28,11 @@ use Illuminate\Support\Str;
 
 /**
  * Full realistic dataset for manual UI testing. Idempotent by fixed names.
- * Writes plaintext agent/heartbeat tokens to storage/app/phare-demo.json for phare:demo:simulate.
+ * Writes plaintext agent/heartbeat tokens to storage/app/nocline-demo.json for nocline:demo:simulate.
  */
 class DemoSeeder extends Seeder
 {
-    public const MANIFEST = 'phare-demo.json';
+    public const MANIFEST = 'nocline-demo.json';
 
     /** Fast polling for local UI demos (bypasses form validation minimums). */
     public const INTERVAL_SEC = 5;
@@ -63,9 +63,9 @@ class DemoSeeder extends Seeder
 
         $this->manifest['login'] = [
             'admin_email' => $admin->email,
-            'demo_email' => 'demo@phare.test',
+            'demo_email' => 'demo@nocline.test',
             'demo_password' => 'password',
-            'note' => 'Use demo@phare.test / password, or your existing admin account.',
+            'note' => 'Use demo@nocline.test / password, or your existing admin account.',
         ];
 
         File::put(
@@ -74,14 +74,14 @@ class DemoSeeder extends Seeder
         );
 
         $this->command?->info('Demo data ready. Tokens: storage/app/'.self::MANIFEST);
-        $this->command?->info('Sign in: demo@phare.test / password (or your existing admin).');
-        $this->command?->info('Live traffic: php artisan phare:demo:simulate --chaos --interval=5');
+        $this->command?->info('Sign in: demo@nocline.test / password (or your existing admin).');
+        $this->command?->info('Live traffic: php artisan nocline:demo:simulate --chaos --interval=5');
     }
 
     private function users(): User
     {
         $demo = User::query()->firstOrCreate(
-            ['email' => 'demo@phare.test'],
+            ['email' => 'demo@nocline.test'],
             [
                 'name' => 'Demo Admin',
                 'password' => Hash::make('password'),
@@ -95,7 +95,7 @@ class DemoSeeder extends Seeder
         }
 
         User::query()->firstOrCreate(
-            ['email' => 'tech@phare.test'],
+            ['email' => 'tech@nocline.test'],
             [
                 'name' => 'Camille Tech',
                 'password' => Hash::make('password'),
@@ -105,7 +105,7 @@ class DemoSeeder extends Seeder
         );
 
         User::query()->firstOrCreate(
-            ['email' => 'viewer@phare.test'],
+            ['email' => 'viewer@nocline.test'],
             [
                 'name' => 'Alex Viewer',
                 'password' => Hash::make('password'),
@@ -476,7 +476,7 @@ class DemoSeeder extends Seeder
                 'title' => 'Acme status',
                 'description' => 'Public demo status page for Acme Corp.',
                 'group_id' => $groups['acme']->id,
-                'accent_color' => '#F4512A',
+                'accent_color' => '#365CF5',
                 'show_incidents' => true,
                 'enabled' => true,
             ],

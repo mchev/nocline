@@ -2,8 +2,8 @@
 
 Bouton **Add a monitor** (haut du dashboard et de la barre latérale). Trois choix :
 
-1. **Un site** — saisissez l'adresse (`example.com` suffit). Phare vérifie qu'il répond, et suit automatiquement l'expiration du domaine et du certificat SSL (page Renewals, aucune saisie).
-2. **Un serveur** — donnez-lui un nom. Phare affiche **une seule ligne** à coller dans un terminal du serveur :
+1. **Un site** — saisissez l'adresse (`example.com` suffit). Nocline vérifie qu'il répond, et suit automatiquement l'expiration du domaine et du certificat SSL (page Renewals, aucune saisie).
+2. **Un serveur** — donnez-lui un nom. Nocline affiche **une seule ligne** à coller dans un terminal du serveur :
 
     ```sh
     curl -fsSL https://votre-hub/install/<jeton> | sudo sh
@@ -17,22 +17,22 @@ Bouton **Add a monitor** (haut du dashboard et de la barre latérale). Trois cho
 
 **Autre chose** → **Object storage (S3)** :
 
-| Mode | Effet |
-| ---- | ----- |
-| **Le service répond** | TCP 443 sur l’endpoint S3 du provider (ex. OVH `s3.gra.io.cloud.ovh.net`). |
-| **Fichier public dans mon bucket** | HTTP vers `health.txt` (ou autre) en lecture publique. |
-| **Ma sauvegarde tourne encore** | Heartbeat après un upload S3 réussi (`aws` / `rclone`). |
+| Mode                               | Effet                                                                      |
+| ---------------------------------- | -------------------------------------------------------------------------- |
+| **Le service répond**              | TCP 443 sur l’endpoint S3 du provider (ex. OVH `s3.gra.io.cloud.ovh.net`). |
+| **Fichier public dans mon bucket** | HTTP vers `health.txt` (ou autre) en lecture publique.                     |
+| **Ma sauvegarde tourne encore**    | Heartbeat après un upload S3 réussi (`aws` / `rclone`).                    |
 
-Providers : OVH, **Hetzner**, **Laravel Cloud** (endpoint R2 depuis le bucket), AWS, Scaleway, Wasabi, MinIO / autre. Pas de clés S3 dans Phare (phase 1).
+Providers : OVH, **Hetzner**, **Laravel Cloud** (endpoint R2 depuis le bucket), AWS, Scaleway, Wasabi, MinIO / autre. Pas de clés S3 dans Nocline (phase 1).
 
 Pour chaque choix vous pouvez, en option, ranger l'élément dans un groupe (existant ou créé à la volée).
 
 ## Détection automatique
 
-Quand vous saisissez l'adresse d'un site, Phare l'examine pour vous (quelques requêtes GET, 5 s maximum chacune) et propose une surveillance adaptée, sans jargon :
+Quand vous saisissez l'adresse d'un site, Nocline l'examine pour vous (quelques requêtes GET, 5 s maximum chacune) et propose une surveillance adaptée, sans jargon :
 
 - il vérifie que le site répond et suit les redirections vers le même site (par exemple `http` vers `https`) ;
-- il reconnaît un site **Laravel** ou **WordPress** (et l'indique par une étiquette sur le check) ;
+- il reconnaît un site **Laravel** ou **WordPress** (étiquette sur le check) ; pour WordPress il tente de lire la **version du noyau** (balise generator, URLs d’assets, ou flux RSS) et l’affiche dans les listes et le dashboard ;
 - pour Laravel, si la page de santé `/up` existe réellement, il propose (case cochée) de la surveiller aussi : cela crée un second check « nom du site — health », utile quand la page d'accueil est servie par un cache alors que l'application est en panne ;
 - il rappelle que l'expiration du certificat SSL est déjà suivie automatiquement.
 
@@ -40,7 +40,7 @@ La détection est facultative : si elle échoue, vous pouvez ajouter le site nor
 
 L’**icône du site** (favicon) est récupérée automatiquement à l’ajout (puis vérifiée chaque semaine). Si elle change, le tag `favicon-changed` apparaît sur le check — utile pour repérer un rebranding ou une page remplacée.
 
-**Sécurité.** Comme c'est le hub qui fait ces requêtes, il refuse les adresses privées (réseau local, `localhost`, adresses de métadonnées cloud, IPv6 locales, adresses écrites en décimal ou hexadécimal), vérifie l'adresse IP de chaque étape et n'accepte que les ports 80, 443, 8080 et 8443. Pour détecter un site hébergé sur votre propre réseau (`*.test`, `192.168.x.x`), définissez `PHARE_DETECT_ALLOW_PRIVATE=true` dans `.env` : à n'activer que si tous les utilisateurs qui peuvent ajouter des sites sont de confiance.
+**Sécurité.** Comme c'est le hub qui fait ces requêtes, il refuse les adresses privées (réseau local, `localhost`, adresses de métadonnées cloud, IPv6 locales, adresses écrites en décimal ou hexadécimal), vérifie l'adresse IP de chaque étape et n'accepte que les ports 80, 443, 8080 et 8443. Pour détecter un site hébergé sur votre propre réseau (`*.test`, `192.168.x.x`), définissez `NOCLINE_DETECT_ALLOW_PRIVATE=true` dans `.env` : à n'activer que si tous les utilisateurs qui peuvent ajouter des sites sont de confiance.
 
 ## Ranger dans des groupes
 
@@ -56,6 +56,6 @@ Un wallboard peut afficher un seul groupe : ses sous-groupes sont inclus. Import
 
 ## Agent : releases GitHub officielles
 
-Les serveurs surveillés téléchargent `phare-agent` depuis la release **officielle** (`PHARE_OFFICIAL_REPOSITORY`, défaut `mchev/phare`), tag `vX.Y.Z` = fichier `VERSION` du hub. Aucun Go sur le hub en production.
+Les serveurs surveillés téléchargent `nocline-agent` depuis la release **officielle** (`NOCLINE_OFFICIAL_REPOSITORY`, défaut `mchev/nocline`), tag `vX.Y.Z` = fichier `VERSION` du hub. Aucun Go sur le hub en production.
 
 Les mainteneurs publient les binaires avec `git tag vX.Y.Z && git push --tags` (workflow `release.yml`) ou `scripts/build-agent.sh` avant de créer la release à la main. `APP_URL` reste l'adresse du hub pour l'enrôlement uniquement.

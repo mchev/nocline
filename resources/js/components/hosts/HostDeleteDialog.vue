@@ -12,12 +12,12 @@ import {
 } from '@/components/ui/dialog';
 import { t } from '@/lib/i18n';
 
-const AGENT_CLEANUP_SCRIPT = `sudo systemctl stop phare-agent 2>/dev/null || true
-sudo systemctl disable phare-agent 2>/dev/null || true
-sudo rm -f /etc/systemd/system/phare-agent.service
+const AGENT_CLEANUP_SCRIPT = `sudo systemctl stop nocline-agent 2>/dev/null || true
+sudo systemctl disable nocline-agent 2>/dev/null || true
+sudo rm -f /etc/systemd/system/nocline-agent.service
 sudo systemctl daemon-reload
-sudo rm -f /usr/local/bin/phare-agent
-sudo rm -rf /etc/phare-agent`;
+sudo rm -f /usr/local/bin/nocline-agent
+sudo rm -rf /etc/nocline-agent`;
 
 const open = defineModel<boolean>('open', { required: true });
 
@@ -50,7 +50,7 @@ watch(open, (isOpen) => {
                 <DialogDescription class="text-left text-pretty">
                     {{
                         t(
-                            'The server is removed from Phare. Linked monitors stay in the hub but are no longer tied to this machine.',
+                            'The server is removed from Nocline. Linked monitors stay in the hub but are no longer tied to this machine.',
                         )
                     }}
                 </DialogDescription>
@@ -90,7 +90,7 @@ watch(open, (isOpen) => {
                 <p class="text-xs text-pretty text-muted-foreground">
                     {{
                         t(
-                            'Run on the Linux host after deleting it in Phare (systemd install).',
+                            'Run on the Linux host after deleting it in Nocline (systemd install).',
                         )
                     }}
                 </p>

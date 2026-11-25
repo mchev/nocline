@@ -78,8 +78,8 @@ type View = {
     q: string;
 };
 
-const VIEW_KEY = 'phare.checks.view';
-const COLLAPSED_KEY = 'phare.checks.collapsed';
+const VIEW_KEY = 'nocline.checks.view';
+const COLLAPSED_KEY = 'nocline.checks.collapsed';
 
 function readStorage<T>(key: string): Partial<T> {
     try {

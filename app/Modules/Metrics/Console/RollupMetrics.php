@@ -7,7 +7,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:metrics:rollup')]
+#[Signature('nocline:metrics:rollup')]
 #[Description('Aggregate completed 1m rollups into 5m and 5m into 1h (idempotent, recomputes the last 3 buckets)')]
 class RollupMetrics extends Command
 {

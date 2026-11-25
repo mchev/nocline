@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Phare;
+namespace App\Console\Commands\Nocline;
 
 use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Enums\CheckType;
@@ -18,7 +18,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Throwable;
 
-#[Signature('phare:demo:simulate {--interval=5 : Seconds between ticks} {--once : Run a single tick then exit} {--chaos : Extra flapping, latency spikes, agent gaps and metric stress}')]
+#[Signature('nocline:demo:simulate {--interval=5 : Seconds between ticks} {--once : Run a single tick then exit} {--chaos : Extra flapping, latency spikes, agent gaps and metric stress}')]
 #[Description('Simulate live agents (metrics), probes, heartbeats, synthetic check results and optional chaos for the demo dataset')]
 class SimulateDemoCommand extends Command
 {
@@ -30,7 +30,7 @@ class SimulateDemoCommand extends Command
         $path = storage_path('app/'.DemoSeeder::MANIFEST);
 
         if (! File::exists($path)) {
-            $this->components->error('No demo manifest. Run: php artisan phare:demo:seed');
+            $this->components->error('No demo manifest. Run: php artisan nocline:demo:seed');
 
             return self::FAILURE;
         }

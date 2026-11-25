@@ -9,7 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:checks:prune {--event-days=400} {--delivery-days=180} {--sample-days=90}')]
+#[Signature('nocline:checks:prune {--event-days=400} {--delivery-days=180} {--sample-days=90}')]
 #[Description('Purge old check events and alert deliveries (storage stays bounded)')]
 class PruneCheckHistory extends Command
 {

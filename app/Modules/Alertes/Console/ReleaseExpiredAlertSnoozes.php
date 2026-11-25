@@ -10,7 +10,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('phare:alerts:release-snoozes')]
+#[Signature('nocline:alerts:release-snoozes')]
 #[Description('Clear expired alert snoozes and send any pending opened notifications')]
 class ReleaseExpiredAlertSnoozes extends Command
 {

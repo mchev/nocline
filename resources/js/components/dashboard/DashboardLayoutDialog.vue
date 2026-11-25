@@ -42,6 +42,11 @@ const sections: { key: DashboardSection; label: string; hint: string }[] = [
         hint: 'Hosts with agent metrics',
     },
     {
+        key: 'object_storage',
+        label: 'Object storage',
+        hint: 'S3-compatible buckets and endpoints',
+    },
+    {
         key: 'heartbeats',
         label: 'Heartbeats',
         hint: 'Scheduled tasks and dead-man switches',

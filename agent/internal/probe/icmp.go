@@ -87,7 +87,7 @@ func ping(ctx context.Context, target string, timeout time.Duration) (time.Durat
 	_ = conn.SetDeadline(deadline)
 	id := uint16(rand.Intn(1 << 16))
 	seq := uint16(1)
-	pkt := BuildEchoRequest(id, seq, []byte("phare-probe"))
+	pkt := BuildEchoRequest(id, seq, []byte("nocline-probe"))
 	sent := time.Now()
 	if _, err := conn.Write(pkt); err != nil {
 		return 0, err

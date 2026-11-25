@@ -19,7 +19,7 @@ const installed = computed(() => usePage().props.version as string);
         <ArrowUpCircle class="size-5 shrink-0 text-info" aria-hidden="true" />
         <span class="font-medium">
             {{
-                t('Phare :version is available (you have :current).', {
+                t('Nocline :version is available (you have :current).', {
                     version: update.version,
                     current: installed,
                 })

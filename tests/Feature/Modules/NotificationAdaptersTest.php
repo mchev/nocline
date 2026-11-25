@@ -71,7 +71,7 @@ it('sends a test notification and reports failures', function () {
 });
 
 it('accepts a contributed adapter registered through config', function () {
-    config(['phare.notification_adapters' => [ExampleTestAdapter::class]]);
+    config(['nocline.notification_adapters' => [ExampleTestAdapter::class]]);
     app()->forgetInstance(AdapterRegistry::class);
 
     expect(app(AdapterRegistry::class)->keys())->toContain('example');

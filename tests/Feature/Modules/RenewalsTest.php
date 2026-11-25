@@ -152,7 +152,7 @@ it('upserts one domain renewal per registrable domain and updates changed dates'
     Check::factory()->create(['target' => 'http://disabled.net', 'enabled' => false]);
     Check::factory()->create(['target' => 'http://intranet.local']);
 
-    $this->artisan('phare:renewals:scan-domains')->assertSuccessful();
+    $this->artisan('nocline:renewals:scan-domains')->assertSuccessful();
 
     $domains = Renewal::where('kind', 'domain')->orderBy('label')->get();
     expect($domains->pluck('label')->all())->toBe(['example.com', 'other.org'])
@@ -161,7 +161,7 @@ it('upserts one domain renewal per registrable domain and updates changed dates'
         ->and($domains[0]->expires_on->toDateString())->toBe('2027-01-10');
 
     fakeRdap(['example.com' => '2028-01-10T00:00:00Z', 'other.org' => '2027-02-10T00:00:00Z']);
-    $this->artisan('phare:renewals:scan-domains')->assertSuccessful();
+    $this->artisan('nocline:renewals:scan-domains')->assertSuccessful();
 
     expect(Renewal::where('kind', 'domain')->count())->toBe(2)
         ->and(Renewal::where('label', 'example.com')->sole()->expires_on->toDateString())->toBe('2028-01-10');
@@ -170,17 +170,17 @@ it('upserts one domain renewal per registrable domain and updates changed dates'
 it('skips domains whose expiry is unknown and keeps the previous date', function () {
     Check::factory()->create(['target' => 'http://example.com']);
     fakeRdap(['example.com' => '2027-01-10T00:00:00Z']);
-    $this->artisan('phare:renewals:scan-domains');
+    $this->artisan('nocline:renewals:scan-domains');
 
     resetHttpFake();
     Http::fake(['rdap.org/*' => Http::response('', 500)]);
-    $this->artisan('phare:renewals:scan-domains')->assertSuccessful();
+    $this->artisan('nocline:renewals:scan-domains')->assertSuccessful();
 
     $renewal = Renewal::sole();
     expect($renewal->expires_on->toDateString())->toBe('2027-01-10')->and($renewal->check_error)->not->toBeNull();
 
     Renewal::query()->delete();
-    $this->artisan('phare:renewals:scan-domains')->assertSuccessful();
+    $this->artisan('nocline:renewals:scan-domains')->assertSuccessful();
     expect(Renewal::count())->toBe(0);
 });
 
@@ -189,7 +189,7 @@ it('leaves manual domain rows untouched', function () {
     fakeRdap(['example.com' => '2030-01-01T00:00:00Z']);
     Check::factory()->create(['target' => 'http://example.com']);
 
-    $this->artisan('phare:renewals:scan-domains')->assertSuccessful();
+    $this->artisan('nocline:renewals:scan-domains')->assertSuccessful();
 
     expect(Renewal::sole()->expires_on->toDateString())->toBe(now()->addDays(100)->toDateString());
 });
@@ -224,7 +224,7 @@ it('fails silently in RenewalSync::forCheck', function () {
 it('does nothing when expiry is far away', function () {
     renewalIn(120);
 
-    $this->artisan('phare:renewals:remind')->assertSuccessful();
+    $this->artisan('nocline:renewals:remind')->assertSuccessful();
 
     Mail::assertNothingSent();
 });
@@ -232,16 +232,16 @@ it('does nothing when expiry is far away', function () {
 it('sends one reminder per crossed threshold and never twice', function () {
     $renewal = renewalIn(29);
 
-    $this->artisan('phare:renewals:remind');
-    $this->artisan('phare:renewals:remind');
+    $this->artisan('nocline:renewals:remind');
+    $this->artisan('nocline:renewals:remind');
     Mail::assertSent(MessageMail::class, 1);
 
     $this->travel(16)->days(); // 13 days left -> crosses 14
-    $this->artisan('phare:renewals:remind');
+    $this->artisan('nocline:renewals:remind');
     Mail::assertSent(MessageMail::class, 2);
 
     $this->travel(7)->days(); // 6 days left -> crosses 7
-    $this->artisan('phare:renewals:remind');
+    $this->artisan('nocline:renewals:remind');
     Mail::assertSent(MessageMail::class, 3);
 
     expect(RenewalReminder::where('renewal_id', $renewal->id)->count())->toBe(3);
@@ -250,7 +250,7 @@ it('sends one reminder per crossed threshold and never twice', function () {
 it('sends a single catch-up reminder when several thresholds were missed', function () {
     renewalIn(3);
 
-    $this->artisan('phare:renewals:remind');
+    $this->artisan('nocline:renewals:remind');
 
     Mail::assertSent(MessageMail::class, 1);
     expect(RenewalReminder::count())->toBe(3); // 30, 14, 7 claimed together
@@ -258,10 +258,10 @@ it('sends a single catch-up reminder when several thresholds were missed', funct
 
 it('reminds again after the expiry date is pushed back and approaches again', function () {
     $renewal = renewalIn(5);
-    $this->artisan('phare:renewals:remind');
+    $this->artisan('nocline:renewals:remind');
 
     $renewal->update(['expires_on' => now()->addDays(20)->toDateString()]);
-    $this->artisan('phare:renewals:remind');
+    $this->artisan('nocline:renewals:remind');
 
     Mail::assertSent(MessageMail::class, 2);
 });
@@ -269,7 +269,7 @@ it('reminds again after the expiry date is pushed back and approaches again', fu
 it('flags already expired renewals', function () {
     renewalIn(-2);
 
-    $this->artisan('phare:renewals:remind');
+    $this->artisan('nocline:renewals:remind');
 
     Mail::assertSent(MessageMail::class, fn (MessageMail $m) => str_contains($m->subjectLine, 'EXPIRED'));
 });
@@ -279,8 +279,8 @@ it('records ssl expiry of https checks without duplicating rows', function () {
     $https = Check::factory()->create(['target' => 'https://example.com']);
     Check::factory()->create(['target' => 'http://plain.test']);
 
-    $this->artisan('phare:renewals:scan-ssl')->assertSuccessful();
-    $this->artisan('phare:renewals:scan-ssl')->assertSuccessful();
+    $this->artisan('nocline:renewals:scan-ssl')->assertSuccessful();
+    $this->artisan('nocline:renewals:scan-ssl')->assertSuccessful();
 
     expect(Renewal::where('kind', 'ssl')->count())->toBe(1);
 

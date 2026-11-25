@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -2 335 60" fill="currentColor" fill-rule="evenodd" role="img" aria-label="NOCLINE">
+    <path d="M0 56V0H10L36 37V0H47V56H37L11 19V56Z" />
+    <path transform="translate(58 0)" d="M23 0C7 0 0 10 0 28S7 56 23 56S46 46 46 28S39 0 23 0ZM23 11C32 11 35 16 35 28S32 45 23 45S11 40 11 28S14 11 23 11Z" />
+    <path transform="translate(115 0)" d="M43 6L37 15C25 6 11 10 11 28S25 50 37 41L43 50C24 64 0 55 0 28S24-8 43 6Z" />
+    <path transform="translate(169 0)" d="M0 0H11V45H35V56H0Z" />
+    <path transform="translate(215 0)" d="M0 0H11V56H0Z" />
+    <path transform="translate(239 0)" d="M0 56V0H10L36 37V0H47V56H37L11 19V56Z" />
+    <path transform="translate(298 0)" d="M0 0H37V11H11V22H34V33H11V45H37V56H0Z" />
+</svg>

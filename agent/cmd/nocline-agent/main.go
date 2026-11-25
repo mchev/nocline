@@ -1,4 +1,4 @@
-// phare-agent — role host (push métriques) ou probe (pull checks, push résultats) (voir agent/README.md).
+// nocline-agent — role host (push métriques) ou probe (pull checks, push résultats) (voir agent/README.md).
 package main
 
 import (
@@ -11,16 +11,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/phare/phare/agent/internal/collect"
-	"github.com/phare/phare/agent/internal/config"
-	"github.com/phare/phare/agent/internal/enroll"
-	"github.com/phare/phare/agent/internal/meta"
-	"github.com/phare/phare/agent/internal/probe"
-	"github.com/phare/phare/agent/internal/transport"
-	"github.com/phare/phare/agent/internal/update"
+	"github.com/nocline/nocline/agent/internal/collect"
+	"github.com/nocline/nocline/agent/internal/config"
+	"github.com/nocline/nocline/agent/internal/enroll"
+	"github.com/nocline/nocline/agent/internal/legacy"
+	"github.com/nocline/nocline/agent/internal/meta"
+	"github.com/nocline/nocline/agent/internal/probe"
+	"github.com/nocline/nocline/agent/internal/transport"
+	"github.com/nocline/nocline/agent/internal/update"
 )
 
-var version = "0.1.4"
+var version = "0.2.0"
 
 const (
 	sampleEvery   = 5 * time.Second
@@ -42,7 +43,7 @@ func runEnroll(args []string) int {
 	path := fs.String("config", config.DefaultPath, "chemin du fichier de config")
 	_ = fs.Parse(args)
 	if *hub == "" || *token == "" {
-		fmt.Fprintln(os.Stderr, "usage: phare-agent enroll --hub URL --token TOKEN [--config path]")
+		fmt.Fprintln(os.Stderr, "usage: nocline-agent enroll --hub URL --token TOKEN [--config path]")
 		return 2
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -69,16 +70,24 @@ func runEnroll(args []string) int {
 }
 
 func runAgent(args []string) int {
-	fs := flag.NewFlagSet("phare-agent", flag.ExitOnError)
-	path := fs.String("config", config.DefaultPath, "chemin du fichier de config")
+	fs := flag.NewFlagSet("nocline-agent", flag.ExitOnError)
+	configFlag := fs.String("config", config.DefaultPath, "chemin du fichier de config")
 	showVersion := fs.Bool("v", false, "affiche la version")
 	fs.BoolVar(showVersion, "version", false, "affiche la version")
 	_ = fs.Parse(args)
 	if *showVersion {
-		fmt.Println("phare-agent", version)
+		fmt.Println("nocline-agent", version)
 		return 0
 	}
-	cfg, err := config.Load(*path)
+
+	if legacy.NeedsMigration() {
+		if err := legacy.Migrate(log.Printf); err != nil {
+			log.Println("migration:", err)
+		}
+	}
+
+	configPath := legacy.ResolveConfigPath(*configFlag, config.DefaultPath, config.LegacyDefaultPath)
+	cfg, err := config.Load(configPath)
 	if err == nil {
 		err = cfg.Validate()
 	}

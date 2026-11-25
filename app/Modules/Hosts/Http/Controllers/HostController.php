@@ -95,7 +95,7 @@ class HostController extends Controller
                 'agent_version' => $host->agent_version,
                 'agent_outdated' => $checker->agentIsOutdated($host->agent_version),
                 'agent_auto_update' => (bool) $host->agent_auto_update,
-                'hub_version' => (string) config('phare.version'),
+                'hub_version' => (string) config('nocline.version'),
                 'metrics' => $series[$host->id] ?? [
                     'cpu' => [],
                     'mem' => [],
@@ -265,7 +265,7 @@ class HostController extends Controller
 
         return response()->json([
             'command' => AgentInstallCommand::curlUpdateSh(),
-            'hub_version' => (string) config('phare.version'),
+            'hub_version' => (string) config('nocline.version'),
         ]);
     }
 

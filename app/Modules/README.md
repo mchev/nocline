@@ -1,4 +1,4 @@
-# Modules Laravel (domaines Phare)
+# Modules Laravel (domaines Nocline)
 
 Un module = `Models`, `Http/Controllers`, `Jobs`, `Policies`, `routes` (inclus depuis `routes/web.php` ou fichier dédié).
 

@@ -14,9 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/phare/phare/agent/internal/collect"
-	"github.com/phare/phare/agent/internal/meta"
-	"github.com/phare/phare/agent/internal/update"
+	"github.com/nocline/nocline/agent/internal/collect"
+	"github.com/nocline/nocline/agent/internal/meta"
+	"github.com/nocline/nocline/agent/internal/update"
 )
 
 const (
