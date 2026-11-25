@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import type { WallboardSite } from '@/types/wallboard';
 import { t } from '@/lib/i18n';
+import { wallboardSiteLabel } from '@/lib/wallboardLayout';
 
 const props = defineProps<{
     site: WallboardSite;
@@ -31,16 +32,18 @@ const title = computed(() => {
 
     return props.site.name;
 });
+
+const label = computed(() => wallboardSiteLabel(props.site));
 </script>
 
 <template>
     <li
         class="wb-tile wb-tile--site"
         :class="`wb-tile--${tone}`"
-        :title="site.name"
+        :title="site.name !== label ? `${site.name} — ${site.target ?? ''}` : site.name"
     >
         <span class="wb-dot" aria-hidden="true" />
-        <span class="wb-tile-name">{{ site.name }}</span>
+        <span class="wb-tile-name">{{ label }}</span>
         <span class="sr-only">{{ title }}</span>
     </li>
 </template>

@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import {
+    computed,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    watch,
+} from 'vue';
+import { wallboardGridLayout } from '@/lib/wallboardLayout';
 import type { WallboardSite } from '@/types/wallboard';
 import type { HostMetrics } from '@/components/HostCard.vue';
 import WallboardHostTile from '@/components/wallboard/WallboardHostTile.vue';
@@ -64,14 +71,39 @@ async function refresh() {
     }
 }
 
+function observeSitesPane(el: HTMLElement | null) {
+    sitesPaneObserver?.disconnect();
+    sitesPaneObserver = undefined;
+
+    if (!el) {
+        return;
+    }
+
+    const measure = () => {
+        sitesPaneSize.value = {
+            width: el.clientWidth,
+            height: el.clientHeight,
+        };
+    };
+
+    measure();
+    sitesPaneObserver = new ResizeObserver(measure);
+    sitesPaneObserver.observe(el);
+}
+
 onMounted(() => {
     void refresh();
     timer = setInterval(refresh, REFRESH_MS);
     tick = setInterval(() => (now.value = Date.now()), 1000);
+    observeSitesPane(sitesPaneEl.value);
 });
+
+watch(sitesPaneEl, (el) => observeSitesPane(el));
+
 onBeforeUnmount(() => {
     clearInterval(timer);
     clearInterval(tick);
+    sitesPaneObserver?.disconnect();
 });
 
 const stale = computed(
@@ -136,11 +168,33 @@ const problemLabels = computed(() => {
     for (const h of offlineHosts.value) {
         items.push(`${h.name} (${t('Offline')})`);
     }
-  for (const i of data.value?.active_incidents ?? []) {
+    for (const i of data.value?.active_incidents ?? []) {
         items.push(i.title);
     }
 
     return items;
+});
+
+const sitesPaneEl = ref<HTMLElement | null>(null);
+const sitesPaneSize = ref({ width: 0, height: 0 });
+let sitesPaneObserver: ResizeObserver | undefined;
+
+const siteGrid = computed(() => {
+    const count = sortedSites.value.length;
+    const { width, height } = sitesPaneSize.value;
+
+    return wallboardGridLayout(count, width, height, 5);
+});
+
+const sitesGridStyle = computed(() => {
+    const { cols, rows, cellMin } = siteGrid.value;
+    const fontPx = Math.min(22, Math.max(11, Math.floor(cellMin * 0.22)));
+
+    return {
+        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+        '--wb-tile-font': `${fontPx}px`,
+    };
 });
 
 const since = (iso: string | null) => {
@@ -219,10 +273,15 @@ const since = (iso: string | null) => {
                 >
                     <section
                         v-if="sortedSites.length"
-                        class="wb-pane"
+                        ref="sitesPaneEl"
+                        class="wb-pane wb-pane--sites"
                         :aria-label="$t('Websites')"
                     >
-                        <ul class="wb-grid wb-grid--sites" role="list">
+                        <ul
+                            class="wb-grid wb-grid--sites"
+                            role="list"
+                            :style="sitesGridStyle"
+                        >
                             <WallboardSiteTile
                                 v-for="site in sortedSites"
                                 :key="site.id"
@@ -258,7 +317,6 @@ const since = (iso: string | null) => {
     --wb-title: clamp(1rem, 4vmin, 2.75rem);
     --wb-status: clamp(0.95rem, 3.2vmin, 2.5rem);
     --wb-alert: clamp(0.85rem, 2.4vmin, 1.75rem);
-    --wb-site-min: clamp(6.25rem, 15vmin, 11rem);
     --wb-host-min: clamp(11rem, 28vw, 16rem);
     --wb-host-name: clamp(0.85rem, 2vmin, 1.15rem);
     position: relative;
@@ -408,7 +466,12 @@ const since = (iso: string | null) => {
     min-height: 0;
 }
 
-.wb-board--hosts .wb-pane:first-child {
+.wb-board--hosts .wb-pane--sites {
+    flex: 1;
+    min-height: 0;
+}
+
+.wb-pane--sites {
     flex: 1;
     min-height: 0;
 }
@@ -429,20 +492,17 @@ const since = (iso: string | null) => {
 
 .wb-grid {
     display: grid;
-    gap: clamp(2px, 0.35vmin, 5px);
-    align-content: start;
+    gap: clamp(3px, 0.45vmin, 6px);
     height: 100%;
     margin: 0;
     padding: clamp(3px, 0.4vmin, 6px);
-    overflow: hidden auto;
     list-style: none;
 }
 
 .wb-grid--sites {
-    grid-template-columns: repeat(
-        auto-fill,
-        minmax(min(var(--wb-site-min), 100%), 1fr)
-    );
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .wb-grid--hosts {
@@ -450,13 +510,6 @@ const since = (iso: string | null) => {
         auto-fill,
         minmax(min(var(--wb-host-min), 100%), 1fr)
     );
-}
-
-@container wallboard (min-width: 900px) {
-    .wb-root {
-        --wb-site-min: clamp(7rem, 11vmin, 12rem);
-        --wb-name: clamp(0.9rem, 1.85vmin, 1.55rem);
-    }
 }
 
 @container wallboard (min-height: 700px) {
@@ -475,8 +528,11 @@ const since = (iso: string | null) => {
     gap: 0.25em;
     align-items: center;
     justify-content: center;
-    min-height: clamp(3.75rem, 10vmin, 6.5rem);
-    padding: 0.35em 0.4em;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 0.35em 0.45em;
     text-align: center;
     border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
     border-radius: 0.3rem;
@@ -490,15 +546,21 @@ const since = (iso: string | null) => {
     background: var(--muted-foreground);
 }
 
-:deep(.wb-tile-name) {
-    display: -webkit-box;
+:deep(.wb-tile--site .wb-tile-name) {
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    font-size: var(--wb-tile-font, var(--wb-name));
+    font-weight: 600;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:deep(.wb-tile-name) {
     font-size: var(--wb-name);
     font-weight: 600;
     line-height: 1.15;
-    overflow-wrap: anywhere;
 }
 
 :deep(.wb-tile-meta) {
