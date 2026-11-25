@@ -70,12 +70,14 @@ it('answers an identical bare 404 for unknown, malformed or non-heartbeat tokens
     $http = Check::factory()->create(['heartbeat_token' => str_repeat('a', 40)]);
     heartbeat();
 
+    $eventsBefore = CheckEvent::count();
+
     foreach ([str_repeat('b', 40), 'short', $http->heartbeat_token] as $token) {
         $this->get("/api/v1/heartbeat/{$token}")->assertNotFound()->assertExactJson(['message' => 'Not found.']);
         $this->get("/api/v1/heartbeat/{$token}/fail")->assertNotFound()->assertExactJson(['message' => 'Not found.']);
     }
 
-    expect(CheckEvent::count())->toBe(0);
+    expect(CheckEvent::count())->toBe($eventsBefore);
 });
 
 it('ignores pings for a paused check without revealing it', function () {
