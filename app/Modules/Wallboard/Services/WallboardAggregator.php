@@ -72,7 +72,7 @@ class WallboardAggregator
             ->when($groupIds, fn ($q) => $q->whereIn('group_id', $groupIds))
             ->with('state')
             ->orderBy('name')
-            ->limit(40)
+            ->limit(60)
             ->get()
             ->reject(fn (Check $c) => SiteHealthCompanion::looksLikeHealthCompanion($c))
             ->values();

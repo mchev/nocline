@@ -1,5 +1,7 @@
 # Documentation Phare
 
+**Déploiement et premiers pas** : le [README](../README.md) à la racine (install VPS / Forge, démarrage, fonctionnalités). **Développeurs** : [CONTRIBUTING.md](../CONTRIBUTING.md), section [Code](#code) et [guideline](guideline/SKILL.md) ci-dessous.
+
 ## Aperçu
 
 Captures UI (jeu démo : `php artisan phare:demo:seed` puis `phare:demo:simulate`). Fichiers dans [`media/screenshots/`](media/screenshots/).

@@ -15,12 +15,12 @@ Seules les sondes actives, ayant répondu récemment, comptent dans le quorum. C
 
 ## Wallboard
 
-Menu **Wallboards** (admin) : créer un écran (optionnellement limité à un groupe, sous-groupes compris). L'URL `…/wallboard/wb_…` est affichée **une seule fois** à la création (ou après _Nouvelle URL_) — conservez-la ; elle sert de secret. **Nouvelle URL** régénère le jeton si vous l'avez perdu ; l'ancien lien cesse de fonctionner tout de suite. **Révoquer** = supprimer l'écran. Ouvrez l'URL en plein écran sur la TV : aucune connexion n'est nécessaire. Sur une vieille Raspberry (Chromium < 111), ajoutez **`/compat`** à la fin de l'URL : CSS en hexadécimal, sans Tailwind ni oklch (typographie pensée pour lecture à distance sur petit écran / kiosk).
+Menu **Wallboards** (admin) : créer un écran (optionnellement limité à un groupe, sous-groupes compris). L'URL `…/wallboard/wb_…` est affichée **une seule fois** à la création (ou après _Nouvelle URL_) — conservez-la ; elle sert de secret. **Nouvelle URL** régénère le jeton si vous l'avez perdu ; l'ancien lien cesse de fonctionner tout de suite. **Révoquer** = supprimer l'écran. Ouvrez l'URL en plein écran sur la TV ou Raspberry : aucune connexion n'est nécessaire (navigateur Chromium récent conseillé pour le kiosk).
 
 Sur une borne tactile, masquez le curseur système (`unclutter -idle 0.01 -root`) et, si besoin, ajustez `--force-device-scale-factor` dans le lanceur Chromium.
 
-- Rafraîchissement toutes les 15 s ; la page lit une API agrégée mise en cache 10 s (`/api/wallboard/<jeton>`). Après un déploiement (nouveau build JS, vue `/compat`, ou bump `VERSION`), l'API expose `hub_revision` : si elle change, l'écran se **recharge tout seul** (kiosk inclus). Optionnel : `PHARE_DEPLOY_REVISION` dans `.env` pour forcer la valeur au déploiement.
+- Rafraîchissement toutes les 15 s ; la page lit une API agrégée mise en cache 10 s (`/api/wallboard/<jeton>`). Après un déploiement (nouveau build front ou bump `VERSION`), l'API expose `hub_revision` : si elle change, l'écran se **recharge tout seul** (kiosk inclus). Optionnel : `PHARE_DEPLOY_REVISION` dans `.env` pour forcer la valeur au déploiement.
 - Si plus aucune donnée n'arrive pendant 90 s, un bandeau **« Données périmées »** s'affiche et les dernières valeurs restent visibles.
-- Contenu : bandeau **TOUT VA BIEN / ATTENTION**, incidents ouverts, colonnes **sites web** (pastille rouge si down, historique 24 min, latence) et **serveurs** (pastille + CPU/RAM/disque, moyenne 5 min).
+- Contenu : bandeau **TOUT VA BIEN / ATTENTION** (pulsation si problème), **liste des noms en panne** en gros quand il y a une alerte, grille de tuiles **sites** (jusqu’à ~60) et bande **serveurs** en bas — typo et colonnes adaptées à la taille de l’écran (10″ → TV).
 
 Pour de meilleures performances en production, utilisez Redis comme cache (`CACHE_STORE=redis`).

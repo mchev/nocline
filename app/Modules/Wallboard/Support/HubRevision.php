@@ -22,11 +22,6 @@ final class HubRevision
             $parts[] = substr(hash('xxh128', (string) file_get_contents($manifest)), 0, 12);
         }
 
-        $compat = resource_path('views/wallboard/compat.blade.php');
-        if (is_file($compat)) {
-            $parts[] = 'compat:'.filemtime($compat);
-        }
-
         return config('phare.version').'+'.substr(hash('xxh128', implode('|', $parts)), 0, 12);
     }
 }

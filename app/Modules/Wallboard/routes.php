@@ -3,9 +3,6 @@
 use App\Modules\Wallboard\Http\Controllers\WallboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('wallboard/{token}/compat', [WallboardController::class, 'compat'])
-    ->middleware('throttle:60,1')->name('wallboard.compat');
-
 Route::get('wallboard/{token}', [WallboardController::class, 'show'])
     ->middleware('throttle:60,1')->name('wallboard.show');
 

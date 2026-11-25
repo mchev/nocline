@@ -61,17 +61,14 @@ it('serves the kiosk page without authentication', function () {
         ->assertInertia(fn ($p) => $p->component('wallboard/Show')->where('name', 'NOC'));
 });
 
-it('serves a legacy-compatible wallboard without inertia', function () {
+it('exposes hub revision on the kiosk page for deploy reload', function () {
     ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC TV']);
-
     $revision = app(HubRevision::class)->current();
 
-    $this->get(route('wallboard.compat', $token))
-        ->assertOk()
-        ->assertSee('NOC TV', false)
-        ->assertSee($token, false)
-        ->assertSee('notranslate', false)
-        ->assertSee($revision, false);
+    $this->get(route('wallboard.show', $token))
+        ->assertInertia(fn ($p) => $p->component('wallboard/Show')
+            ->where('name', 'NOC TV')
+            ->where('hubRevision', $revision));
 });
 
 it('aggregates summary, incidents, sites and host metrics', function () {

@@ -35,9 +35,56 @@
 
 ---
 
-## Quick start
+## Installation
 
-**Hub (local, ~5 minutes)**
+Needs **PHP 8.3+**, **PostgreSQL** (recommended), **Redis**, and a **queue worker** + **scheduler** in production. Full checklist: [docs/deploy/hub.md](docs/deploy/hub.md).
+
+### Linux server (VPS)
+
+Web root → `public/`.
+
+```bash
+git clone https://github.com/mchev/phare.git
+cd phare
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build
+cp .env.example .env
+php artisan key:generate
+```
+
+Open `https://your-domain/setup` and finish the wizard (database, admin, public URL).
+
+Then keep a worker and the scheduler running, for example:
+
+```bash
+php artisan queue:work --tries=3
+php artisan schedule:work
+```
+
+(Use Supervisor or systemd in production — see [deploy/hub.md](docs/deploy/hub.md).)
+
+Headless install instead of the wizard: `php artisan phare:install` — [installation.md](docs/user/installation.md).
+
+### Laravel Forge
+
+PHP **8.3** site, **PostgreSQL** + **Redis**. In the environment: `QUEUE_CONNECTION=redis`, `CACHE_STORE=redis`.
+
+**Deploy script:**
+
+```bash
+cd $FORGE_SITE_PATH
+git pull origin $FORGE_SITE_BRANCH
+composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+npm ci && npm run build
+php artisan migrate --force
+php artisan queue:restart
+```
+
+**Daemons:** `php artisan queue:work --sleep=3 --tries=3` and the **scheduler** (Forge scheduler or `schedule:work`).
+
+First visit: `https://your-domain/setup` (or `phare:install` once).
+
+### Local try
 
 ```bash
 git clone https://github.com/mchev/phare.git
@@ -46,109 +93,65 @@ composer run setup
 composer run dev
 ```
 
-Open the URL in your browser → follow the **setup wizard** at `/setup` (database, admin, public hub URL).
-
-**First Linux server (one line)**
-
-In the UI: **Add a monitor** → **Server** → copy the command, then on the server:
-
-```bash
-curl -fsSL https://your-hub.example.com/install/<token> | sudo sh
-```
-
-The agent downloads from the [official GitHub release](https://github.com/mchev/phare/releases) matching your hub version, enrolls, and starts (systemd when available).
-
-**Production hub (Forge / VPS)**  
-`composer install --no-dev`, `npm ci && npm run build`, `php artisan migrate --force`, queue worker + scheduler, PostgreSQL + Redis → [docs/deploy/hub.md](docs/deploy/hub.md)
-
-Non-interactive install: `php artisan phare:install` → [docs/user/installation.md](docs/user/installation.md)
+Open the URL shown in the terminal → `/setup` (SQLite is fine).
 
 ---
 
-## What you get
+## Getting started
 
-|                        |                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------- |
-| **Sites & services**   | HTTP, TCP, DNS, ICMP (via probes), SSL/domain renewals, smart website detection |
-| **Servers**            | Push-only **Go agent** — CPU, RAM, disk, load; no inbound ports                 |
-| **Sondes**             | Same `phare-agent` as an external **probe** for an outside-in view              |
-| **Incidents & alerts** | Up/down truth, acknowledgements, email and notification adapters                |
-| **Wallboard**          | Read-only NOC view for a TV or kiosk                                            |
-| **Status pages**       | Public availability pages per client                                            |
-| **Vault & renewals**   | Encrypted secrets (self-hosted) and RDAP/SSL renewal reminders                  |
+1. **Sign in** with the account you created in setup.
+2. **Add a monitor** → *website*, *server*, or *something else* ([guide](docs/user/surveiller.md)). For a server, the app shows the install command when you need it.
+3. **Alerts** — set up a channel when prompted ([alerts & incidents](docs/user/checks-incidents-alertes.md)).
+4. **Wallboard** — optional TV link under *Wallboards* ([sondes & wallboard](docs/user/sondes-wallboard.md)).
 
-One Laravel hub (Inertia + Vue). Agents talk **outbound only**. Database design favours rollups and events — not an endless heartbeat table.
-
-Alternatives you might know: Uptime Kuma, Netdata, Better Stack — **Phare** bundles checks, light metrics, incidents, and wallboard without shipping telemetry to a vendor.
+User guides (mostly **French**): **[docs/user/README.md](docs/user/README.md)** · UI defaults to **English**.
 
 ---
 
-## How it fits together
+## Features
 
-```mermaid
-flowchart LR
-  subgraph hosts
-    H[phare-agent host]
-  end
-  subgraph edge
-    P[phare-agent probe]
-  end
-  subgraph hub
-    B[(Phare hub)]
-  end
-  H -->|metrics + heartbeat| B
-  P -->|pull checks · push results| B
-```
+| | |
+| --- | --- |
+| **Websites & services** | HTTP/TCP/DNS checks, SSL and domain renewals, optional probes for outside-in views |
+| **Servers** | Lightweight **Go agent** — CPU, RAM, disk; metrics pushed to the hub |
+| **Incidents** | Clear up/down state, acknowledgements, history |
+| **Alerts** | Email and pluggable notification adapters |
+| **Wallboard** | NOC view for a TV or kiosk |
+| **Status pages** | Public pages per client or service |
+| **Vault** | Encrypted secrets on your own server |
 
-- **Hub:** Laravel 13, PostgreSQL (recommended), Redis, [`phare-agent`](agent/README.md) enroll via `/api/v1`.
-- **Monitored servers:** Linux amd64/arm64 today ([agent platforms](agent/README.md)).
-- **API:** [docs/api.md](docs/api.md) · [OpenAPI](docs/openapi.yaml)
+One console instead of juggling separate uptime, metrics, and TV tools — **your data stays on your infrastructure**.
+
+Coming from **Uptime Kuma**? **[Import guide](docs/migration-kuma.md)**.
 
 ---
 
-## Requirements
+## Advanced
 
-| Layer         | Minimum                                       |
-| ------------- | --------------------------------------------- |
-| Hub           | PHP 8.3+, Composer, Node (build assets)       |
-| Hub (prod)    | PostgreSQL, Redis, `queue:work` + scheduler   |
-| Agent / probe | Linux, HTTPS to hub + GitHub (binary release) |
-
----
-
-## Updates & releases
-
-| Role           | Action                                                                                               |
-| -------------- | ---------------------------------------------------------------------------------------------------- |
-| **Operator**   | `scripts/update.sh` then `phare:update` on the hub; re-run the server install line to refresh agents |
-| **Maintainer** | Bump [`VERSION`](VERSION), `git tag vX.Y.Z && git push origin vX.Y.Z` → CI attaches agent binaries   |
-
-Full checklist: **[docs/releases.md](docs/releases.md)**
+| Topic | Where to read |
+| --- | --- |
+| **Updates** | `scripts/update.sh` then `php artisan phare:update` — [releases](docs/releases.md) |
+| **Probes** (ICMP, external checks) | [Sondes & wallboard](docs/user/sondes-wallboard.md) |
+| **API & tokens** | [docs/api.md](docs/api.md) |
+| **Security & hardening** | [docs/security.md](docs/security.md) · report: [SECURITY.md](SECURITY.md) |
+| **Backups (DB + vault key)** | [docs/privacy.md](docs/privacy.md) |
+| **Roadmap** | [docs/roadmap.md](docs/roadmap.md) |
 
 ---
 
-## Documentation
+## Developers
 
-| Start here                                                                   | Deep dive                                                                      |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| [docs/index.md](docs/index.md) — index                                       | [docs/guideline/SKILL.md](docs/guideline/SKILL.md) — product & tech            |
-| [docs/user/installation.md](docs/user/installation.md) — first install       | [docs/guideline/reference.md](docs/guideline/reference.md) — schemas & storage |
-| [docs/user/surveiller.md](docs/user/surveiller.md) — monitoring wizard       | [docs/deploy/hub.md](docs/deploy/hub.md) — production                          |
-| [docs/user/hosts-agent.md](docs/user/hosts-agent.md) — agents                | [docs/migration-kuma.md](docs/migration-kuma.md) — import from Kuma            |
-| [docs/user/sondes-wallboard.md](docs/user/sondes-wallboard.md) — probes & TV | [docs/security.md](docs/security.md) — hardening                               |
-| [docs/roadmap.md](docs/roadmap.md)                                           | [agent/README.md](agent/README.md)                                             |
-
-User guides are mostly in **French**; the UI defaults to **English**.
+Architecture, modules, tests, and contribution workflow: **[CONTRIBUTING.md](CONTRIBUTING.md)** · technical index: **[docs/index.md](docs/index.md)** · agent binary: **[agent/README.md](agent/README.md)**.
 
 ---
 
-## Repository
+## License
 
-```
-app/Modules/     domain logic (Checks, Hosts, Incidents, …)
-agent/           phare-agent (Go)
-resources/js/    Inertia console
-docs/            product, user, and deploy docs
-```
+Phare is released under the **[Elastic License 2.0](LICENSE)**.
 
-Security: [SECURITY.md](SECURITY.md) · License: [Elastic License 2.0](LICENSE) — self-host freely; offering Phare as a **hosted service for others** is not permitted. Commercial hosted use: **martin@pegase.io**
+| You can | You cannot (without a separate agreement) |
+| --- | --- |
+| Self-host and use Phare for your own organisation | Offer Phare (or a substantially similar service) **as a hosted / managed product for third parties** |
+| Modify the code for your own deployment | Use the Elastic License restrictions to bypass the hosted-service limitation |
+
+**Commercial hosted or multi-tenant SaaS:** contact **martin@pegase.io**.

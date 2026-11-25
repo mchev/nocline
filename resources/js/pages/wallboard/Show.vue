@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { Globe } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import WallboardSiteRow, {
-    type WallboardSite,
-} from '@/components/wallboard/WallboardSiteRow.vue';
-import { MONITOR_HISTORY_MINUTES } from '@/lib/monitorHistory';
+import type { WallboardSite } from '@/types/wallboard';
+import WallboardHostTile from '@/components/wallboard/WallboardHostTile.vue';
+import WallboardSiteTile from '@/components/wallboard/WallboardSiteTile.vue';
 import { t } from '@/lib/i18n';
 
 type Payload = {
@@ -30,8 +28,6 @@ type Payload = {
     }[];
     sites?: WallboardSite[];
 };
-
-const WALLBOARD_SITE_CAP = 24;
 
 const props = defineProps<{
     token: string;
@@ -84,20 +80,25 @@ const stale = computed(
         lastSuccess.value === null ||
         now.value - lastSuccess.value > STALE_AFTER_MS,
 );
+
+const downSites = computed(() =>
+    (data.value?.sites ?? []).filter(
+        (s) => s.enabled && !s.in_maintenance && s.status === 'down',
+    ),
+);
+
+const offlineHosts = computed(() =>
+    (data.value?.hosts ?? []).filter((h) => !h.online),
+);
+
 const allGood = computed(
     () =>
         data.value !== null &&
-        data.value.summary.down === 0 &&
+        downSites.value.length === 0 &&
+        offlineHosts.value.length === 0 &&
         data.value.active_incidents.length === 0,
 );
-const level = (v: number | null, warn: number, crit: number) =>
-    v === null
-        ? 'text-muted-foreground'
-        : v >= crit
-          ? 'text-danger'
-          : v >= warn
-            ? 'text-warning'
-            : 'text-success';
+
 const siteRank = (s: WallboardSite) => {
     if (s.enabled && !s.in_maintenance && s.status === 'down') {
         return 0;
@@ -113,17 +114,11 @@ const siteRank = (s: WallboardSite) => {
 };
 
 const sortedSites = computed(() =>
-    [...(data.value?.sites ?? [])]
-        .sort(
-            (a, b) =>
-                siteRank(a) - siteRank(b) ||
-                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
-        )
-        .slice(0, WALLBOARD_SITE_CAP),
-);
-
-const hiddenSiteCount = computed(() =>
-    Math.max(0, (data.value?.sites?.length ?? 0) - sortedSites.value.length),
+    [...(data.value?.sites ?? [])].sort(
+        (a, b) =>
+            siteRank(a) - siteRank(b) ||
+            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    ),
 );
 
 const sortedHosts = computed(() =>
@@ -133,6 +128,21 @@ const sortedHosts = computed(() =>
             a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
     ),
 );
+
+const problemLabels = computed(() => {
+    const items: string[] = [];
+    for (const s of downSites.value) {
+        items.push(s.name);
+    }
+    for (const h of offlineHosts.value) {
+        items.push(`${h.name} (${t('Offline')})`);
+    }
+  for (const i of data.value?.active_incidents ?? []) {
+        items.push(i.title);
+    }
+
+    return items;
+});
 
 const since = (iso: string | null) => {
     if (!iso) {
@@ -146,17 +156,13 @@ const since = (iso: string | null) => {
 <template>
     <Head :title="`${$t('Wallboard')} - ${name}`" />
 
-    <main
-        class="dark relative flex h-dvh max-h-dvh w-full flex-col overflow-hidden bg-background p-4 text-foreground lg:p-6"
-    >
-        <div
-            class="pointer-events-none absolute inset-0 opacity-80 aurora"
-            aria-hidden="true"
-        />
-        <div class="relative flex min-h-0 flex-1 flex-col gap-3">
+    <main class="wb-root dark">
+        <div class="wb-aurora" aria-hidden="true" />
+
+        <div class="wb-shell">
             <div
                 v-if="stale"
-                class="rounded-md bg-warning px-6 py-3 text-2xl font-semibold text-black"
+                class="wb-stale"
                 role="alert"
                 data-test="stale-banner"
             >
@@ -169,29 +175,20 @@ const since = (iso: string | null) => {
                 }}
             </div>
 
-            <header
-                class="flex shrink-0 flex-wrap items-center justify-between gap-3"
-            >
-                <h1
-                    class="truncate font-display text-3xl font-semibold tracking-tight lg:text-4xl"
-                >
-                    {{ name }}
-                </h1>
-                <div
-                    class="flex shrink-0 items-center gap-3 rounded-md px-5 py-2 text-2xl font-bold lg:text-3xl"
+            <header class="wb-header">
+                <h1 class="wb-title">{{ name }}</h1>
+                <p
+                    class="wb-status"
                     :class="
                         data === null
-                            ? 'bg-muted text-muted-foreground'
+                            ? 'wb-status--wait'
                             : allGood
-                              ? 'bg-success text-black'
-                              : 'bg-danger text-white'
+                              ? 'wb-status--ok'
+                              : 'wb-status--bad'
                     "
                     role="status"
                 >
-                    <span
-                        class="size-4 rounded-full bg-current motion-safe:animate-pulse"
-                        aria-hidden="true"
-                    />
+                    <span class="wb-status-dot" aria-hidden="true" />
                     {{
                         data === null
                             ? '…'
@@ -199,67 +196,35 @@ const since = (iso: string | null) => {
                               ? $t('ALL GOOD')
                               : $t('ATTENTION')
                     }}
-                </div>
+                </p>
             </header>
 
             <template v-if="data">
-                <div
-                    v-if="data.active_incidents.length"
-                    class="shrink-0 truncate rounded-md border border-danger bg-danger/15 px-4 py-2 text-lg font-semibold lg:text-xl"
+                <section
+                    v-if="!allGood"
+                    class="wb-alert"
                     role="alert"
+                    aria-live="assertive"
                 >
-                    <span
-                        v-for="(i, idx) in data.active_incidents"
-                        :key="i.id"
-                    >
-                        <template v-if="idx"> · </template>
-                        {{ i.title }} — {{ since(i.since) }}
-                        <span v-if="i.acknowledged" class="text-muted-foreground">
-                            ({{ $t('ack') }})
-                        </span>
-                    </span>
-                </div>
+                    <p class="wb-alert-kicker">{{ $t('ATTENTION') }}</p>
+                    <p class="wb-alert-list">
+                        {{ problemLabels.join(' · ') }}
+                    </p>
+                </section>
 
                 <div
-                    class="grid min-h-0 flex-1 gap-3"
-                    :class="
-                        sortedSites.length && sortedHosts.length
-                            ? 'lg:grid-cols-2'
-                            : 'grid-cols-1'
-                    "
+                    class="wb-board"
+                    :class="{
+                        'wb-board--hosts': sortedHosts.length > 0,
+                    }"
                 >
                     <section
                         v-if="sortedSites.length"
-                        class="flex min-h-0 min-w-0 flex-col overflow-hidden surface"
+                        class="wb-pane"
+                        :aria-label="$t('Websites')"
                     >
-                        <div
-                            class="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2"
-                        >
-                            <h2
-                                class="flex items-center gap-2 font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                            >
-                                <Globe
-                                    class="size-4 text-primary"
-                                    aria-hidden="true"
-                                />
-                                {{ $t('Websites') }}
-                            </h2>
-                            <p class="text-xs text-muted-foreground">
-                                {{
-                                    t('Last :minutes minutes', {
-                                        minutes: MONITOR_HISTORY_MINUTES,
-                                    })
-                                }}
-                                <span v-if="hiddenSiteCount" class="ml-1"
-                                    >+{{ hiddenSiteCount }}</span
-                                >
-                            </p>
-                        </div>
-                        <ul
-                            class="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden p-1"
-                            role="list"
-                        >
-                            <WallboardSiteRow
+                        <ul class="wb-grid wb-grid--sites" role="list">
+                            <WallboardSiteTile
                                 v-for="site in sortedSites"
                                 :key="site.id"
                                 :site="site"
@@ -269,53 +234,15 @@ const since = (iso: string | null) => {
 
                     <section
                         v-if="sortedHosts.length"
-                        class="flex min-h-0 min-w-0 flex-col overflow-hidden surface"
+                        class="wb-pane wb-pane--hosts"
+                        :aria-label="$t('Servers')"
                     >
-                        <h2
-                            class="shrink-0 border-b border-border px-3 py-2 font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                        >
-                            {{ $t('Servers') }}
-                        </h2>
-                        <ul
-                            class="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden p-1"
-                            role="list"
-                        >
-                            <li
-                                v-for="h in sortedHosts"
-                                :key="h.id"
-                                class="flex items-center gap-2 rounded-md border border-border px-3 py-2"
-                                :class="
-                                    h.online
-                                        ? 'bg-card'
-                                        : 'border-danger bg-danger/10'
-                                "
-                            >
-                                <span
-                                    class="size-2.5 shrink-0 rounded-full"
-                                    :class="
-                                        h.online ? 'bg-success' : 'bg-danger'
-                                    "
-                                    aria-hidden="true"
-                                />
-                                <span
-                                    class="min-w-0 flex-1 truncate text-lg font-semibold"
-                                >
-                                    {{ h.name }}
-                                </span>
-                                <span
-                                    class="numeric flex shrink-0 gap-2 text-sm font-semibold"
-                                >
-                                    <span :class="level(h.cpu_avg_5m, 70, 90)">
-                                        CPU {{ h.cpu_avg_5m ?? '–' }}%
-                                    </span>
-                                    <span :class="level(h.mem_pct, 80, 92)">
-                                        RAM {{ h.mem_pct ?? '–' }}%
-                                    </span>
-                                    <span :class="level(h.disk_pct, 80, 92)">
-                                        DSK {{ h.disk_pct ?? '–' }}%
-                                    </span>
-                                </span>
-                            </li>
+                        <ul class="wb-grid wb-grid--hosts" role="list">
+                            <WallboardHostTile
+                                v-for="host in sortedHosts"
+                                :key="host.id"
+                                :host="host"
+                            />
                         </ul>
                     </section>
                 </div>
@@ -323,3 +250,299 @@ const since = (iso: string | null) => {
         </div>
     </main>
 </template>
+
+<style scoped>
+.wb-root {
+    --wb-pad: clamp(0.35rem, 1.2vmin, 1rem);
+    --wb-gap: clamp(0.2rem, 0.5vmin, 0.5rem);
+    --wb-name: clamp(0.55rem, 1.55vmin, 1.05rem);
+    --wb-title: clamp(1rem, 4vmin, 2.75rem);
+    --wb-status: clamp(0.95rem, 3.2vmin, 2.5rem);
+    --wb-alert: clamp(0.85rem, 2.4vmin, 1.75rem);
+    --wb-site-min: clamp(3.75rem, 9vmin, 7.5rem);
+    --wb-host-min: clamp(4.5rem, 11vmin, 9rem);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    padding: var(--wb-pad);
+    color: var(--foreground);
+    background: var(--background);
+    container-type: size;
+    container-name: wallboard;
+}
+
+.wb-aurora {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.65;
+    background:
+        radial-gradient(
+            ellipse 70% 45% at 15% 0%,
+            color-mix(in oklch, var(--primary) 25%, transparent),
+            transparent 55%
+        ),
+        radial-gradient(
+            ellipse 50% 35% at 90% 20%,
+            color-mix(in oklch, var(--success) 15%, transparent),
+            transparent 50%
+        );
+}
+
+.wb-shell {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--wb-gap);
+    min-height: 0;
+}
+
+.wb-stale {
+    flex-shrink: 0;
+    padding: 0.35em 0.65em;
+    font-size: var(--wb-alert);
+    font-weight: 600;
+    color: #111;
+    background: var(--warning);
+    border-radius: 0.35rem;
+}
+
+.wb-header {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.wb-title {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-display, system-ui), sans-serif;
+    font-size: var(--wb-title);
+    font-weight: 600;
+    line-height: 1.05;
+    white-space: nowrap;
+}
+
+.wb-status {
+    display: flex;
+    gap: 0.4em;
+    align-items: center;
+    margin: 0;
+    padding: 0.25em 0.65em;
+    font-size: var(--wb-status);
+    font-weight: 700;
+    border-radius: 0.35rem;
+}
+
+.wb-status-dot {
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: currentcolor;
+}
+
+.wb-status--ok {
+    color: #0a0a0a;
+    background: var(--success);
+}
+
+.wb-status--bad {
+    color: #fff;
+    background: var(--danger);
+    animation: wb-pulse 1.6s ease-in-out infinite;
+}
+
+.wb-status--wait {
+    color: var(--muted-foreground);
+    background: var(--muted);
+}
+
+.wb-alert {
+    flex-shrink: 0;
+    padding: 0.45em 0.65em;
+    background: color-mix(in oklch, var(--danger) 88%, black);
+    border: 2px solid var(--danger);
+    border-radius: 0.35rem;
+}
+
+.wb-alert-kicker {
+    margin: 0;
+    font-size: calc(var(--wb-alert) * 0.85);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.9;
+}
+
+.wb-alert-list {
+    margin: 0.15em 0 0;
+    font-size: var(--wb-alert);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.wb-incidents {
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: calc(var(--wb-alert) * 0.9);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.wb-board {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--wb-gap);
+    min-height: 0;
+}
+
+.wb-board--hosts .wb-pane:first-child {
+    flex: 1;
+    min-height: 0;
+}
+
+.wb-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background: color-mix(in oklch, var(--card) 85%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+}
+
+.wb-pane--hosts {
+    flex: 0 0 clamp(4.5rem, 18cqh, 12rem);
+}
+
+.wb-grid {
+    display: grid;
+    gap: clamp(2px, 0.35vmin, 5px);
+    align-content: start;
+    height: 100%;
+    margin: 0;
+    padding: clamp(3px, 0.4vmin, 6px);
+    overflow: hidden auto;
+    list-style: none;
+}
+
+.wb-grid--sites {
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(min(var(--wb-site-min), 100%), 1fr)
+    );
+}
+
+.wb-grid--hosts {
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(min(var(--wb-host-min), 100%), 1fr)
+    );
+}
+
+@container wallboard (min-width: 900px) {
+    .wb-root {
+        --wb-site-min: clamp(4.5rem, 7vmin, 8.5rem);
+        --wb-name: clamp(0.65rem, 1.35vmin, 1.25rem);
+    }
+}
+
+@container wallboard (min-height: 700px) {
+    .wb-pane--hosts {
+        flex-basis: clamp(5rem, 14cqh, 14rem);
+    }
+}
+
+:deep(.wb-tile) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(2.5rem, 6.5vmin, 4.25rem);
+    padding: 0.2em 0.25em;
+    text-align: center;
+    border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+    border-radius: 0.3rem;
+}
+
+:deep(.wb-dot) {
+    flex-shrink: 0;
+    width: clamp(0.45rem, 1.2vmin, 0.85rem);
+    height: clamp(0.45rem, 1.2vmin, 0.85rem);
+    border-radius: 50%;
+    background: var(--muted-foreground);
+}
+
+:deep(.wb-tile-name) {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: var(--wb-name);
+    font-weight: 600;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+:deep(.wb-tile-meta) {
+    font-size: calc(var(--wb-name) * 0.8);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--warning);
+}
+
+:deep(.wb-tile--up) {
+    background: color-mix(in oklch, var(--card) 95%, var(--success) 5%);
+}
+
+:deep(.wb-tile--up .wb-dot) {
+    background: var(--success);
+}
+
+:deep(.wb-tile--down) {
+    background: color-mix(in oklch, var(--danger) 35%, var(--card));
+    border-color: var(--danger);
+    animation: wb-pulse 1.5s ease-in-out infinite;
+}
+
+:deep(.wb-tile--down .wb-dot) {
+    background: var(--danger);
+}
+
+:deep(.wb-tile--unknown .wb-dot),
+:deep(.wb-tile--maint .wb-dot) {
+    background: var(--warning);
+}
+
+:deep(.wb-tile--warn) {
+    border-color: var(--warning);
+}
+
+:deep(.wb-tile--warn .wb-dot) {
+    background: var(--warning);
+}
+
+@keyframes wb-pulse {
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.12);
+    }
+}
+</style>
