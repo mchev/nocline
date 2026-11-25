@@ -44,6 +44,16 @@ const label = computed(() => wallboardSiteLabel(props.site));
     >
         <span class="wb-dot" aria-hidden="true" />
         <span class="wb-tile-name">{{ label }}</span>
+        <span
+            v-if="tone === 'down'"
+            class="wb-tile-sub numeric"
+        >
+            {{
+                site.latency_ms !== null
+                    ? `${site.latency_ms} ms`
+                    : $t('Down')
+            }}
+        </span>
         <span class="sr-only">{{ title }}</span>
     </li>
 </template>

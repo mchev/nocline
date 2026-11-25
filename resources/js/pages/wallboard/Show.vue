@@ -179,8 +179,10 @@ const problemLabels = computed(() => {
         items.push(i.title);
     }
 
-    return items;
+    return [...new Set(items)];
 });
+
+const problemCount = computed(() => problemLabels.value.length);
 
 const sitesPaneEl = ref<HTMLElement | null>(null);
 const sitesPaneSize = ref({ width: 0, height: 0 });
@@ -238,24 +240,19 @@ const since = (iso: string | null) => {
             <header class="wb-header">
                 <h1 class="wb-title">{{ name }}</h1>
                 <p
-                    class="wb-status"
-                    :class="
-                        data === null
-                            ? 'wb-status--wait'
-                            : allGood
-                              ? 'wb-status--ok'
-                              : 'wb-status--bad'
-                    "
+                    v-if="data !== null && allGood"
+                    class="wb-status wb-status--ok"
                     role="status"
                 >
                     <span class="wb-status-dot" aria-hidden="true" />
-                    {{
-                        data === null
-                            ? '…'
-                            : allGood
-                              ? $t('ALL GOOD')
-                              : $t('ATTENTION')
-                    }}
+                    {{ $t('ALL GOOD') }}
+                </p>
+                <p
+                    v-else-if="data === null"
+                    class="wb-status wb-status--wait"
+                    role="status"
+                >
+                    …
                 </p>
             </header>
 
@@ -266,7 +263,9 @@ const since = (iso: string | null) => {
                     role="alert"
                     aria-live="assertive"
                 >
-                    <p class="wb-alert-kicker">{{ $t('ATTENTION') }}</p>
+                    <p class="wb-alert-count" aria-hidden="true">
+                        {{ problemCount }}
+                    </p>
                     <p class="wb-alert-list">
                         {{ problemLabels.join(' · ') }}
                     </p>
@@ -311,6 +310,20 @@ const since = (iso: string | null) => {
                         </ul>
                     </section>
                 </div>
+
+                <footer
+                    v-if="lastSuccess"
+                    class="wb-footer"
+                    aria-live="polite"
+                >
+                    {{
+                        $t('Last updated :date', {
+                            date: since(
+                                new Date(lastSuccess).toISOString(),
+                            ),
+                        })
+                    }}
+                </footer>
             </template>
         </div>
     </main>
@@ -433,27 +446,44 @@ const since = (iso: string | null) => {
 }
 
 .wb-alert {
+    display: flex;
     flex-shrink: 0;
-    padding: 0.45em 0.65em;
+    gap: 0.65em;
+    align-items: center;
+    padding: 0.5em 0.75em;
     background: color-mix(in oklch, var(--danger) 88%, black);
     border: 2px solid var(--danger);
     border-radius: 0.35rem;
 }
 
-.wb-alert-kicker {
+.wb-alert-count {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    min-width: 2.25em;
+    padding: 0.15em 0.35em;
     margin: 0;
-    font-size: calc(var(--wb-alert) * 0.85);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    opacity: 0.9;
+    font-size: calc(var(--wb-alert) * 1.35);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--danger);
+    background: #fff;
+    border-radius: 0.3rem;
 }
 
 .wb-alert-list {
-    margin: 0.15em 0 0;
+    margin: 0;
     font-size: var(--wb-alert);
     font-weight: 700;
     line-height: 1.2;
+}
+
+.wb-footer {
+    flex-shrink: 0;
+    font-size: calc(var(--wb-alert) * 0.75);
+    font-weight: 500;
+    color: var(--muted-foreground);
+    text-align: right;
 }
 
 .wb-incidents {
@@ -552,6 +582,16 @@ const since = (iso: string | null) => {
     height: clamp(0.65rem, 1.8vmin, 1.1rem);
     border-radius: 50%;
     background: var(--muted-foreground);
+}
+
+:deep(.wb-tile-sub) {
+    width: 100%;
+    overflow: hidden;
+    font-size: calc(var(--wb-tile-font, var(--wb-name)) * 0.85);
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--danger);
 }
 
 :deep(.wb-tile--site .wb-tile-name) {

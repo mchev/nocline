@@ -22,12 +22,13 @@ export function wallboardGridLayout(
         const cellH = (height - gapPx * (rows - 1)) / rows;
         const cellMin = Math.min(cellW, cellH);
 
-        if (cellMin < 40) {
+        if (cellW < 52 || cellH < 36) {
             continue;
         }
 
         const empty = cols * rows - count;
-        const score = cellMin - empty * 1.5;
+        // Favor wider cells so hostnames stay readable (NOC tiles are read at a glance).
+        const score = Math.min(cellW, cellH * 2) - empty * 2;
 
         if (score > best.score) {
             best = { cols, rows, score, cellMin };
