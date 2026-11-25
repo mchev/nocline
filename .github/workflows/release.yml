@@ -40,7 +40,7 @@ jobs:
       - name: Check VERSION matches the tag
         run: test "v$(tr -d '[:space:]' < VERSION)" = "${{ steps.tag.outputs.name }}"
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: agent/go.mod
           cache: false
@@ -63,7 +63,7 @@ jobs:
           done
 
       - name: Create or update GitHub release
-        uses: softprops/action-gh-release@28ab305d0ffa26d60ec4bd614126329e26c7a0ec # v3.0.4
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           tag_name: ${{ steps.tag.outputs.name }}
           name: Nocline ${{ steps.tag.outputs.name }}
