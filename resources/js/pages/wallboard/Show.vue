@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import {
     computed,
+    nextTick,
     onBeforeUnmount,
     onMounted,
     ref,
@@ -95,10 +96,16 @@ onMounted(() => {
     void refresh();
     timer = setInterval(refresh, REFRESH_MS);
     tick = setInterval(() => (now.value = Date.now()), 1000);
-    observeSitesPane(sitesPaneEl.value);
 });
 
-watch(sitesPaneEl, (el) => observeSitesPane(el));
+watch(
+    () => [data.value, sitesPaneEl.value, sortedSites.value.length] as const,
+    async () => {
+        await nextTick();
+        observeSitesPane(sitesPaneEl.value);
+    },
+    { flush: 'post' },
+);
 
 onBeforeUnmount(() => {
     clearInterval(timer);
@@ -478,6 +485,7 @@ const since = (iso: string | null) => {
 
 .wb-pane {
     display: flex;
+    flex: 1;
     flex-direction: column;
     min-height: 0;
     overflow: hidden;
