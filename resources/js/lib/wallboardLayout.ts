@@ -36,13 +36,9 @@ export function wallboardGridLayout(
 
         const empty = cols * rows - count;
         const lastRow = count - (rows - 1) * cols;
-        const rowBalance =
-            rows > 1 ? -Math.abs(cols - lastRow) * 4 : 0;
+        const rowBalance = rows > 1 ? -Math.abs(cols - lastRow) * 4 : 0;
         // Favor wider cells so hostnames stay readable (NOC tiles are read at a glance).
-        const score =
-            Math.min(cellW, cellH * 2) -
-            empty * 3 +
-            rowBalance;
+        const score = Math.min(cellW, cellH * 2) - empty * 3 + rowBalance;
 
         if (score > best.score) {
             best = { cols, rows, score, cellMin };

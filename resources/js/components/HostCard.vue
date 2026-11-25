@@ -5,7 +5,7 @@ import AgentUpdateDialog from '@/components/AgentUpdateDialog.vue';
 import HostMetaChips from '@/components/HostMetaChips.vue';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
-import { hostDiskCaption } from '@/lib/hostDiskCaption';
+import { hostDiskParts } from '@/lib/hostDiskCaption';
 import {
     hostMetricTone,
     metricThresholdsFromAlert,
@@ -148,7 +148,7 @@ const sparkRows = computed(() => [
     },
 ]);
 
-const diskCaption = computed(() => hostDiskCaption(props.metrics));
+const diskParts = computed(() => hostDiskParts(props.metrics));
 
 const diskTone = computed(() =>
     hostMetricTone(props.metrics.disk_now, false, diskThresholds.value),
@@ -319,19 +319,24 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                     </span>
                 </li>
                 <li
-                    class="grid grid-cols-[3.5rem_1fr] items-center gap-2 border-t border-border/70 pt-2"
+                    class="grid grid-cols-[3.5rem_1fr_2.5rem] items-center gap-2 border-t border-border/70 pt-2"
                 >
                     <span class="text-xs font-medium text-muted-foreground">{{
                         t('Disk')
                     }}</span>
                     <span
-                        class="truncate text-right numeric text-sm font-semibold tabular-nums"
+                        class="truncate text-right text-sm font-normal tabular-nums text-muted-foreground"
+                    >
+                        {{ diskParts.bytes ?? '' }}
+                    </span>
+                    <span
+                        class="text-right numeric text-sm font-semibold tabular-nums"
                         :class="{
                             'text-danger': diskTone === 'danger',
                             'text-warning': diskTone === 'warning',
                         }"
                     >
-                        {{ diskCaption }}
+                        {{ diskParts.percent }}
                     </span>
                 </li>
             </ul>

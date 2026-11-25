@@ -172,7 +172,7 @@ it('creates a website monitor like the guided screen', function () {
 
 it('keeps list queries bounded regardless of the number of checks', function () {
     apiAs(User::factory()->tech()->create());
-    Check::factory()->count(3)->create();
+    Check::withoutEvents(fn () => Check::factory()->count(3)->create());
 
     $this->getJson('/api/v1/checks', apiAuth())->assertOk();
 
@@ -180,7 +180,7 @@ it('keeps list queries bounded regardless of the number of checks', function () 
     $this->getJson('/api/v1/checks', apiAuth())->assertOk();
     $few = count(DB::getQueryLog());
 
-    Check::factory()->count(20)->create();
+    Check::withoutEvents(fn () => Check::factory()->count(20)->create());
     DB::flushQueryLog();
     $this->getJson('/api/v1/checks?per_page=100', apiAuth())->assertOk()->assertJsonCount(23, 'data');
 

@@ -67,8 +67,10 @@ it('truncates the failure message to 200 characters', function () {
 });
 
 it('answers an identical bare 404 for unknown, malformed or non-heartbeat tokens', function () {
-    $http = Check::factory()->create(['heartbeat_token' => str_repeat('a', 40)]);
-    heartbeat();
+    Check::withoutEvents(function () use (&$http): void {
+        $http = Check::factory()->create(['heartbeat_token' => str_repeat('a', 40)]);
+        heartbeat();
+    });
 
     $eventsBefore = CheckEvent::count();
 

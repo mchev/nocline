@@ -6,21 +6,40 @@ export type HostDiskMetrics = {
     disk_total_bytes?: number | null;
 };
 
-/** Wallboard + HostCard: `68% · 5,2 Go / 250 Go` when bytes exist, else used %. */
-export function hostDiskCaption(metrics: HostDiskMetrics): string {
+export type HostDiskParts = {
+    percent: string;
+    bytes: string | null;
+};
+
+/** Percent on the right; capacity `used / total` beside it (not bold in UI). */
+export function hostDiskParts(metrics: HostDiskMetrics): HostDiskParts {
     const usedPct = metrics.disk_now;
     const used = metrics.disk_used_bytes ?? null;
     const total = metrics.disk_total_bytes ?? null;
 
     if (usedPct === null) {
-        return '—';
+        return { percent: '—', bytes: null };
     }
 
-    const head = `${Math.round(usedPct)}%`;
+    const percent = `${Math.round(usedPct)}%`;
 
     if (used !== null && total !== null && total > 0) {
-        return `${head} · ${formatGiB(used)} / ${formatGiB(total)}`;
+        return {
+            percent,
+            bytes: `${formatGiB(used)} / ${formatGiB(total)}`,
+        };
     }
 
-    return head;
+    return { percent, bytes: null };
+}
+
+/** Single-line caption (feeds, aria, etc.). */
+export function hostDiskCaption(metrics: HostDiskMetrics): string {
+    const { percent, bytes } = hostDiskParts(metrics);
+
+    if (bytes !== null) {
+        return `${percent} · ${bytes}`;
+    }
+
+    return percent;
 }

@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import {
+    computed,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    watch,
+} from 'vue';
 import { wallboardGridLayout } from '@/lib/wallboardLayout';
 import type { WallboardSite } from '@/types/wallboard';
 import type { HostMetrics } from '@/components/HostCard.vue';
@@ -69,7 +76,6 @@ onMounted(() => {
     void refresh();
     timer = setInterval(refresh, REFRESH_MS);
     tick = setInterval(() => (now.value = Date.now()), 1000);
-
 });
 
 const stale = computed(

@@ -6,7 +6,7 @@ import {
     hostMetricTone,
     metricThresholdsFromAlert,
 } from '@/lib/hostMetricTone';
-import { hostDiskCaption } from '@/lib/hostDiskCaption';
+import { hostDiskParts } from '@/lib/hostDiskCaption';
 import { t } from '@/lib/i18n';
 import type { HostMetrics } from '@/components/HostCard.vue';
 
@@ -70,7 +70,7 @@ const sparkRows = computed(() => [
     },
 ]);
 
-const diskCaption = computed(() => hostDiskCaption(props.host.metrics));
+const diskParts = computed(() => hostDiskParts(props.host.metrics));
 
 const diskTone = computed(() =>
     hostMetricTone(props.host.metrics.disk_now, false, diskThresholds.value),
@@ -115,14 +115,17 @@ const diskTone = computed(() =>
             </li>
             <li class="wb-host-disk-row">
                 <span class="wb-host-metric-label">{{ t('Disk') }}</span>
+                <span class="wb-host-disk-bytes numeric">
+                    {{ diskParts.bytes ?? '' }}
+                </span>
                 <span
-                    class="wb-host-disk-cap numeric"
+                    class="wb-host-metric-val numeric"
                     :class="{
                         'text-danger': diskTone === 'danger',
                         'text-warning': diskTone === 'warning',
                     }"
                 >
-                    {{ diskCaption }}
+                    {{ diskParts.percent }}
                 </span>
             </li>
         </ul>
@@ -187,7 +190,7 @@ const diskTone = computed(() =>
 
 .wb-host-disk-row {
     display: grid;
-    grid-template-columns: 2.5em 1fr;
+    grid-template-columns: 2.5em 1fr 2.75em;
     gap: 0.35em;
     align-items: center;
     padding-top: 0.1em;
@@ -208,11 +211,12 @@ const diskTone = computed(() =>
     text-align: right;
 }
 
-.wb-host-disk-cap {
+.wb-host-disk-bytes {
     overflow: hidden;
     font-size: calc(var(--wb-host-name, 0.95rem) * 0.82);
-    font-weight: 700;
+    font-weight: 400;
     line-height: 1.15;
+    color: var(--muted-foreground);
     text-overflow: ellipsis;
     text-align: right;
     white-space: nowrap;
