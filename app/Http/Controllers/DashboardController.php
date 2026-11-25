@@ -201,15 +201,16 @@ class DashboardController extends Controller
                 'metrics' => $m,
                 ...HostMetaPresenter::forHost($h),
             ];
-        })->sortBy([
-            fn (array $row) => $row['online'] ? 1 : 0,
-            fn (array $row) => -max(
+        })
+            ->sortBy(fn (array $row) => $row['name'])
+            ->sortBy(fn (array $row) => -max(
                 (float) ($row['metrics']['cpu_now'] ?? 0),
                 (float) ($row['metrics']['mem_now'] ?? 0),
                 (float) ($row['metrics']['disk_now'] ?? 0),
-            ),
-            fn (array $row) => $row['name'],
-        ])->values()->all();
+            ))
+            ->sortBy(fn (array $row) => $row['online'] ? 1 : 0)
+            ->values()
+            ->all();
 
         $serverRows = array_values($serverRows);
 
@@ -226,10 +227,11 @@ class DashboardController extends Controller
             'history' => $histories[$c->id]['history'] ?? [],
             'timeline' => $histories[$c->id]['timeline'] ?? [],
             'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
-        ])->sortBy([
-            fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']),
-            fn (array $row) => $row['name'],
-        ])->values()->all();
+        ])
+            ->sortBy(fn (array $row) => $row['name'])
+            ->sortBy(fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']))
+            ->values()
+            ->all();
 
         $objectStorageRows = array_values($objectStorageRows);
 
@@ -244,10 +246,11 @@ class DashboardController extends Controller
             'history' => $histories[$c->id]['history'] ?? [],
             'timeline' => $histories[$c->id]['timeline'] ?? [],
             'uptime_24h_pct' => $histories[$c->id]['uptime_24h_pct'] ?? null,
-        ])->sortBy([
-            fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']),
-            fn (array $row) => $row['name'],
-        ])->values()->all();
+        ])
+            ->sortBy(fn (array $row) => $row['name'])
+            ->sortBy(fn (array $row) => $this->checkProblemRank($row['enabled'], $row['in_maintenance'], $row['status']))
+            ->values()
+            ->all();
 
         $heartbeatRows = array_values($heartbeatRows);
 

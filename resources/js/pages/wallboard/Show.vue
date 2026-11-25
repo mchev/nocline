@@ -103,17 +103,27 @@ const allGood = computed(
 );
 
 const siteRank = (s: WallboardSite) => {
-    if (s.enabled && !s.in_maintenance && s.status === 'down') {
+    if (!s.enabled) {
+        return 5;
+    }
+
+    if (s.status === 'down') {
         return 0;
     }
-    if (s.in_maintenance) {
-        return 2;
-    }
-    if (s.status === 'unknown') {
+
+    if (s.status === 'degraded') {
         return 1;
     }
 
-    return 3;
+    if (s.in_maintenance) {
+        return 2;
+    }
+
+    if (s.status === 'unknown') {
+        return 3;
+    }
+
+    return 4;
 };
 
 const sortedSites = computed(() =>

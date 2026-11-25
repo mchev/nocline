@@ -61,15 +61,29 @@ final class WebsiteMonitorRows
                     'wordpress_version' => WordPressSiteMeta::version($c),
                 ];
             })
-            ->sortBy([
-                fn (array $row) => self::problemRank($row['enabled'], $row['in_maintenance'], $row['status']),
-                fn (array $row) => self::sslAttentionRank($row['ssl_status'] ?? null),
-                fn (array $row) => $row['name'],
-            ])
-            ->values()
-            ->all();
+            ->pipe(fn ($collection) => self::sortRows($collection->values()->all()));
 
         return $rows;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return list<array<string, mixed>>
+     */
+    public static function sortRows(array $rows): array
+    {
+        return array_values(
+            collect($rows)
+                ->sortBy(fn (array $row) => $row['name'])
+                ->sortBy(fn (array $row) => self::sslAttentionRank($row['ssl_status'] ?? null))
+                ->sortBy(fn (array $row) => self::problemRank(
+                    (bool) $row['enabled'],
+                    (bool) $row['in_maintenance'],
+                    (string) $row['status'],
+                ))
+                ->values()
+                ->all(),
+        );
     }
 
     public static function problemRank(bool $enabled, bool $inMaintenance, string $status): int
@@ -81,8 +95,9 @@ final class WebsiteMonitorRows
         return match ($status) {
             CheckStatus::Down->value => 0,
             CheckStatus::Degraded->value => 1,
-            CheckStatus::Unknown->value => 2,
-            default => $inMaintenance ? 4 : 3,
+            CheckStatus::Unknown->value => $inMaintenance ? 2 : 3,
+            CheckStatus::Up->value => $inMaintenance ? 2 : 4,
+            default => $inMaintenance ? 2 : 4,
         };
     }
 

@@ -253,6 +253,39 @@ watch(
     { deep: true },
 );
 
+/** Mirrors WebsiteMonitorRows::problemRank — problems and maintenance before healthy rows. */
+function siteAttentionRank(site: Overview['sites'][number]): number {
+    if (!site.enabled) {
+        return 5;
+    }
+
+    if (site.status === 'down') {
+        return 0;
+    }
+
+    if (site.status === 'degraded') {
+        return 1;
+    }
+
+    if (site.in_maintenance) {
+        return 2;
+    }
+
+    if (site.status === 'unknown') {
+        return 3;
+    }
+
+    return 4;
+}
+
+const sortedOverviewSites = computed(() =>
+    [...props.overview.sites].sort(
+        (a, b) =>
+            siteAttentionRank(a) - siteAttentionRank(b) ||
+            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    ),
+);
+
 const hasSites = computed(() => props.overview.sites.length > 0);
 const hasHeartbeats = computed(() => props.overview.heartbeats.length > 0);
 const hasObjectStorage = computed(
@@ -274,7 +307,7 @@ const showServersPanel = computed(
 const showRenewalsUi = computed(() => layout.value.renewals);
 
 const visibleSites = computed(() =>
-    props.overview.sites.slice(0, sitesCount.value),
+    sortedOverviewSites.value.slice(0, sitesCount.value),
 );
 const visibleHeartbeats = computed(() =>
     props.overview.heartbeats.slice(0, heartbeatsCount.value),
@@ -302,7 +335,7 @@ const serverGridCols = computed(() => {
 });
 
 const hiddenSites = computed(() =>
-    Math.max(0, props.overview.sites.length - visibleSites.value.length),
+    Math.max(0, sortedOverviewSites.value.length - visibleSites.value.length),
 );
 const hiddenHeartbeats = computed(() =>
     Math.max(

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -142,18 +143,22 @@ func migrateSystemd(logf func(string, ...any)) error {
 		return fmt.Errorf("legacy: write unit: %w", err)
 	}
 
-	_ = exec.Command("systemctl", "stop", LegacyService).Run()
-	_ = exec.Command("systemctl", "disable", LegacyService).Run()
-	_ = os.Remove("/etc/systemd/system/" + LegacyService + ".service")
-
 	if out, err := exec.Command("systemctl", "daemon-reload").CombinedOutput(); err != nil {
 		return fmt.Errorf("legacy: daemon-reload: %w (%s)", err, out)
 	}
-	_ = exec.Command("systemctl", "enable", NewService).Run()
-	if out, err := exec.Command("systemctl", "restart", NewService).CombinedOutput(); err != nil {
-		return fmt.Errorf("legacy: restart %s: %w (%s)", NewService, err, out)
+
+	// Do not `systemctl stop` the legacy unit here: this code usually runs inside that unit's
+	// main process. Stopping it kills us before nocline-agent can start (seen in prod 0.2.0).
+	handoff := fmt.Sprintf(
+		"systemctl enable --now %s && systemctl stop %s && systemctl disable %s && rm -f /etc/systemd/system/%s.service && systemctl daemon-reload",
+		NewService, LegacyService, LegacyService, LegacyService,
+	)
+	if _, err := exec.Command("systemd-run", "--collect", "--on-active=2", "/bin/sh", "-c", handoff).CombinedOutput(); err != nil {
+		logf("systemd-run indisponible (%v) — activez %s à la main: systemctl enable --now %s", err, NewService, NewService)
+
+		return nil
 	}
-	logf("service systemd basculé vers %s", NewService)
+	logf("bascule systemd vers %s programmée (~2 s)", NewService)
 
 	return nil
 }

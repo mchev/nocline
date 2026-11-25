@@ -144,6 +144,37 @@ it('orders overview sections with problems first', function () {
             ->where('overview.servers.1.online', true));
 });
 
+it('lists planned maintenance before healthy sites when the monitor is still up', function () {
+    $user = User::factory()->create();
+
+    $up = Check::factory()->create([
+        'name' => 'AAA up',
+        'category' => CheckCategory::Website,
+        'type' => CheckType::Http,
+    ]);
+    $up->state()->update(['status' => CheckStatus::Up]);
+
+    $maintUp = Check::factory()->create([
+        'name' => 'ZZZ maintenance up',
+        'category' => CheckCategory::Website,
+        'type' => CheckType::Http,
+    ]);
+    $maintUp->state()->update(['status' => CheckStatus::Up]);
+
+    MaintenanceWindow::factory()->create([
+        'check_id' => $maintUp->id,
+        'starts_at' => now()->subHour(),
+        'ends_at' => now()->addHour(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('overview.sites.0.name', 'ZZZ maintenance up')
+            ->where('overview.sites.1.name', 'AAA up'));
+});
+
 it('lists down sites before up sites even when down is in maintenance', function () {
     $user = User::factory()->create();
 
