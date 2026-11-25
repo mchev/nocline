@@ -11,14 +11,14 @@ description: >-
 
 **Nocline** : console + wallboard + agents (métaphore du phare — voir l'état de l'infra de loin).
 
-| Identité            | Valeur                                                             |
-| ------------------- | ------------------------------------------------------------------ |
-| Nom affiché (UI)    | **NOCLINE** (wordmark caps, symbole « champ de veille »)           |
-| Nom produit / légal | Nocline                                                              |
-| Repo OSS visé       | `nocline/nocline` (ou org perso + nom `nocline`)                         |
-| Binaires            | `nocline-agent`, `nocline-probe` (même binaire, rôle config)           |
-| App Laravel         | namespace / Nocline                                        |
-| Tagline             | _« Self-hosted NOC : checks, métriques, incidents, wallboard. »_   |
+| Identité            | Valeur                                                                    |
+| ------------------- | ------------------------------------------------------------------------- |
+| Nom affiché (UI)    | **NOCLINE** (wordmark caps, symbole « champ de veille »)                  |
+| Nom produit / légal | Nocline                                                                   |
+| Repo OSS visé       | `nocline/nocline` (ou org perso + nom `nocline`)                          |
+| Binaires            | `nocline-agent`, `nocline-probe` (même binaire, rôle config)              |
+| App Laravel         | namespace / Nocline                                                       |
+| Tagline             | _« Self-hosted NOC : checks, métriques, incidents, wallboard. »_          |
 | Baseline (FR)       | _Voir l’essentiel. Veiller sur l’invisible._ · _Votre NOC, sans l’équipe_ |
 
 **Source de vérité (git).** Copie Cursor : `.cursor/skills/nocline/SKILL.md` (même contenu).
@@ -27,9 +27,9 @@ description: >-
 
 | Rôle                            | Token                        | Hex       |
 | ------------------------------- | ---------------------------- | --------- |
-| **Lien** (accent, CTA, icône) | `--nocline-lien` / `primary` | `#365CF5` |
-| **Réseau** (texte, fond sombre) | `--nocline-reseau` | `#202536` |
-| **Cloud** (fond clair) | `--nocline-cloud` | `#F5F6FA` |
+| **Lien** (accent, CTA, icône)   | `--nocline-lien` / `primary` | `#365CF5` |
+| **Réseau** (texte, fond sombre) | `--nocline-reseau`           | `#202536` |
+| **Cloud** (fond clair)          | `--nocline-cloud`            | `#F5F6FA` |
 
 - **Symbole / wordmark** : `public/brand/nocline-symbole.svg`, `nocline-wordmark.svg` — `AppLogoIcon`, `AppWordmark`, `AppLogo`.
 - **Favicon** : `public/favicon.svg` (fond Lien, symbole blanc).

@@ -2,14 +2,14 @@
 
 Ce dépôt est **Nocline** (plateforme ops self-hosted OSS).
 
-| Priorité          | Ressource                                                                 |
-| ----------------- | ------------------------------------------------------------------------- |
-| Guideline produit | `.cursor/skills/nocline/SKILL.md`                                           |
-| Spec technique    | `.cursor/skills/nocline/reference.md`                                       |
+| Priorité          | Ressource                                                                     |
+| ----------------- | ----------------------------------------------------------------------------- |
+| Guideline produit | `.cursor/skills/nocline/SKILL.md`                                             |
+| Spec technique    | `.cursor/skills/nocline/reference.md`                                         |
 | Doc (site)        | [mchev.github.io/nocline](https://mchev.github.io/nocline/) · sources `docs/` |
-| Roadmap           | `docs/roadmap.md`                                                         |
-| Agent Go          | `agent/README.md`                                                         |
-| Modules Laravel   | `app/Modules/README.md`                                                   |
+| Roadmap           | `docs/roadmap.md`                                                             |
+| Agent Go          | `agent/README.md`                                                             |
+| Modules Laravel   | `app/Modules/README.md`                                                       |
 
 Activer la skill **nocline** pour tout travail checks, sondes, métriques, incidents, wallboard ou coffre.
 

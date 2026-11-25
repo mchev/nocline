@@ -6,10 +6,10 @@ Official agent repo: **`mchev/nocline`** (`NOCLINE_OFFICIAL_REPOSITORY`). Forks:
 
 ## Versioning
 
-| Item              | Format                                               | Example    |
-| ----------------- | ---------------------------------------------------- | ---------- |
-| `VERSION` file    | `X.Y.Z`                                              | `0.1.4`    |
-| Git tag / release | `vX.Y.Z`                                             | `v0.1.4`   |
+| Item              | Format                                                   | Example    |
+| ----------------- | -------------------------------------------------------- | ---------- |
+| `VERSION` file    | `X.Y.Z`                                                  | `0.1.4`    |
+| Git tag / release | `vX.Y.Z`                                                 | `v0.1.4`   |
 | Assets            | `nocline-agent-linux-amd64`, `nocline-agent-linux-arm64` | on the tag |
 
 Tag must match `VERSION` (CI).

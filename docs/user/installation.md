@@ -14,11 +14,11 @@ PostgreSQL and Redis are **not** required for a first look. For the fastest path
 
 ## Pick a deployment path
 
-| Path                                | When to use                                                                   |
-| ----------------------------------- | ----------------------------------------------------------------------------- |
+| Path                                | When to use                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------- |
 | [Docker](../deploy/docker)          | Try Nocline or run the full stack (Postgres + Redis + workers) with one command |
-| [Custom VPS / Forge](../deploy/hub) | You already run PHP sites and want Supervisor + your own TLS                  |
-| Setup wizard (`/setup`)             | Always — first visit configures DB, admin, URL, optional mail                 |
+| [Custom VPS / Forge](../deploy/hub) | You already run PHP sites and want Supervisor + your own TLS                    |
+| Setup wizard (`/setup`)             | Always — first visit configures DB, admin, URL, optional mail                   |
 
 After install, continue with **[Your first hour with Nocline](getting-started)**.
 

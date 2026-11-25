@@ -212,7 +212,7 @@ Kuma comparé : Kuma exécute tout depuis le conteneur unique ; nous **séparons
 | ICMP / checks  | **Sondes** (agent `role=probe`), modèle Kuma **enrichi** (résultats structurés, multi-sonde, quorum) ; pas d'ICMP depuis PHP. |
 | Coffre         | **Confiance maximale** : MEK hors BDD, libsodium, audit, re-auth/2FA à la révélation, pas de secrets dans logs.               |
 | GPU            | **Hors périmètre** jusqu'à nouvel ordre.                                                                                      |
-| Nom produit    | **Nocline** (repo `nocline`, binaires `nocline-agent`).                                                                             |
+| Nom produit    | **Nocline** (repo `nocline`, binaires `nocline-agent`).                                                                       |
 
 ## Pistes v2 (non engagées)
 

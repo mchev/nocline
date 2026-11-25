@@ -24,8 +24,8 @@ Keys are **English text** (same convention as Laravel); used in PHP (`__('…')`
 
 The docs site uses [VitePress i18n](https://vitepress.dev/guide/i18n):
 
-| Locale                | Sources                                 | URL                                                  |
-| --------------------- | --------------------------------------- | ---------------------------------------------------- |
+| Locale                | Sources                                 | URL                                                    |
+| --------------------- | --------------------------------------- | ------------------------------------------------------ |
 | **English** (default) | `docs/` root — `user/`, `deploy/`, etc. | `https://mchev.github.io/nocline/user/installation`    |
 | **Français**          | `docs/fr/`                              | `https://mchev.github.io/nocline/fr/user/installation` |
 

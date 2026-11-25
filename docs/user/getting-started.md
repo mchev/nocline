@@ -12,9 +12,9 @@ Use the administrator account from `/setup`. There is **no public sign-up** — 
 
 | You have…        | Choose…                             | What happens                                     |
 | ---------------- | ----------------------------------- | ------------------------------------------------ |
-| A website        | **A website**                       | Nocline checks HTTP, tracks domain + SSL expiry    |
+| A website        | **A website**                       | Nocline checks HTTP, tracks domain + SSL expiry  |
 | A Linux server   | **A server**                        | You get a one-line install command for the agent |
-| A cron job       | **Something else → Scheduled task** | Nocline gives you a secret ping URL                |
+| A cron job       | **Something else → Scheduled task** | Nocline gives you a secret ping URL              |
 | Mail, DNS, port… | **Something else**                  | Pick the matching type                           |
 
 Details: [Add monitors](surveiller).

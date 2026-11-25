@@ -11,10 +11,10 @@ Repo officiel des binaires agent : **`mchev/nocline`** (`NOCLINE_OFFICIAL_REPOSI
 
 ## Numérotation
 
-| Élément                  | Format                                               | Exemple               |
-| ------------------------ | ---------------------------------------------------- | --------------------- |
-| Fichier `VERSION`        | `X.Y.Z` (sans préfixe `v`)                           | `0.1.0`               |
-| Tag git / release GitHub | `vX.Y.Z`                                             | `v0.1.0`              |
+| Élément                  | Format                                                   | Exemple               |
+| ------------------------ | -------------------------------------------------------- | --------------------- |
+| Fichier `VERSION`        | `X.Y.Z` (sans préfixe `v`)                               | `0.1.0`               |
+| Tag git / release GitHub | `vX.Y.Z`                                                 | `v0.1.0`              |
 | Assets agent             | `nocline-agent-linux-amd64`, `nocline-agent-linux-arm64` | sur la release du tag |
 
 Le workflow release vérifie que `v$(cat VERSION)` == tag poussé.

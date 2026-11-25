@@ -260,14 +260,14 @@ Coming from **Uptime Kuma**? **[Import guide](docs/migration-kuma.md)**.
 
 ## Advanced
 
-| Topic                              | Where to read                                                                      |
-| ---------------------------------- | ---------------------------------------------------------------------------------- |
+| Topic                              | Where to read                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------ |
 | **Updates**                        | `scripts/update.sh` then `php artisan nocline:update` — [releases](docs/releases.md) |
-| **Probes** (ICMP, external checks) | [Sondes & wallboard](docs/user/sondes-wallboard.md)                                |
-| **API & tokens**                   | [docs/api.md](docs/api.md)                                                         |
-| **Security & hardening**           | [docs/security.md](docs/security.md) · report: [SECURITY.md](SECURITY.md)          |
-| **Backups (DB + vault key)**       | [docs/privacy.md](docs/privacy.md)                                                 |
-| **Roadmap**                        | [docs/roadmap.md](docs/roadmap.md)                                                 |
+| **Probes** (ICMP, external checks) | [Sondes & wallboard](docs/user/sondes-wallboard.md)                                  |
+| **API & tokens**                   | [docs/api.md](docs/api.md)                                                           |
+| **Security & hardening**           | [docs/security.md](docs/security.md) · report: [SECURITY.md](SECURITY.md)            |
+| **Backups (DB + vault key)**       | [docs/privacy.md](docs/privacy.md)                                                   |
+| **Roadmap**                        | [docs/roadmap.md](docs/roadmap.md)                                                   |
 
 ---
 
@@ -281,9 +281,9 @@ Architecture, modules, tests, and contribution workflow: **[CONTRIBUTING.md](CON
 
 Nocline is released under the **[Elastic License 2.0](LICENSE)**.
 
-| You can                                           | You cannot (without a separate agreement)                                                            |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| You can                                             | You cannot (without a separate agreement)                                                              |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Self-host and use Nocline for your own organisation | Offer Nocline (or a substantially similar service) **as a hosted / managed product for third parties** |
-| Modify the code for your own deployment           | Use the Elastic License restrictions to bypass the hosted-service limitation                         |
+| Modify the code for your own deployment             | Use the Elastic License restrictions to bypass the hosted-service limitation                           |
 
 **Commercial hosted or multi-tenant SaaS:** contact **martin@pegase.io**.

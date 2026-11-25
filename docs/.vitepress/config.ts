@@ -150,7 +150,8 @@ export default defineConfig({
             label: 'English',
             lang: 'en-US',
             title: 'NOCLINE',
-            description: 'Nocline documentation — self-hosted operations center',
+            description:
+                'Nocline documentation — self-hosted operations center',
             themeConfig: {
                 ...sharedTheme,
                 nav: [

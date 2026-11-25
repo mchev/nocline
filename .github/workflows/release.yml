@@ -2,6 +2,9 @@ name: release
 
 # Push a tag vX.Y.Z (VERSION file must match) → build nocline-agent and attach Linux binaries to the GitHub release.
 # To fix an empty release: Actions → release → Run workflow → enter the tag (e.g. v0.1.0).
+#
+# Asset uploads use `gh release upload` with retries: GitHub's uploads API sometimes 502s with
+# "Error creating policy" (transient). Uploading via the CLI avoids aborting the whole release.
 on:
   push:
     tags:
@@ -19,6 +22,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Resolve release tag
         id: tag
@@ -29,16 +33,17 @@ jobs:
             echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: refs/tags/${{ steps.tag.outputs.name }}
 
       - name: Check VERSION matches the tag
         run: test "v$(tr -d '[:space:]' < VERSION)" = "${{ steps.tag.outputs.name }}"
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: agent/go.mod
+          cache: false
 
       - name: Build the agent
         run: NOCLINE_AGENT_BINARY_DIR="$PWD/dist" scripts/build-agent.sh
@@ -57,15 +62,35 @@ jobs:
             test "$(stat -c%s "$file")" -gt 1000000
           done
 
-      - name: Publish GitHub release with agent binaries
-        uses: softprops/action-gh-release@v2
+      - name: Create or update GitHub release
+        uses: softprops/action-gh-release@28ab305d0ffa26d60ec4bd614126329e26c7a0ec # v3.0.4
         with:
           tag_name: ${{ steps.tag.outputs.name }}
           name: Nocline ${{ steps.tag.outputs.name }}
           generate_release_notes: true
-          fail_on_unmatched_files: true
-          files: |
+          draft: false
+
+      - name: Upload agent binaries (retry GitHub upload transients)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.tag.outputs.name }}"
+          files=(
             dist/nocline-agent-linux-amd64
             dist/nocline-agent-linux-arm64
             dist/nocline-agent-linux-amd64.sha256
             dist/nocline-agent-linux-arm64.sha256
+          )
+          attempts=5
+          for attempt in $(seq 1 "$attempts"); do
+            if gh release upload "$tag" "${files[@]}" --clobber; then
+              gh release edit "$tag" --draft=false
+              exit 0
+            fi
+            if [ "$attempt" -lt "$attempts" ]; then
+              echo "::warning::upload attempt $attempt/$attempts failed; retrying in $((attempt * 15))s..."
+              sleep $((attempt * 15))
+            fi
+          done
+          echo "::error::agent binary upload failed after $attempts attempts (release metadata may exist; re-run this workflow for the same tag)"
+          exit 1

@@ -801,10 +801,7 @@ const starts = [
                                 :status="
                                     asDot(s.status, s.enabled, s.in_maintenance)
                                 "
-                                :pulse="
-                                    s.enabled &&
-                                    s.status === 'down'
-                                "
+                                :pulse="s.enabled && s.status === 'down'"
                             />
                             <span
                                 class="board-row-main flex min-w-0 items-center gap-2"

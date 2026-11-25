@@ -21,7 +21,7 @@ Under **Something else** → **Object storage (S3)**:
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | **Storage service answers**  | TCP on the provider S3 endpoint (port 443) — good first step for OVH `s3.<region>.io.cloud.ovh.net`.         |
 | **Public file in my bucket** | HTTP on `https://<bucket>.s3.<region>…/<file>` — put a small public `health.txt` (or similar) in the bucket. |
-| **Backup job still runs**    | Heartbeat — ping Nocline after your `aws s3` / `rclone` job succeeds.                                          |
+| **Backup job still runs**    | Heartbeat — ping Nocline after your `aws s3` / `rclone` job succeeds.                                        |
 
 Providers: OVH, **Hetzner**, **Laravel Cloud** (R2 endpoint from the bucket settings), AWS, Scaleway, Wasabi, or custom MinIO hostname. No cloud API keys in Nocline for this wizard (phase 1).
 

@@ -22,8 +22,8 @@ La clé est le **texte anglais** (même convention que Laravel) ; elle sert au P
 
 Le site public est **bilingue** : **français** (URLs à la racine, ex. `/user/installation`) et **anglais** (`/en/…`), comme l'application. VitePress affiche un sélecteur de langue en haut à droite.
 
-| Langue   | Fichiers sources               | URL (GitHub Pages)                                             |
-| -------- | ------------------------------ | -------------------------------------------------------------- |
+| Langue   | Fichiers sources               | URL (GitHub Pages)                                                 |
+| -------- | ------------------------------ | ------------------------------------------------------------------ |
 | Français | `docs/` (hors `docs/en/`)      | [mchev.github.io/nocline/](https://mchev.github.io/nocline/)       |
 | English  | `docs/en/` (même arborescence) | [mchev.github.io/nocline/en/](https://mchev.github.io/nocline/en/) |
 
