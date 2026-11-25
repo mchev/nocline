@@ -117,6 +117,7 @@ class StatusPagePayload
         return match ($check->state ? $check->state->status : CheckStatus::Unknown) {
             CheckStatus::Up => 'operational',
             CheckStatus::Down => 'down',
+            CheckStatus::Degraded => 'degraded',
             CheckStatus::Unknown => 'unknown',
         };
     }
@@ -131,7 +132,7 @@ class StatusPagePayload
 
         return match (true) {
             $checks->isEmpty() => 'unknown',
-            $statuses->contains('down') => 'degraded',
+            $statuses->contains('down') || $statuses->contains('degraded') => 'degraded',
             $statuses->contains('maintenance') => 'maintenance',
             default => 'operational',
         };

@@ -115,6 +115,10 @@ const dotStatus = computed(() => {
         return 'unknown' as const;
     }
 
+    if (props.check.status === 'degraded') {
+        return 'warning';
+    }
+
     return props.check.status as 'up' | 'down' | 'unknown' | 'maintenance';
 });
 
@@ -128,9 +132,12 @@ const statusLabel = computed(() => {
     }
 
     return (
-        { up: t('Up'), down: t('Down'), unknown: t('Unknown') }[
-            props.check.status
-        ] ?? props.check.status
+        {
+            up: t('Up'),
+            down: t('Down'),
+            degraded: t('HTTP maintenance'),
+            unknown: t('Unknown'),
+        }[props.check.status] ?? props.check.status
     );
 });
 
@@ -145,6 +152,10 @@ const statusChipClass = computed(() => {
 
     if (props.check.status === 'down') {
         return 'chip chip-danger';
+    }
+
+    if (props.check.status === 'degraded') {
+        return 'chip chip-warning';
     }
 
     return 'chip';

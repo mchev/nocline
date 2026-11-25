@@ -2,7 +2,12 @@
 import { computed } from 'vue';
 import { t } from '@/lib/i18n';
 
-export type UptimeHistoryDot = 'up' | 'down' | 'unknown' | 'maintenance';
+export type UptimeHistoryDot =
+    | 'up'
+    | 'down'
+    | 'unknown'
+    | 'maintenance'
+    | 'warning';
 
 export type UptimeTimelineBucket = {
     s: UptimeHistoryDot;
@@ -87,7 +92,7 @@ const pctLabel = computed(() => {
     }
 
     const good = observed.value.filter(
-        (b) => b.s === 'up' || b.s === 'maintenance',
+        (b) => b.s === 'up' || b.s === 'maintenance' || b.s === 'warning',
     ).length;
     const pct = Math.floor((good / observed.value.length) * 1000) / 10;
 
@@ -116,6 +121,7 @@ const dotClass = (d: UptimeHistoryDot) =>
     ({
         up: 'bg-success',
         down: 'bg-danger',
+        warning: 'bg-warning',
         maintenance: 'bg-info',
         unknown: 'bg-muted-foreground/40',
     })[d];
@@ -124,6 +130,7 @@ const statusTitle = (d: UptimeHistoryDot) =>
     ({
         up: t('UP'),
         down: t('DOWN'),
+        warning: t('HTTP maintenance'),
         maintenance: t('MAINTENANCE'),
         unknown: t('Unknown'),
     })[d];
@@ -132,6 +139,7 @@ const statusTitleClass = (d: UptimeHistoryDot) =>
     ({
         up: 'text-success',
         down: 'text-danger',
+        warning: 'text-warning',
         maintenance: 'text-info',
         unknown: 'text-muted-foreground',
     })[d];
@@ -261,7 +269,12 @@ const trackStyle = computed(() => ({
                         >
                             {{ formatBucketAt(bucket.at) }}
                         </p>
-                        <template v-if="bucket.error && bucket.s === 'down'">
+                        <template
+                            v-if="
+                                bucket.error &&
+                                (bucket.s === 'down' || bucket.s === 'warning')
+                            "
+                        >
                             <hr class="timeline-popover-rule" />
                             <p
                                 class="line-clamp-3 text-xs leading-snug text-foreground/90"

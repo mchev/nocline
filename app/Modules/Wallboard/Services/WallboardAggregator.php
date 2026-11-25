@@ -94,7 +94,9 @@ class WallboardAggregator
 
         $status = fn (Check $c): CheckStatus => $c->state ? $c->state->status : CheckStatus::Unknown;
         $inMaintenance = array_flip($this->maintenance->activeCheckIds($checks));
-        $failing = $checks->filter(fn ($c) => $status($c) === CheckStatus::Down);
+        $failing = $checks->filter(
+            fn ($c) => in_array($status($c), [CheckStatus::Down, CheckStatus::Degraded], true),
+        );
         $underMaintenance = $failing->filter(fn ($c) => isset($inMaintenance[$c->id]));
         $failing = $failing->reject(fn ($c) => isset($inMaintenance[$c->id]));
 

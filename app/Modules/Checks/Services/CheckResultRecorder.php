@@ -5,11 +5,13 @@ namespace App\Modules\Checks\Services;
 use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Events\CheckRecovered;
+use App\Modules\Checks\Events\CheckWentDegraded;
 use App\Modules\Checks\Events\CheckWentDown;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckEvent;
 use App\Modules\Checks\Models\CheckLatencySample;
 use App\Modules\Checks\Models\CheckState;
+use App\Modules\Checks\Support\HttpServiceUnavailable;
 use App\Support\OpsBroadcast;
 use Illuminate\Support\Facades\DB;
 
@@ -37,8 +39,11 @@ class CheckResultRecorder
                 $failures = max($failures, $check->failure_threshold);
             }
 
+            $maintenanceHttp = ! $ok && HttpServiceUnavailable::isMaintenanceResponse($error, $metadata);
+
             $next = match (true) {
                 $ok => CheckStatus::Up,
+                $maintenanceHttp && $failures >= $check->failure_threshold => CheckStatus::Degraded,
                 $failures >= $check->failure_threshold => CheckStatus::Down,
                 default => $previous,
             };
@@ -78,6 +83,7 @@ class CheckResultRecorder
 
         match ($transition) {
             CheckStatus::Down => CheckWentDown::dispatch($check, $error),
+            CheckStatus::Degraded => CheckWentDegraded::dispatch($check, $error),
             CheckStatus::Up => CheckRecovered::dispatch($check),
             default => null,
         };

@@ -96,7 +96,10 @@ class DashboardController extends Controller
         }
 
         $down = Check::query()->with(['state', 'group:id,name'])
-            ->whereHas('state', fn ($q) => $q->where('status', CheckStatus::Down->value))
+            ->whereHas('state', fn ($q) => $q->whereIn('status', [
+                CheckStatus::Down->value,
+                CheckStatus::Degraded->value,
+            ]))
             ->get();
         $inMaintenance = array_flip($maintenance->activeCheckIds($down));
         [$underMaintenance, $problems] = $down->partition(fn (Check $c) => isset($inMaintenance[$c->id]));
@@ -109,6 +112,7 @@ class DashboardController extends Controller
                     'group' => $c->group?->name,
                     'since_at' => $c->state?->since_at?->toIso8601String(),
                     'error' => $c->state?->last_error,
+                    'severity' => $c->state?->status === CheckStatus::Degraded ? 'degraded' : 'down',
                 ])->all()),
             'maintenance' => array_values($underMaintenance->take(20)
                 ->map(fn (Check $c) => [

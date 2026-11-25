@@ -1,6 +1,11 @@
-export type CheckStatus = 'unknown' | 'up' | 'down';
+export type CheckStatus = 'unknown' | 'up' | 'down' | 'degraded';
 
-export type UptimeHistoryDot = 'up' | 'down' | 'unknown' | 'maintenance';
+export type UptimeHistoryDot =
+    | 'up'
+    | 'down'
+    | 'unknown'
+    | 'maintenance'
+    | 'warning';
 
 export type CheckMetrics = {
     cpu: (number | null)[];

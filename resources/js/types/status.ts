@@ -1,6 +1,6 @@
 export type StatusMonitor = {
     name: string;
-    status: 'operational' | 'down' | 'maintenance' | 'unknown';
+    status: 'operational' | 'down' | 'degraded' | 'maintenance' | 'unknown';
     uptime: number | null;
 };
 

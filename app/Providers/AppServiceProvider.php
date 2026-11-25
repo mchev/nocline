@@ -8,6 +8,7 @@ use App\Modules\Audit\Listeners\RecordAuthActivity;
 use App\Modules\Audit\Observers\AuditObserver;
 use App\Modules\Checks\Events\CheckCreated;
 use App\Modules\Checks\Events\CheckRecovered;
+use App\Modules\Checks\Events\CheckWentDegraded;
 use App\Modules\Checks\Events\CheckWentDown;
 use App\Modules\Checks\Jobs\DetectSiteFramework;
 use App\Modules\Checks\Jobs\FetchCheckFavicon;
@@ -16,6 +17,7 @@ use App\Modules\Checks\Services\SiteFaviconSync;
 use App\Modules\Checks\Services\SiteFrameworkSync;
 use App\Modules\Incidents\Events\IncidentOpened;
 use App\Modules\Incidents\Events\IncidentResolved;
+use App\Modules\Incidents\Listeners\OpenIncidentOnCheckDegraded;
 use App\Modules\Incidents\Listeners\OpenIncidentOnCheckDown;
 use App\Modules\Incidents\Listeners\ResolveIncidentOnCheckRecovered;
 use App\Modules\Renewals\Services\RenewalSync;
@@ -72,6 +74,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Event::listen(CheckWentDown::class, OpenIncidentOnCheckDown::class);
+        Event::listen(CheckWentDegraded::class, OpenIncidentOnCheckDegraded::class);
         Event::listen(CheckRecovered::class, ResolveIncidentOnCheckRecovered::class);
         Event::listen(CheckCreated::class, fn (CheckCreated $event) => RenewalSync::forCheck($event->check));
         Event::listen(CheckCreated::class, function (CheckCreated $event): void {

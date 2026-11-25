@@ -6,6 +6,8 @@ Types : `http` (statut, mot-clé optionnel), `tcp` (`hôte:port`), `agent` (le h
 
 Un check passe **down** après N échecs consécutifs (2 par défaut), évitant les fausses alertes ; il repasse **up** au premier succès. Seuls les changements d'état sont historisés.
 
+Si un site web répond **HTTP 502 ou 503** (souvent le mode maintenance WordPress), Nocline le classe en **maintenance HTTP** (pastille orange) plutôt qu’en panne : les incidents et alertes précisent qu’il s’agit d’une indisponibilité volontaire, pas d’un crash. Pour accepter un 503 comme « en ligne », vous pouvez aussi définir un code attendu dans les réglages avancés du check.
+
 ### Organiser ses checks
 
 Chaque check peut avoir un **groupe**, une **catégorie** (sites web, serveurs, mail, DNS, réseau, autre) et des **tags** libres (ex. `prod`, `wordpress`).

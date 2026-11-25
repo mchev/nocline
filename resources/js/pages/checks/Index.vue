@@ -61,9 +61,15 @@ const categoryLabel = (c: string) =>
         other: t('Other'),
     })[c] ?? c;
 /** A monitor under planned maintenance is not counted as down. */
-const isDown = (c: Check) => c.status === 'down' && !c.in_maintenance;
+const isFailing = (c: Check) =>
+    (c.status === 'down' || c.status === 'degraded') && !c.in_maintenance;
 const statusLabel = (s: string) =>
-    ({ up: t('Up'), down: t('Down'), unknown: t('Unknown') })[s] ?? s;
+    ({
+        up: t('Up'),
+        down: t('Down'),
+        degraded: t('HTTP maintenance'),
+        unknown: t('Unknown'),
+    })[s] ?? s;
 
 /* ---------- view state (persisted) ---------- */
 type GroupBy = 'group' | 'category' | 'status' | 'none';
@@ -103,7 +109,11 @@ function loadView(): View {
     return {
         groupFilter: typeof s.groupFilter === 'string' ? s.groupFilter : 'all',
         category: typeof s.category === 'string' ? s.category : 'all',
-        status: pick(s.status, ['all', 'up', 'down', 'unknown'], 'all'),
+        status: pick(
+            s.status,
+            ['all', 'up', 'down', 'degraded', 'unknown'],
+            'all',
+        ),
         groupBy: pick(
             s.groupBy,
             ['group', 'category', 'status', 'none'],
@@ -125,7 +135,12 @@ function applyUrlViewHints(): void {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
 
-    if (status === 'up' || status === 'down' || status === 'unknown') {
+    if (
+        status === 'up' ||
+        status === 'down' ||
+        status === 'degraded' ||
+        status === 'unknown'
+    ) {
         view.value.status = status;
     }
 
@@ -186,7 +201,12 @@ watch(
 );
 
 const selected = ref<number[]>([]);
-const statusRank: Record<CheckStatus, number> = { down: 0, unknown: 1, up: 2 };
+const statusRank: Record<CheckStatus, number> = {
+    down: 0,
+    degraded: 1,
+    unknown: 2,
+    up: 3,
+};
 
 const groupById = computed(() => new Map(props.groups.map((g) => [g.id, g])));
 const filtersActive = computed(
@@ -301,7 +321,7 @@ const sections = computed<Section[]>(() => {
             while (id !== null && !seen.has(id)) {
                 seen.add(id);
                 total.set(id, (total.get(id) ?? 0) + 1);
-                down.set(id, (down.get(id) ?? 0) + (isDown(c) ? 1 : 0));
+                down.set(id, (down.get(id) ?? 0) + (isFailing(c) ? 1 : 0));
                 up.set(id, (up.get(id) ?? 0) + (c.status === 'up' ? 1 : 0));
                 id = groupById.value.get(id)?.parent_id ?? null;
             }
@@ -355,7 +375,7 @@ const sections = computed<Section[]>(() => {
                 items: loose,
                 total: loose.length,
                 up: loose.filter((c) => c.status === 'up').length,
-                down: loose.filter(isDown).length,
+                down: loose.filter(isFailing).length,
                 defaultCollapsed: false,
                 showHeader: true,
             });
@@ -395,7 +415,7 @@ const sections = computed<Section[]>(() => {
             items: g.items,
             total: g.items.length,
             up: g.items.filter((c) => c.status === 'up').length,
-            down: g.items.filter(isDown).length,
+            down: g.items.filter(isFailing).length,
             defaultCollapsed: false,
             showHeader: mode !== 'none',
         }))
@@ -408,7 +428,7 @@ const layoutOf = (s: Section): GroupLayout =>
         : (s.group?.layout ?? 'list');
 
 const totals = computed(() => ({
-    down: props.checks.filter(isDown).length,
+    down: props.checks.filter(isFailing).length,
     up: props.checks.filter((c) => c.status === 'up').length,
     all: props.checks.length,
 }));
@@ -690,6 +710,9 @@ function bulkDelete() {
                     >
                         <option value="all">{{ t('All statuses') }}</option>
                         <option value="down">{{ t('Down') }}</option>
+                        <option value="degraded">
+                            {{ t('HTTP maintenance') }}
+                        </option>
                         <option value="up">{{ t('Up') }}</option>
                         <option value="unknown">{{ t('Unknown') }}</option>
                     </select>

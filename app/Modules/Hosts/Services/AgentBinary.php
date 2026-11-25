@@ -116,23 +116,32 @@ class AgentBinary
 
         $cacheKey = 'nocline:agent-sha256:'.config('nocline.version').':'.$arch;
 
-        return Cache::remember($cacheKey, now()->addDays(self::CHECKSUM_CACHE_DAYS), function () use ($arch): ?string {
-            try {
-                $response = Http::timeout(15)
-                    ->withUserAgent('nocline/'.config('nocline.version'))
-                    ->get($this->checksumSidecarUrl($arch));
-            } catch (Throwable) {
-                return null;
-            }
+        $cached = Cache::get($cacheKey);
+        if (is_string($cached) && strlen($cached) === 64) {
+            return $cached;
+        }
 
-            if (! $response->successful()) {
-                return null;
-            }
+        try {
+            $response = Http::timeout(15)
+                ->withUserAgent('nocline/'.config('nocline.version'))
+                ->get($this->checksumSidecarUrl($arch));
+        } catch (Throwable) {
+            return null;
+        }
 
-            $hash = $this->normalizeHash($response->body());
+        if (! $response->successful()) {
+            return null;
+        }
 
-            return strlen($hash) === 64 ? $hash : null;
-        });
+        $hash = $this->normalizeHash($response->body());
+
+        if (strlen($hash) !== 64) {
+            return null;
+        }
+
+        Cache::put($cacheKey, $hash, now()->addDays(self::CHECKSUM_CACHE_DAYS));
+
+        return $hash;
     }
 
     private function normalizeHash(string $raw): string

@@ -129,6 +129,7 @@ const props = defineProps<{
         group: string | null;
         since_at: string | null;
         error: string | null;
+        severity?: 'down' | 'degraded';
     }[];
     maintenance: { id: number; name: string; group: string | null }[];
     checks: { up: number; down: number; unknown: number; maintenance: number };
@@ -200,6 +201,10 @@ const asDot = (
 
     if (inMaintenance) {
         return 'maintenance';
+    }
+
+    if (status === 'degraded') {
+        return 'warning';
     }
 
     if (
@@ -389,6 +394,10 @@ function rowProblemClass(
 
     if (status === 'down') {
         return 'board-row--down';
+    }
+
+    if (status === 'degraded') {
+        return 'board-row--warning';
     }
 
     if (status === 'unknown') {
@@ -586,14 +595,27 @@ const starts = [
             <Link
                 v-if="primaryProblem"
                 :href="problemBannerHref"
-                class="problem-banner mt-2 flex min-h-11 w-full items-start gap-3 rounded-md border border-danger/30 bg-danger/8 px-3 py-2.5 text-left transition hover:bg-danger/12 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                class="problem-banner mt-2 flex min-h-11 w-full items-start gap-3 rounded-md px-3 py-2.5 text-left transition focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                :class="
+                    primaryProblem.severity === 'degraded'
+                        ? 'border border-warning/35 bg-warning/10 hover:bg-warning/15'
+                        : 'border border-danger/30 bg-danger/8 hover:bg-danger/12'
+                "
                 :title="primaryProblem.error ?? primaryProblem.name"
             >
                 <StatusDot
-                    status="down"
-                    pulse
+                    :status="
+                        primaryProblem.severity === 'degraded'
+                            ? 'warning'
+                            : 'down'
+                    "
+                    :pulse="primaryProblem.severity !== 'degraded'"
                     class="mt-0.5 shrink-0"
-                    :label="t('Down')"
+                    :label="
+                        primaryProblem.severity === 'degraded'
+                            ? t('HTTP maintenance')
+                            : t('Down')
+                    "
                 />
                 <span class="min-w-0 flex-1">
                     <span class="block text-sm font-semibold text-foreground">
@@ -779,7 +801,10 @@ const starts = [
                                 :status="
                                     asDot(s.status, s.enabled, s.in_maintenance)
                                 "
-                                :pulse="s.enabled && s.status === 'down'"
+                                :pulse="
+                                    s.enabled &&
+                                    s.status === 'down'
+                                "
                             />
                             <span
                                 class="board-row-main flex min-w-0 items-center gap-2"
@@ -1186,6 +1211,15 @@ const starts = [
 
 .board-row--down:hover {
     background: color-mix(in oklab, var(--danger) 14%, transparent);
+}
+
+.board-row--warning {
+    border-left: 3px solid color-mix(in oklab, var(--warning) 70%, transparent);
+    background: color-mix(in oklab, var(--warning) 10%, transparent);
+}
+
+.board-row--warning:hover {
+    background: color-mix(in oklab, var(--warning) 15%, transparent);
 }
 
 .board-row--unknown {

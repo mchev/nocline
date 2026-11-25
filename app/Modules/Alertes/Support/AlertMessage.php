@@ -2,6 +2,7 @@
 
 namespace App\Modules\Alertes\Support;
 
+use App\Modules\Checks\Support\HttpServiceUnavailable;
 use App\Modules\Incidents\Models\Incident;
 
 /**
@@ -24,10 +25,25 @@ final readonly class AlertMessage
      */
     public static function forIncident(Incident $incident, string $kind): self
     {
+        $maintenanceHttp = HttpServiceUnavailable::isMaintenanceResponse($incident->last_error);
+
+        $prefix = match (true) {
+            $kind === 'resolved' => __('RESOLVED'),
+            $maintenanceHttp => __('MAINTENANCE HTTP'),
+            default => __('DOWN'),
+        };
+
+        $body = (string) $incident->last_error;
+        if ($maintenanceHttp && $body !== '') {
+            $body = __('The site responds with :code (maintenance mode — not a crash).', [
+                'code' => $body,
+            ]);
+        }
+
         return new self(
             $kind,
-            ($kind === 'resolved' ? __('RESOLVED') : __('DOWN')).': '.$incident->title,
-            (string) $incident->last_error,
+            $prefix.': '.$incident->title,
+            $body,
             $incident,
         );
     }

@@ -26,7 +26,7 @@ const (
 	minBinaryBytes = 500_000
 	cooldown       = 6 * time.Hour
 	serviceName    = "nocline-agent"
-	legacyService  = "nocline-agent"
+	legacyService  = "phare-agent"
 )
 
 // Offer is returned by the hub in POST /api/v1/ingest when a newer agent exists.

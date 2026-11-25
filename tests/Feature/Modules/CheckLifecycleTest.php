@@ -38,6 +38,17 @@ it('goes up from unknown with a single event and no incident', function () {
         ->and(Incident::count())->toBe(0);
 });
 
+it('marks HTTP 503 as degraded and opens a maintenance incident', function () {
+    $check = Check::factory()->create(['failure_threshold' => 1]);
+
+    recorder()->record($check, true, 100);
+    recorder()->record($check, false, 120, 'HTTP 503', ['http_status' => 503]);
+
+    expect($check->state()->first()->status)->toBe(CheckStatus::Degraded)
+        ->and(Incident::open()->count())->toBe(1)
+        ->and(Incident::open()->first()->title)->toContain('HTTP maintenance');
+});
+
 it('requires consecutive failures before going down and opens one incident', function () {
     $check = Check::factory()->create(['failure_threshold' => 2]);
     recorder()->record($check, true, 100);
@@ -132,7 +143,7 @@ it('runs due http checks through the scheduler command', function () {
     $this->artisan('nocline:checks:run-due')->assertSuccessful();
 
     expect($ok->state()->first()->status)->toBe(CheckStatus::Up)
-        ->and($ko->state()->first()->status)->toBe(CheckStatus::Down)
+        ->and($ko->state()->first()->status)->toBe(CheckStatus::Degraded)
         ->and($icmp->state()->first()->status)->toBe(CheckStatus::Unknown);
 
     $this->artisan('nocline:checks:run-due')->assertSuccessful();

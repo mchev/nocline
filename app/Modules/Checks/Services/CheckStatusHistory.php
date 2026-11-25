@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Collection;
 /**
  * Rebuilds short-term uptime from {@see CheckEvent} transitions (no rollup table yet).
  *
- * @phpstan-type HistoryDot 'up'|'down'|'unknown'|'maintenance'
+ * @phpstan-type HistoryDot 'up'|'down'|'unknown'|'maintenance'|'warning'
  */
 class CheckStatusHistory
 {
@@ -106,7 +106,7 @@ class CheckStatusHistory
 
                     $status = $event->to_status;
 
-                    if ($status === CheckStatus::Down) {
+                    if ($status === CheckStatus::Down || $status === CheckStatus::Degraded) {
                         $err = $event->metadata['error'] ?? null;
                         $lastError = is_string($err) && $err !== '' ? $err : $lastError;
                     } elseif ($status === CheckStatus::Up) {
@@ -156,12 +156,13 @@ class CheckStatusHistory
                 $dot = match ($status) {
                     CheckStatus::Up => 'up',
                     CheckStatus::Down => 'down',
+                    CheckStatus::Degraded => 'warning',
                     default => 'unknown',
                 };
                 $dots[] = $dot;
 
                 $error = null;
-                if ($dot === 'down') {
+                if ($dot === 'down' || $dot === 'warning') {
                     $error = $lastError ?? $check->state?->last_error;
                     $error = is_string($error) && $error !== '' ? $error : null;
                 }
@@ -172,7 +173,7 @@ class CheckStatusHistory
                     'error' => $error,
                 ];
 
-                if ($dot === 'up') {
+                if ($dot === 'up' || $dot === 'warning') {
                     $good++;
                 }
             }
@@ -199,6 +200,7 @@ class CheckStatusHistory
         return match ($status) {
             CheckStatus::Up => 'up',
             CheckStatus::Down => 'down',
+            CheckStatus::Degraded => 'warning',
             default => 'unknown',
         };
     }

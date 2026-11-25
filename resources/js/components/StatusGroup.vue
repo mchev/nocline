@@ -18,6 +18,7 @@ const statusText = (s: StatusMonitor['status']) =>
     ({
         operational: t('Operational'),
         down: t('Down'),
+        degraded: t('HTTP maintenance'),
         maintenance: t('Maintenance'),
         unknown: t('Unknown'),
     })[s];
@@ -26,6 +27,7 @@ const statusTone = (s: StatusMonitor['status']) =>
     ({
         operational: 'up' as const,
         down: 'down' as const,
+        degraded: 'warning' as const,
         maintenance: 'maintenance' as const,
         unknown: 'unknown' as const,
     })[s];
@@ -34,6 +36,7 @@ const chipTone = (s: StatusMonitor['status']) =>
     ({
         operational: 'chip-success',
         down: 'chip-danger',
+        degraded: 'chip-warning',
         maintenance: 'chip-info',
         unknown: '',
     })[s];

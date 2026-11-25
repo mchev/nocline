@@ -63,6 +63,7 @@ final class WebsiteMonitorRows
             })
             ->sortBy([
                 fn (array $row) => self::problemRank($row['enabled'], $row['in_maintenance'], $row['status']),
+                fn (array $row) => self::sslAttentionRank($row['ssl_status'] ?? null),
                 fn (array $row) => $row['name'],
             ])
             ->values()
@@ -74,16 +75,23 @@ final class WebsiteMonitorRows
     public static function problemRank(bool $enabled, bool $inMaintenance, string $status): int
     {
         if (! $enabled) {
-            return 4;
-        }
-
-        if ($inMaintenance) {
-            return 3;
+            return 5;
         }
 
         return match ($status) {
             CheckStatus::Down->value => 0,
-            CheckStatus::Unknown->value => 1,
+            CheckStatus::Degraded->value => 1,
+            CheckStatus::Unknown->value => 2,
+            default => $inMaintenance ? 4 : 3,
+        };
+    }
+
+    /** Lower = more urgent SSL signal among otherwise-healthy sites. */
+    public static function sslAttentionRank(?string $sslStatus): int
+    {
+        return match ($sslStatus) {
+            'expired', 'error' => 0,
+            'warning', 'unknown' => 1,
             default => 2,
         };
     }

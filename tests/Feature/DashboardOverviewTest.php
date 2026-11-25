@@ -6,6 +6,7 @@ use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Maintenance\Models\MaintenanceWindow;
 use App\Modules\Metrics\Models\MetricRollup;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -141,6 +142,37 @@ it('orders overview sections with problems first', function () {
             ->where('overview.servers.1.name', 'online-box')
             ->where('overview.servers.0.online', false)
             ->where('overview.servers.1.online', true));
+});
+
+it('lists down sites before up sites even when down is in maintenance', function () {
+    $user = User::factory()->create();
+
+    $up = Check::factory()->create([
+        'name' => 'AAA up',
+        'category' => CheckCategory::Website,
+        'type' => CheckType::Http,
+    ]);
+    $up->state()->update(['status' => CheckStatus::Up]);
+
+    $downMaint = Check::factory()->create([
+        'name' => 'ZZZ down maintenance',
+        'category' => CheckCategory::Website,
+        'type' => CheckType::Http,
+    ]);
+    $downMaint->state()->update(['status' => CheckStatus::Down]);
+
+    MaintenanceWindow::factory()->create([
+        'check_id' => $downMaint->id,
+        'starts_at' => now()->subHour(),
+        'ends_at' => now()->addHour(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('overview.sites.0.name', 'ZZZ down maintenance')
+            ->where('overview.sites.1.name', 'AAA up'));
 });
 
 it('includes metric sparklines on the servers page', function () {

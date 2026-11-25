@@ -47,13 +47,28 @@ const variant = (c: Check) =>
             ? 'success'
             : c.status === 'down'
               ? 'danger'
-              : 'muted';
+              : c.status === 'degraded'
+                ? 'warning'
+                : 'muted';
 
 const label = (c: Check, statusText: string) =>
     !c.enabled ? t('Paused') : c.in_maintenance ? t('Maintenance') : statusText;
 
-const dotStatus = (c: Check) =>
-    !c.enabled ? 'unknown' : c.in_maintenance ? 'maintenance' : c.status;
+const dotStatus = (c: Check) => {
+    if (!c.enabled) {
+        return 'unknown';
+    }
+
+    if (c.in_maintenance) {
+        return 'maintenance';
+    }
+
+    if (c.status === 'degraded') {
+        return 'warning';
+    }
+
+    return c.status;
+};
 
 const latencyTone = (ms: number | null) =>
     ms === null ? '' : ms > 1500 ? 'text-warning' : 'text-foreground';
