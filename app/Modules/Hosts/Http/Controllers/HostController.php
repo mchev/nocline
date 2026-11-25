@@ -15,6 +15,7 @@ use App\Modules\Hosts\Support\HostMetricAlerts;
 use App\Modules\Metrics\Services\HostMetricAlertEvaluator;
 use App\Modules\Metrics\Services\HostMetricsReader;
 use App\Modules\Updates\Services\ReleaseChecker;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,6 +69,8 @@ class HostController extends Controller
 
         $host->load(['agentCheck.state', 'resourcesCheck.state', 'linkedChecks.state']);
         $series = $metrics->forHosts(collect([$host]));
+        $chartHours = 24;
+        $metricsChart = $metrics->chart($host, $chartHours);
         $agent = $host->agentCheck;
 
         return Inertia::render('hosts/Show', [
@@ -122,7 +125,23 @@ class HostController extends Controller
                     'type' => $c->type->value,
                 ])->values(),
             'groups' => Group::options(),
+            'metrics_chart' => $metricsChart,
         ]);
+    }
+
+    public function metricsChart(Host $host, Request $request, HostMetricsReader $metrics): JsonResponse
+    {
+        $this->authorize('view', $host);
+
+        $data = $request->validate([
+            'hours' => ['nullable', 'integer', 'min:1', 'max:720'],
+            'end' => ['nullable', 'date'],
+        ]);
+
+        $hours = (int) ($data['hours'] ?? 24);
+        $end = isset($data['end']) ? CarbonImmutable::parse($data['end']) : null;
+
+        return response()->json($metrics->chart($host, $hours, $end));
     }
 
     public function store(HostRequest $request): RedirectResponse

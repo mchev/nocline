@@ -24,6 +24,8 @@ Sur un serveur **déjà enrôlé**, utilisez la commande du badge _mise à jour 
 
 ## Métriques
 
+Sur la **fiche serveur**, le graphique **Charge serveur (CPU, RAM, disque)** affiche l’évolution sur **24 h**, **7 jours** ou **30 jours** (rollups 1 min, 5 min ou 1 h selon la période). Utile pour remonter un pic ou une saturation autour d’un incident.
+
 ## Alertes de charge (CPU, RAM, disque)
 
 Par défaut, Phare ouvre un incident (et envoie vos canaux d’alerte) si **CPU, RAM ou disque** dépassent **90 %** pendant **5 minutes** consécutives (moyenne par minute). Réglage par serveur : fiche **Hosts → Alertes de charge** (seuils, durée, charge 1 min optionnelle). Les sparklines utilisent ces seuils pour le code couleur.

@@ -96,3 +96,63 @@ it('merges latest disk byte rollups into forHosts', function () {
         ->and($series[$host->id]['disk_used_bytes'])->toEqual(5.2 * 1024 ** 3)
         ->and($series[$host->id]['disk_total_bytes'])->toEqual(250.0 * 1024 ** 3);
 });
+
+it('builds a multi-hour chart from the right rollup bucket size', function () {
+    $host = Host::factory()->enrolled()->create();
+    $start = now()->subHours(2)->startOfMinute();
+
+    foreach (range(0, 4) as $i) {
+        $bucket = $start->copy()->addMinutes($i * 15);
+
+        MetricRollup::create([
+            'host_id' => $host->id,
+            'metric_key' => 'cpu.usage_pct',
+            'bucket_size' => MetricRollup::BUCKET_1M,
+            'bucket_start' => $bucket,
+            'avg' => 20 + $i,
+            'sample_count' => 1,
+        ]);
+        MetricRollup::create([
+            'host_id' => $host->id,
+            'metric_key' => 'mem.used_pct',
+            'bucket_size' => MetricRollup::BUCKET_1M,
+            'bucket_start' => $bucket,
+            'avg' => 50,
+            'sample_count' => 1,
+        ]);
+    }
+
+    $chart = app(HostMetricsReader::class)->chart($host, 24);
+
+    expect($chart['hours'])->toBe(24)
+        ->and($chart['bucket_seconds'])->toBe(MetricRollup::BUCKET_1M)
+        ->and($chart['points'])->not->toBeEmpty();
+
+    $withCpu = collect($chart['points'])->first(fn (array $p) => $p['cpu'] !== null);
+
+    expect($withCpu)->not->toBeNull()
+        ->and($withCpu['mem'])->toBe(50.0);
+});
+
+it('uses 5m rollups for a 7-day chart window', function () {
+    $host = Host::factory()->enrolled()->create();
+    $start = now()->subDays(1)->startOfMinute();
+    $ts = intdiv((int) $start->timestamp, MetricRollup::BUCKET_5M) * MetricRollup::BUCKET_5M;
+
+    MetricRollup::create([
+        'host_id' => $host->id,
+        'metric_key' => 'disk.used_pct',
+        'bucket_size' => MetricRollup::BUCKET_5M,
+        'bucket_start' => now()->setTimestamp($ts),
+        'avg' => 88,
+        'sample_count' => 1,
+    ]);
+
+    $chart = app(HostMetricsReader::class)->chart($host, 168);
+
+    expect($chart['bucket_seconds'])->toBe(MetricRollup::BUCKET_5M);
+
+    $disk = collect($chart['points'])->first(fn (array $p) => $p['disk'] === 88.0);
+
+    expect($disk)->not->toBeNull();
+});

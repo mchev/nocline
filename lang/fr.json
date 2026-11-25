@@ -34,6 +34,8 @@
     "Recent (3 h)": "Récent (3 h)",
     "24 hours": "24 heures",
     "7 days": "7 jours",
+    "Server load (CPU, RAM, disk)": "Charge serveur (CPU, RAM, disque)",
+    "No metrics yet — data appears a few minutes after the agent connects.": "Pas encore de métriques — les données arrivent quelques minutes après la connexion de l’agent.",
     "No response samples yet — data appears after the next runs.": "Pas encore d’échantillons — les données apparaissent après les prochaines sondes.",
     "Checked every :n seconds": "Vérification toutes les :n secondes",
     "Checked every :minutes min (:sec s)": "Vérification toutes les :minutes min (:sec s)",

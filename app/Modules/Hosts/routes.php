@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('hosts')->name('hosts.')->group(function () {
     Route::get('/', [HostController::class, 'index'])->name('index');
+    Route::get('{host}/metrics-chart', [HostController::class, 'metricsChart'])->name('metrics-chart');
     Route::get('{host}', [HostController::class, 'show'])->name('show');
     Route::post('{host}/checks', [HostController::class, 'attachCheck'])->name('attach-check');
     Route::delete('{host}/checks/{check}', [HostController::class, 'detachCheck'])->name('detach-check');

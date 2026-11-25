@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Metrics\Models\MetricRollup;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('shows host detail with linked monitors', function () {
@@ -31,7 +32,30 @@ it('shows host detail with linked monitors', function () {
             ->where('host.color', '#336699')
             ->where('host.agent_check.interval_sec', 120)
             ->has('linked_checks', 1)
-            ->where('linked_checks.0.id', $site->id));
+            ->where('linked_checks.0.id', $site->id)
+            ->has('metrics_chart')
+            ->where('metrics_chart.hours', 24)
+            ->has('metrics_chart.points'));
+});
+
+it('returns metrics chart json for a viewer', function () {
+    $user = User::factory()->create();
+    $host = Host::factory()->enrolled()->create();
+
+    MetricRollup::create([
+        'host_id' => $host->id,
+        'metric_key' => 'cpu.usage_pct',
+        'bucket_size' => MetricRollup::BUCKET_1M,
+        'bucket_start' => now()->startOfMinute(),
+        'avg' => 42,
+        'sample_count' => 1,
+    ]);
+
+    $this->actingAs($user)
+        ->getJson(route('hosts.metrics-chart', ['host' => $host, 'hours' => 24]))
+        ->assertOk()
+        ->assertJsonPath('hours', 24)
+        ->assertJsonStructure(['bucket_seconds', 'end_at', 'points']);
 });
 
 it('updates host color and agent check interval together', function () {

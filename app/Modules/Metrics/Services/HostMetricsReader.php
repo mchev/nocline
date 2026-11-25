@@ -4,6 +4,8 @@ namespace App\Modules\Metrics\Services;
 
 use App\Modules\Hosts\Models\Host;
 use App\Modules\Metrics\Models\MetricRollup;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -137,5 +139,95 @@ class HostMetricsReader
         }
 
         return $out;
+    }
+
+    /**
+     * CPU / RAM / disk usage (%) over a window for the host detail chart (rollup-backed).
+     *
+     * @return array{
+     *     hours: int,
+     *     bucket_seconds: int,
+     *     end_at: string,
+     *     points: list<array{at: string, cpu: float|null, mem: float|null, disk: float|null}>
+     * }
+     */
+    public function chart(Host $host, int $hours, ?CarbonInterface $end = null): array
+    {
+        $hours = max(1, min(720, $hours));
+        $end = CarbonImmutable::parse($end ?? now())->startOfSecond();
+        $bucketSize = $this->chartBucketSize($hours);
+        $endBucket = $this->alignTimestamp((int) $end->timestamp, $bucketSize);
+        $startBucket = $endBucket - ($hours * 3600);
+        $startBucket = $this->alignTimestamp($startBucket, $bucketSize);
+
+        $wantedKeys = collect(self::KEYS)->flatten()->unique()->values()->all();
+
+        $rows = MetricRollup::query()
+            ->where('host_id', $host->id)
+            ->where('bucket_size', $bucketSize)
+            ->whereIn('metric_key', $wantedKeys)
+            ->where('bucket_start', '>=', CarbonImmutable::createFromTimestamp($startBucket))
+            ->where('bucket_start', '<=', CarbonImmutable::createFromTimestamp($endBucket))
+            ->orderBy('bucket_start')
+            ->get(['metric_key', 'bucket_start', 'avg']);
+
+        $keyAlias = [];
+
+        foreach (self::KEYS as $short => $aliases) {
+            foreach ($aliases as $alias) {
+                $keyAlias[$alias] = $short;
+            }
+        }
+
+        $byTs = [];
+
+        foreach ($rows as $row) {
+            $short = $keyAlias[$row->metric_key] ?? null;
+
+            if ($short === null) {
+                continue;
+            }
+
+            $ts = $this->alignTimestamp((int) $row->bucket_start->timestamp, $bucketSize);
+
+            if (! isset($byTs[$ts])) {
+                $byTs[$ts] = ['cpu' => null, 'mem' => null, 'disk' => null];
+            }
+
+            $byTs[$ts][$short] = round((float) $row->avg, 1);
+        }
+
+        $points = [];
+
+        for ($ts = $startBucket; $ts <= $endBucket; $ts += $bucketSize) {
+            $slot = $byTs[$ts] ?? ['cpu' => null, 'mem' => null, 'disk' => null];
+            $points[] = [
+                'at' => CarbonImmutable::createFromTimestamp($ts)->toIso8601String(),
+                'cpu' => $slot['cpu'],
+                'mem' => $slot['mem'],
+                'disk' => $slot['disk'],
+            ];
+        }
+
+        return [
+            'hours' => $hours,
+            'bucket_seconds' => $bucketSize,
+            'end_at' => CarbonImmutable::createFromTimestamp($endBucket)->toIso8601String(),
+            'points' => $points,
+        ];
+    }
+
+    private function chartBucketSize(int $hours): int
+    {
+        return match (true) {
+            $hours <= 48 => MetricRollup::BUCKET_1M,
+            $hours <= 168 => MetricRollup::BUCKET_5M,
+            default => MetricRollup::BUCKET_1H,
+        };
+    }
+
+    private function alignTimestamp(int $timestamp, int $bucketSize): int
+    {
+        return intdiv($timestamp, $bucketSize) * $bucketSize;
     }
 }
