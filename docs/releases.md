@@ -14,13 +14,6 @@ Official agent repo: **`mchev/nocline`** (`NOCLINE_OFFICIAL_REPOSITORY`). Forks:
 
 Tag must match `VERSION` (CI).
 
-## Publish (maintainers)
-
-1. Green CI, bump `VERSION`, push `main`.
-2. `git tag vX.Y.Z && git push origin vX.Y.Z` — workflow attaches agent binaries.
-
-Do not create empty releases in the GitHub UI. Recovery: re-run workflow or `scripts/publish-agent-assets.sh vX.Y.Z`.
-
 ## Upgrade hub
 
 ```bash

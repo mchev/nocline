@@ -58,4 +58,4 @@ Un wallboard peut afficher un seul groupe : ses sous-groupes sont inclus. Import
 
 Les serveurs surveillés téléchargent `nocline-agent` depuis la release **officielle** (`NOCLINE_OFFICIAL_REPOSITORY`, défaut `mchev/nocline`), tag `vX.Y.Z` = fichier `VERSION` du hub. Aucun Go sur le hub en production.
 
-Les mainteneurs publient les binaires avec `git tag vX.Y.Z && git push --tags` (workflow `release.yml`) ou `scripts/build-agent.sh` avant de créer la release à la main. `APP_URL` reste l'adresse du hub pour l'enrôlement uniquement.
+Chaque release GitHub taguée `vX.Y.Z` (même numéro que le fichier `VERSION` du hub) inclut les binaires `nocline-agent` pour Linux amd64 et arm64. `APP_URL` reste l'adresse du hub pour l'enrôlement uniquement.

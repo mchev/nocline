@@ -54,4 +54,4 @@ A wallboard can target one group (sub-groups included). Importing from Uptime Ku
 
 Monitored servers download `nocline-agent` from the **official** release (`NOCLINE_OFFICIAL_REPOSITORY`, default `mchev/nocline`), tag `vX.Y.Z` = hub `VERSION` file. No Go on the production hub.
 
-Maintainers publish binaries with `git tag vX.Y.Z && git push --tags` (`release.yml`) or `scripts/build-agent.sh`. `APP_URL` is the hub URL for enrollment only.
+Each GitHub release tagged `vX.Y.Z` (same number as the hub `VERSION` file) includes `nocline-agent` binaries for Linux amd64 and arm64. `APP_URL` is the hub URL for enrollment only.

@@ -1,7 +1,5 @@
 # Roadmap Nocline
 
-Alignée sur la [skill produit Nocline](/guideline/SKILL).
-
 ## Phase 1 — MVP
 
 - [x] Auth Fortify + rôles `admin` / `tech` / `viewer`

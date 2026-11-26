@@ -29,7 +29,7 @@ The docs site uses [VitePress i18n](https://vitepress.dev/guide/i18n):
 | **English** (default) | `docs/` root — `user/`, `deploy/`, etc. | `https://mchev.github.io/nocline/user/installation`    |
 | **Français**          | `docs/fr/`                              | `https://mchev.github.io/nocline/fr/user/installation` |
 
-Shared pages (`api.md`, `guideline/`, `contributing/`) live at the root and are linked from both locales.
+Shared pages (`api.md`, `contributing/`) live at the root and are linked from both locales.
 
 ### Add or update a page
 

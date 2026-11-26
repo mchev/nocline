@@ -51,12 +51,11 @@ To try a real user journey in the browser, use `scripts/e2e-serve.sh`: it starts
 
 User-facing site: [https://mchev.github.io/nocline/](https://mchev.github.io/nocline/) (built from `docs/` on push to `main`).
 
-- **Product or UI change** → update `docs/user/` (French) and `docs/en/user/` when English is maintained (task-oriented). See [docs/user/traductions.md](docs/user/traductions.md#documentation-site-vitepress). See the Nocline skill § Documentation.
+- **Product or UI change** → update `docs/user/` and `docs/fr/user/` (task-oriented operators). See [docs/user/translations.md](docs/user/translations.md#documentation-vitepress).
 - **Install, deploy, API** → update the matching files under `docs/` and the root `README.md` when the operator path changes.
 - **New doc page or section** → add it to `docs/.vitepress/config.ts` (sidebar).
+- **Screenshots gallery** (`docs/public/media/screenshots/`, pages `apercu`) → `php artisan nocline:demo:seed`, `nocline:demo:simulate`, `node scripts/capture-marketing-screenshots.mjs` (isolated e2e: `scripts/e2e-serve.sh`).
 - Before merging structural doc changes, run `npm run docs:build`. Local preview: `npm run docs:dev`.
-
-Details: [docs/README.md](docs/README.md).
 
 ## Commits and pull requests
 

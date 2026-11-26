@@ -2,7 +2,7 @@
 
 ## Wallboard
 
-Nocline wallboards use a token URL, ~15s refresh, and a _stale data_ banner. See [Probes and wallboard](user/sondes-wallboard). API: `GET /api/wallboard/{token}` ([technical reference](/guideline/reference)).
+Nocline wallboards use a token URL, ~15s refresh, and a _stale data_ banner. See [Probes and wallboard](user/sondes-wallboard). API: `GET /api/wallboard/{token}` ([REST API](/api), OpenAPI in repo).
 
 ## Import monitors
 

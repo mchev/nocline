@@ -131,7 +131,7 @@ class SimulateDemoCommand extends Command
 
             $host->forceFill([
                 'last_seen_at' => now(),
-                'agent_version' => '0.1.0-demo',
+                'agent_version' => '0.2.1-demo',
                 'os' => $host->os ?: 'linux',
             ])->save();
         }
@@ -158,7 +158,7 @@ class SimulateDemoCommand extends Command
 
             $probe->forceFill([
                 'last_seen_at' => now()->subSeconds($chaos ? random_int(0, 8) : 3),
-                'agent_version' => '0.1.0-demo',
+                'agent_version' => '0.2.1-demo',
                 'capabilities' => ['http', 'tcp', 'icmp', 'dns'],
             ])->save();
         }
@@ -181,6 +181,7 @@ class SimulateDemoCommand extends Command
 
             $skip = match (true) {
                 $chaos && $key === 'backup' && $tick % 7 === 0 => true,
+                $chaos && $key === 's3-backup' && $tick % 9 === 0 => true,
                 ! $chaos && $key === 'backup' && $tick % 12 === 0 => true,
                 default => false,
             };
@@ -238,13 +239,13 @@ class SimulateDemoCommand extends Command
                 $latency = random_int(40, 180);
                 $error = null;
 
-                if ($check->name === 'Demo flaky.acme.test') {
+                if ($check->name === DemoSeeder::CHECK_FLAKY) {
                     $ok = ($tick % 6) < 3;
                     $error = $ok ? null : 'HTTP 503 (simulated flakiness)';
                     $latency = $ok ? random_int(80, 400) : null;
                 }
 
-                if ($check->name === 'Demo shop.acme.test') {
+                if ($check->name === DemoSeeder::CHECK_SHOP) {
                     $latency = 90 + (int) (40 * abs(sin($tick / 4)));
                     if ($chaos && $tick % 11 === 0) {
                         $latency = random_int(1600, 2800);
@@ -261,7 +262,7 @@ class SimulateDemoCommand extends Command
                     }
                 }
 
-                if ($check->type === CheckType::Tcp && $chaos && $tick % 17 === 0 && $check->name === 'Demo SMTP') {
+                if ($check->type === CheckType::Tcp && $chaos && $tick % 17 === 0 && $check->name === DemoSeeder::CHECK_SMTP) {
                     $ok = false;
                     $latency = null;
                     $error = 'Connection refused (demo chaos)';
@@ -282,7 +283,7 @@ class SimulateDemoCommand extends Command
         $targets = Check::query()
             ->whereIn('type', [CheckType::Http, CheckType::Tcp])
             ->whereJsonContains('tags', 'demo')
-            ->whereNotIn('name', ['Demo flaky.acme.test'])
+            ->whereNotIn('name', [DemoSeeder::CHECK_FLAKY])
             ->get();
 
         if ($targets->isEmpty()) {

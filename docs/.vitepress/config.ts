@@ -53,7 +53,6 @@ const rootSidebar: DefaultTheme.SidebarItem[] = [
             { text: 'Security', link: '/security' },
             { text: 'Privacy', link: '/privacy' },
             enApiSidebar,
-            { text: 'Technical reference', link: '/guideline/reference' },
             {
                 text: 'Notification adapters',
                 link: '/contributing/notification-adapters',
@@ -110,7 +109,6 @@ const frSidebar: DefaultTheme.SidebarItem[] = [
             { text: 'Sécurité', link: '/fr/security' },
             { text: 'Confidentialité', link: '/fr/privacy' },
             enApiSidebar,
-            { text: 'Référence technique', link: '/guideline/reference' },
             {
                 text: 'Adapters de notification',
                 link: '/contributing/notification-adapters',
@@ -134,6 +132,7 @@ const sharedTheme = {
 
 export default defineConfig({
     base,
+    srcExclude: ['**/guideline/**', '**/README.md'],
     cleanUrls: true,
     lastUpdated: true,
     markdown: {
@@ -157,6 +156,7 @@ export default defineConfig({
                 nav: [
                     { text: 'Install', link: '/user/installation' },
                     { text: 'Guides', link: '/user/getting-started' },
+                    { text: 'Screenshots', link: '/apercu' },
                     { text: 'Docker', link: '/deploy/docker' },
                     { text: 'API', link: '/api' },
                     {
@@ -191,6 +191,7 @@ export default defineConfig({
                 nav: [
                     { text: 'Installation', link: '/fr/user/installation' },
                     { text: 'Guides', link: '/fr/user/getting-started' },
+                    { text: 'Aperçu', link: '/fr/apercu' },
                     { text: 'Docker', link: '/deploy/docker' },
                     { text: 'API', link: '/api' },
                     {

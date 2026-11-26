@@ -1,7 +1,5 @@
 # Roadmap
 
-Aligned with the [product guideline](/guideline/SKILL).
-
 ## Phase 1 — MVP
 
 - [x] Fortify auth + `admin` / `tech` / `viewer` roles

@@ -8,7 +8,7 @@ Nocline est **self-hosted** : l’instance que tu déploies fait de toi le **res
 | --------------------------------- | ---------------------------------------------- | ----------------------------- |
 | Comptes utilisateurs (email, nom) | Accès console                                  | Tant que le compte est actif  |
 | Journaux d’accès coffre           | Audit sécurité                                 | 12–24 mois (configurable)     |
-| Métriques & checks                | Supervision infra                              | Rollups (voir `reference.md`) |
+| Métriques & checks                | Supervision infra                              | Rollups (état + événements, pas de heartbeats bruts) |
 | Secrets coffre                    | Exploitation (accès hébergeurs, back-offices…) | Jusqu’à suppression manuelle  |
 
 ## Coffre

@@ -40,7 +40,7 @@ Sauvegarder la base **et** `VAULT_MASTER_KEY` séparément (voir `docs/privacy.m
 
 ## Sondes
 
-Installer `nocline-agent` en `role=probe` sur un VPS **externe** pour la vue Internet ; ICMP nécessite `CAP_NET_RAW` (voir `reference.md`).
+Installer `nocline-agent` en `role=probe` sur un VPS **externe** pour la vue Internet ; ICMP nécessite `CAP_NET_RAW` (voir [API REST](/api) et [sondes & wallboard](/fr/user/sondes-wallboard)).
 
 ## Mises à jour
 

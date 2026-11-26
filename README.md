@@ -26,9 +26,9 @@
 </p>
 
 <p align="center">
-  <a href="docs/media/screenshots/02-dashboard.png">
+  <a href="docs/public/media/screenshots/02-dashboard.png">
     <img
-      src="docs/media/screenshots/02-dashboard.png"
+      src="docs/public/media/screenshots/02-dashboard.png"
       alt="Nocline dashboard — uptime, heartbeats, servers, and renewals in one console"
       width="720"
     />
@@ -36,8 +36,40 @@
 </p>
 
 <p align="center">
-  <sub>Demo dataset · <a href="https://mchev.github.io/nocline/apercu">more screenshots</a></sub>
+  <sub>
+    Demo dataset ·
+    <a href="https://mchev.github.io/nocline/apercu">Full screenshot gallery</a>
+  </sub>
 </p>
+
+<table align="center">
+<tr>
+<td align="center" width="25%">
+  <a href="docs/public/media/screenshots/05-website-detect-laravel.png">
+    <img src="docs/public/media/screenshots/05-website-detect-laravel.png" alt="Laravel and WordPress auto-detection" width="360" />
+  </a><br />
+  <sub>Site detection</sub>
+</td>
+<td align="center" width="25%">
+  <a href="docs/public/media/screenshots/09-host-detail-eol.png">
+    <img src="docs/public/media/screenshots/09-host-detail-eol.png" alt="Server stack and end-of-life warnings" width="360" />
+  </a><br />
+  <sub>Stack &amp; EOL</sub>
+</td>
+<td align="center" width="25%">
+  <a href="docs/public/media/screenshots/17-object-storage-wizard.png">
+    <img src="docs/public/media/screenshots/17-object-storage-wizard.png" alt="Object storage monitor wizard (S3)" width="360" />
+  </a><br />
+  <sub>S3 providers</sub>
+</td>
+<td align="center" width="25%">
+  <a href="docs/public/media/screenshots/07-wallboard.png">
+    <img src="docs/public/media/screenshots/07-wallboard.png" alt="NOC wallboard" width="360" />
+  </a><br />
+  <sub>Wallboard</sub>
+</td>
+</tr>
+</table>
 
 ---
 

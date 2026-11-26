@@ -45,7 +45,7 @@ Back up the database **and** `VAULT_MASTER_KEY` separately. Never run `migrate:f
 
 ## Probes
 
-Install `nocline-agent` with `role=probe` on an external VPS for outside-in checks; ICMP needs `CAP_NET_RAW` (see [technical reference](../guideline/reference)).
+Install `nocline-agent` with `role=probe` on an external VPS for outside-in checks; ICMP needs `CAP_NET_RAW` (see [REST API](/api) and [Probes & wallboard](/user/sondes-wallboard)).
 
 ## Updates
 

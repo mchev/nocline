@@ -2,7 +2,7 @@
 
 ## Wallboard
 
-Le wallboard Nocline (URL jeton, rafraîchissement ~15 s, bandeau _stale_) est documenté dans [sondes-wallboard.md](/fr/user/sondes-wallboard). API : `GET /api/wallboard/{token}` (spec dans [guideline/reference.md](/guideline/reference)).
+Le wallboard Nocline (URL jeton, rafraîchissement ~15 s, bandeau _stale_) est documenté dans [sondes-wallboard.md](/fr/user/sondes-wallboard). API : `GET /api/wallboard/{token}` ([API REST](/api), OpenAPI dans le dépôt).
 
 ## Importer ses monitors Kuma
 

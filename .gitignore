@@ -37,6 +37,12 @@ yarn-error.log
 !.cursor/skills/
 !.cursor/skills/**
 !.cursor/rules/nocline-product.mdc
+# Internal product specs (not published on the doc site)
+/docs/guideline/
+/docs/README.md
+/internal/
+# Local demo manifest (plaintext agent/heartbeat tokens for nocline:demo:simulate)
+/storage/app/nocline-demo.json
 /.factory
 /.grok
 /.junie
