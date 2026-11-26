@@ -30,6 +30,13 @@ return [
     */
     'stack_eol_check' => (bool) env('NOCLINE_STACK_EOL_CHECK', true),
     'stack_eol_api' => env('NOCLINE_STACK_EOL_API', 'https://endoflife.date/api/v1'),
+
+    /* API token middleware (see docs/api.md). Lower in phpunit.xml for fast throttle tests. */
+    'api_token_rate_limit' => (int) env('NOCLINE_API_TOKEN_RATE_LIMIT', 120),
+    'api_token_failure_limit' => (int) env('NOCLINE_API_TOKEN_FAILURE_LIMIT', 30),
+
+    /* When false, CheckCreated does not dispatch ExecuteHubCheck (avoids ~10s HTTP timeouts in tests). */
+    'eager_hub_check_on_create' => (bool) env('NOCLINE_EAGER_HUB_CHECK_ON_CREATE', true),
     'backup_dir' => env('NOCLINE_BACKUP_DIR', storage_path('app/backups')),
 
     /*

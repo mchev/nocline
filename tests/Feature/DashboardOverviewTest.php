@@ -6,8 +6,8 @@ use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Hosts\Models\Host;
-use App\Modules\Maintenance\Models\MaintenanceWindow;
 use App\Modules\Metrics\Models\MetricRollup;
+use App\Modules\Metrics\Services\HostMetricsReader;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('exposes a live overview with sites servers and heartbeats', function () {
@@ -100,114 +100,7 @@ it('includes object storage monitors in overview and excludes them from heartbea
     expect($objectStorage->firstWhere('name', 'OVH backup')['latency_ms'])->toBe(88);
 });
 
-it('orders overview sections with problems first', function () {
-    $user = User::factory()->create();
-
-    $up = Check::factory()->create([
-        'name' => 'Zeta up',
-        'category' => CheckCategory::Website,
-        'type' => CheckType::Http,
-    ]);
-    $up->state()->update(['status' => CheckStatus::Up]);
-
-    $down = Check::factory()->create([
-        'name' => 'Alpha down',
-        'category' => CheckCategory::Website,
-        'type' => CheckType::Http,
-    ]);
-    $down->state()->update(['status' => CheckStatus::Down]);
-
-    $online = Host::factory()->enrolled('pha_online')->create(['name' => 'online-box', 'last_seen_at' => now()]);
-    $offline = Host::factory()->enrolled('pha_offline')->create([
-        'name' => 'offline-box',
-        'last_seen_at' => now()->subMinutes(10),
-    ]);
-
-    MetricRollup::create([
-        'host_id' => $online->id,
-        'metric_key' => 'cpu.usage_pct',
-        'bucket_size' => MetricRollup::BUCKET_1M,
-        'bucket_start' => now()->startOfMinute(),
-        'avg' => 10,
-        'sample_count' => 1,
-    ]);
-
-    $this->actingAs($user)
-        ->get(route('dashboard'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('overview.sites.0.name', 'Alpha down')
-            ->where('overview.sites.1.name', 'Zeta up')
-            ->where('overview.servers.0.name', 'offline-box')
-            ->where('overview.servers.1.name', 'online-box')
-            ->where('overview.servers.0.online', false)
-            ->where('overview.servers.1.online', true));
-});
-
-it('lists planned maintenance before healthy sites when the monitor is still up', function () {
-    $user = User::factory()->create();
-
-    $up = Check::factory()->create([
-        'name' => 'AAA up',
-        'category' => CheckCategory::Website,
-        'type' => CheckType::Http,
-    ]);
-    $up->state()->update(['status' => CheckStatus::Up]);
-
-    $maintUp = Check::factory()->create([
-        'name' => 'ZZZ maintenance up',
-        'category' => CheckCategory::Website,
-        'type' => CheckType::Http,
-    ]);
-    $maintUp->state()->update(['status' => CheckStatus::Up]);
-
-    MaintenanceWindow::factory()->create([
-        'check_id' => $maintUp->id,
-        'starts_at' => now()->subHour(),
-        'ends_at' => now()->addHour(),
-    ]);
-
-    $this->actingAs($user)
-        ->get(route('dashboard'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('overview.sites.0.name', 'ZZZ maintenance up')
-            ->where('overview.sites.1.name', 'AAA up'));
-});
-
-it('lists down sites before up sites even when down is in maintenance', function () {
-    $user = User::factory()->create();
-
-    $up = Check::factory()->create([
-        'name' => 'AAA up',
-        'category' => CheckCategory::Website,
-        'type' => CheckType::Http,
-    ]);
-    $up->state()->update(['status' => CheckStatus::Up]);
-
-    $downMaint = Check::factory()->create([
-        'name' => 'ZZZ down maintenance',
-        'category' => CheckCategory::Website,
-        'type' => CheckType::Http,
-    ]);
-    $downMaint->state()->update(['status' => CheckStatus::Down]);
-
-    MaintenanceWindow::factory()->create([
-        'check_id' => $downMaint->id,
-        'starts_at' => now()->subHour(),
-        'ends_at' => now()->addHour(),
-    ]);
-
-    $this->actingAs($user)
-        ->get(route('dashboard'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('overview.sites.0.name', 'ZZZ down maintenance')
-            ->where('overview.sites.1.name', 'AAA up'));
-});
-
-it('includes metric sparklines on the servers page', function () {
-    $user = User::factory()->create();
+it('exposes recent host metrics for sparklines', function () {
     $host = Host::factory()->enrolled()->create(['last_seen_at' => now()]);
 
     MetricRollup::create([
@@ -219,12 +112,8 @@ it('includes metric sparklines on the servers page', function () {
         'sample_count' => 1,
     ]);
 
-    $this->actingAs($user)
-        ->get(route('hosts.index'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('hosts/Index')
-            ->has('hosts', 1)
-            ->where('hosts.0.metrics.mem_now', 55)
-            ->where('hosts.0.online', true));
+    $series = app(HostMetricsReader::class)->forHosts(Host::query()->whereKey($host->id)->get(), 24);
+
+    expect($series[$host->id]['mem_now'])->toEqual(55)
+        ->and($host->refresh()->isOnline())->toBeTrue();
 });

@@ -3,11 +3,18 @@
 use App\Models\User;
 use App\Modules\Checks\Enums\CheckCategory;
 use App\Modules\Checks\Models\Check;
+use App\Modules\Checks\Support\HistoryWindow;
 use App\Modules\Groups\Models\Group;
 
 it('lists checks with group, category and tags for grouping', function () {
     $group = Group::factory()->create(['name' => 'Acme']);
-    Check::factory()->create(['group_id' => $group->id, 'category' => CheckCategory::Mail, 'tags' => ['prod']]);
+    $check = Check::factory()->create([
+        'group_id' => $group->id,
+        'category' => CheckCategory::Mail,
+        'tags' => ['prod'],
+        'created_at' => now()->subDay(),
+    ]);
+    $check->state()->update(['status' => 'up']);
 
     $this->actingAs(User::factory()->tech()->create())
         ->get(route('checks.index'))
@@ -16,6 +23,8 @@ it('lists checks with group, category and tags for grouping', function () {
             ->where('checks.0.group_id', $group->id)->where('groups.0.path', 'Acme')
             ->where('checks.0.category', 'mail')
             ->where('checks.0.tags', ['prod'])
+            ->has('checks.0.history', HistoryWindow::dashboard()->buckets)
+            ->has('checks.0.timeline', HistoryWindow::dashboard()->buckets)
             ->has('categories', 6));
 });
 

@@ -6,10 +6,10 @@ Repo officiel des binaires : **`mchev/nocline`** (`NOCLINE_OFFICIAL_REPOSITORY`)
 
 ## Numérotation
 
-| Élément           | Format                                                   | Exemple  |
-| ----------------- | -------------------------------------------------------- | -------- |
-| Fichier `VERSION` | `X.Y.Z`                                                  | `0.1.4`  |
-| Tag / release     | `vX.Y.Z`                                                 | `v0.1.4` |
+| Élément           | Format                                                   | Exemple    |
+| ----------------- | -------------------------------------------------------- | ---------- |
+| Fichier `VERSION` | `X.Y.Z`                                                  | `0.1.4`    |
+| Tag / release     | `vX.Y.Z`                                                 | `v0.1.4`   |
 | Assets agent      | `nocline-agent-linux-amd64`, `nocline-agent-linux-arm64` | sur le tag |
 
 Le tag doit correspondre à `VERSION` (CI).

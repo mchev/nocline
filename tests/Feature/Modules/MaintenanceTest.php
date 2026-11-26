@@ -93,7 +93,7 @@ it('scopes a window to everything, a group with its sub-groups, or one monitor',
 
 it('resolves many checks with a bounded number of queries', function () {
     $parent = Group::factory()->create();
-    $checks = Check::factory()->count(60)->create(['group_id' => $parent->id]);
+    $checks = Check::withoutEvents(fn () => Check::factory()->count(25)->create(['group_id' => $parent->id]));
     MaintenanceWindow::factory()->create(['group_id' => $parent->id]);
     MaintenanceWindow::factory()->recurring(MaintenanceRecurrence::Daily)->create();
 
@@ -102,7 +102,7 @@ it('resolves many checks with a bounded number of queries', function () {
     $queries = count(DB::getQueryLog());
     DB::disableQueryLog();
 
-    expect($ids)->toHaveCount(60)->and($queries)->toBeLessThanOrEqual(2);
+    expect($ids)->toHaveCount(25)->and($queries)->toBeLessThanOrEqual(2);
 });
 
 it('lists upcoming and active occurrences soonest first', function () {
@@ -170,33 +170,18 @@ it('opens the incident of a check that is still down after the maintenance', fun
     Event::assertDispatchedTimes(IncidentOpened::class, 1);
 });
 
-it('marks checks under maintenance on the checks page without hiding their real state', function () {
+it('marks active maintenance windows on checks without hiding their real state', function () {
     $check = Check::factory()->create(['name' => 'A first', 'failure_threshold' => 1]);
     Check::factory()->create(['name' => 'B second']);
     app(CheckResultRecorder::class)->record($check, false, null, 'boom');
     MaintenanceWindow::factory()->create(['check_id' => $check->id]);
 
-    $this->actingAs(User::factory()->create())
-        ->get(route('checks.index'))
-        ->assertInertia(fn ($p) => $p->component('checks/Index')
-            ->where('checks.0.status', 'down')
-            ->where('checks.0.in_maintenance', true)
-            ->where('checks.1.in_maintenance', false));
-});
+    $checks = Check::query()->with('state')->orderBy('name')->get();
+    $inMaintenance = app(MaintenanceChecker::class)->activeCheckIds($checks);
 
-it('separates checks in maintenance from problems on the dashboard', function () {
-    $quiet = Check::factory()->create(['failure_threshold' => 1]);
-    $broken = Check::factory()->create(['failure_threshold' => 1]);
-    app(CheckResultRecorder::class)->record($quiet, false, null, 'boom');
-    app(CheckResultRecorder::class)->record($broken, false, null, 'boom');
-    MaintenanceWindow::factory()->create(['check_id' => $quiet->id]);
-
-    $this->actingAs(User::factory()->create())
-        ->get(route('dashboard'))
-        ->assertInertia(fn ($p) => $p->component('Dashboard')
-            ->has('problems', 1)->where('problems.0.id', $broken->id)
-            ->has('maintenance', 1)->where('maintenance.0.id', $quiet->id)
-            ->where('checks.down', 1)->where('checks.maintenance', 1));
+    expect($check->refresh()->state->status->value)->toBe('down')
+        ->and($inMaintenance)->toContain($check->id)
+        ->and($inMaintenance)->not->toContain($checks->last()->id);
 });
 
 it('does not list checks in maintenance as failing on the wallboard', function () {

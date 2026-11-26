@@ -239,6 +239,7 @@ describe('endpoint', function () {
     });
 
     it('is throttled', function () {
+        $this->withRouteThrottling();
         Http::fake(['*' => Http::response('<html></html>')]);
         $this->actingAs(User::factory()->tech()->create());
 

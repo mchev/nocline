@@ -157,15 +157,20 @@ Full walkthrough: **[Your first hour](https://mchev.github.io/nocline/user/getti
 
 ## Features
 
-|                         |                                                                                    |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| **Websites & services** | HTTP/TCP/DNS checks, SSL and domain renewals, optional probes for outside-in views |
-| **Servers**             | Lightweight **Go agent** — CPU, RAM, disk; metrics pushed to the hub               |
-| **Incidents**           | Clear up/down state, acknowledgements, history                                     |
-| **Alerts**              | Email and pluggable notification adapters                                          |
-| **Wallboard**           | NOC view for a TV or kiosk                                                         |
-| **Status pages**        | Public pages per client or service                                                 |
-| **Vault**               | Encrypted secrets on your own server                                               |
+|                         |                                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Websites & services** | HTTP/TCP/DNS, mail, ping, cron heartbeats; **SSL & domain renewals** auto-tracked from site checks (RDAP + cert read)                                                                   |
+| **Smart site add**      | **Laravel / WordPress** detection (SSRF-safe), WordPress core version on the dashboard, optional companion check on Laravel **`/up`** when the health endpoint exists                   |
+| **Object storage**      | Guided **S3-compatible** monitors — provider presets (OVH, Hetzner, **Laravel Cloud** R2, AWS, Scaleway, Wasabi, MinIO): endpoint reachability, public object URL, backup job heartbeat |
+| **Servers**             | Lightweight **Go agent** — CPU, RAM, disk; stack inventory from the host                                                                                                                |
+| **Stack & EOL**         | **End-of-life warnings** for runtimes in the agent stack (PHP, MySQL, Redis, Node, …) via cached [endoflife.date](https://endoflife.date) data                                          |
+| **Organisation**        | **Nested groups** (folders), colours, grid/list/compact views, tags, categories, bulk actions                                                                                           |
+| **Incidents**           | Clear up/down state, acknowledgements, history                                                                                                                                          |
+| **Maintenance**         | **Scheduled windows** — suppress alert noise during deploys; links to public status pages                                                                                               |
+| **Alerts**              | Email and pluggable notification adapters                                                                                                                                               |
+| **Probes & wallboard**  | External **probe** nodes (ICMP / outside-in checks) + **NOC wallboard** (TV / kiosk, token URL)                                                                                         |
+| **Status pages**        | Public `/status/{slug}` — uptime, maintenance banner, optional incident history (client-safe, no URL leaks)                                                                             |
+| **Vault**               | Encrypted secrets on your own server (libsodium, audit log, re-auth to reveal)                                                                                                          |
 
 One console instead of juggling separate uptime, metrics, and TV tools — **your data stays on your infrastructure**.
 
@@ -258,6 +263,34 @@ Coming from **Uptime Kuma**? **[Import guide](docs/migration-kuma.md)**.
 <td align="center" bgcolor="#DDF4E4">✓</td>
 <td align="center" bgcolor="#DDF4E4">✓</td>
 <td align="center" bgcolor="#FFF8C5">~</td>
+<td align="center" bgcolor="#DDF4E4">✓</td>
+</tr>
+<tr>
+<td>Stack / runtime <strong>EOL</strong> warnings (PHP, DB, …)</td>
+<td align="center" bgcolor="#DDF4E4">✓</td>
+<td align="center" bgcolor="#EAEEF2">—</td>
+<td align="center" bgcolor="#FFF8C5">~</td>
+<td align="center" bgcolor="#EAEEF2">—</td>
+</tr>
+<tr>
+<td>Laravel / WordPress detect + <code>/up</code> companion</td>
+<td align="center" bgcolor="#DDF4E4">✓</td>
+<td align="center" bgcolor="#EAEEF2">—</td>
+<td align="center" bgcolor="#EAEEF2">—</td>
+<td align="center" bgcolor="#EAEEF2">—</td>
+</tr>
+<tr>
+<td>Object storage (S3) guided monitors</td>
+<td align="center" bgcolor="#DDF4E4">✓</td>
+<td align="center" bgcolor="#FFF8C5">~</td>
+<td align="center" bgcolor="#EAEEF2">—</td>
+<td align="center" bgcolor="#EAEEF2">—</td>
+</tr>
+<tr>
+<td>Scheduled maintenance windows</td>
+<td align="center" bgcolor="#DDF4E4">✓</td>
+<td align="center" bgcolor="#DDF4E4">✓</td>
+<td align="center" bgcolor="#EAEEF2">—</td>
 <td align="center" bgcolor="#DDF4E4">✓</td>
 </tr>
 <tr>

@@ -111,7 +111,10 @@ it('only reveals the heartbeat url (a secret) to users who manage checks', funct
     $check = Check::factory()->heartbeat()->create();
 
     apiAs(User::factory()->tech()->create(), write: false);
-    $this->getJson("/api/v1/checks/{$check->id}", apiAuth())->assertJsonPath('data.heartbeat_url', url("/api/v1/heartbeat/{$check->heartbeat_token}"));
+    $this->getJson("/api/v1/checks/{$check->id}", apiAuth())->assertJsonPath(
+        'data.heartbeat_url',
+        route('api.heartbeat', ['token' => $check->heartbeat_token]),
+    );
 
     ApiToken::query()->delete();
     apiAs(User::factory()->create(), write: false);

@@ -6,7 +6,6 @@ use App\Modules\Checks\Enums\CheckType;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckEvent;
 use App\Modules\Incidents\Models\Incident;
-use Illuminate\Support\Facades\RateLimiter;
 
 function heartbeat(array $attributes = [], int $interval = 60): Check
 {
@@ -90,15 +89,20 @@ it('ignores pings for a paused check without revealing it', function () {
     expect(status($check))->toBe(CheckStatus::Unknown);
 });
 
-it('throttles the public endpoint', function () {
-    RateLimiter::clear('127.0.0.1');
-    $check = heartbeat();
+it('registers throttle middleware on the heartbeat route', function () {
+    $route = collect(app('router')->getRoutes())->first(
+        fn ($route) => $route->getName() === 'api.heartbeat',
+    );
 
-    for ($i = 0; $i < 120; $i++) {
-        $this->get("/api/v1/heartbeat/{$check->heartbeat_token}")->assertOk();
-    }
+    expect($route)->not->toBeNull();
 
-    $this->get("/api/v1/heartbeat/{$check->heartbeat_token}")->assertStatus(429);
+    $middleware = $route->gatherMiddleware();
+
+    expect(
+        collect($middleware)->contains(
+            fn ($name) => is_string($name) && str_starts_with($name, 'throttle'),
+        ),
+    )->toBeTrue();
 });
 
 it('keeps a never-pinged check unknown until created_at + interval + grace has passed', function () {

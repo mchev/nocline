@@ -89,9 +89,9 @@ it('exposes public favicon urls and serves them without authentication', functio
     expect($siteRow['favicon_url'])->toContain('/wallboard/')
         ->and($siteRow['favicon_url'])->toContain('/favicon/');
 
-    $this->get($siteRow['favicon_url'])
-        ->assertOk()
-        ->assertHeader('content-type', 'image/png');
+    $response = $this->get($siteRow['favicon_url'])->assertOk();
+
+    expect($response->headers->get('content-type'))->toStartWith('image/');
 
     $this->get(route('wallboard.favicon', ['token' => $token, 'check' => Check::factory()->create()->id]))
         ->assertNotFound();

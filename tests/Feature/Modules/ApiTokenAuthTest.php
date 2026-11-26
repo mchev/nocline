@@ -97,11 +97,14 @@ it('updates last_used_at at most once per minute', function () {
 });
 
 it('rate limits each token separately with a JSON 429', function () {
+    config(['nocline.api_token_rate_limit' => 5]);
     Cache::flush();
     ApiToken::factory()->create();
     ApiToken::factory()->withSecret('phr_cccccccccccccccccccccccccccccccccccccccc')->create();
 
-    for ($i = 0; $i < 120; $i++) {
+    $limit = (int) config('nocline.api_token_rate_limit');
+
+    for ($i = 0; $i < $limit; $i++) {
         $this->getJson(route('api.v1.me'), apiBearer())->assertOk();
     }
 
@@ -111,9 +114,12 @@ it('rate limits each token separately with a JSON 429', function () {
 });
 
 it('throttles repeated failed authentications per IP', function () {
+    config(['nocline.api_token_failure_limit' => 5]);
     RateLimiter::clear('api-token-failures:127.0.0.1');
 
-    for ($i = 0; $i < 30; $i++) {
+    $limit = (int) config('nocline.api_token_failure_limit');
+
+    for ($i = 0; $i < $limit; $i++) {
         $this->getJson(route('api.v1.me'), apiBearer('phr_dddddddddddddddddddddddddddddddddddddddd'))->assertUnauthorized();
     }
 

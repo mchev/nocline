@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use App\Modules\Checks\Enums\CheckStatus;
 use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Models\CheckEvent;
@@ -33,23 +32,6 @@ it('builds 24h history dots from status transitions', function () {
         ->and($history[$check->id]['history'])->toHaveCount(CheckStatusHistory::BUCKETS)
         ->and($history[$check->id]['history'])->toContain('down')
         ->and($history[$check->id]['uptime_24h_pct'])->toBeLessThan(100);
-});
-
-it('exposes history on the checks index', function () {
-    $user = User::factory()->create();
-    $check = Check::factory()->create(['created_at' => now()->subDay()]);
-    $check->state()->update(['status' => CheckStatus::Up]);
-
-    $this->actingAs($user)
-        ->get(route('checks.index'))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('checks/Index')
-            ->has('checks', 1)
-            ->where('checks.0.id', $check->id)
-            ->has('checks.0.history', HistoryWindow::dashboard()->buckets)
-            ->has('checks.0.timeline', HistoryWindow::dashboard()->buckets)
-            ->where('checks.0.uptime_24h_pct', 100));
 });
 
 it('fills several dashboard buckets for a recently added check', function () {

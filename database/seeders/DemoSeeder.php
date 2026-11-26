@@ -246,8 +246,8 @@ class DemoSeeder extends Seeder
                 'enrolled_at' => $def['token'] ? now()->subDays(3) : null,
                 'api_token_hash' => $def['token'] ? Host::hashToken($def['token']) : null,
                 'last_seen_at' => $def['token'] ? now()->subSeconds(30) : now()->subHours(6),
-                'agent_meta' => $agentMeta[$key] ?? null,
-                'agent_meta_at' => isset($agentMeta[$key]) ? now() : null,
+                'agent_meta' => $agentMeta[$key],
+                'agent_meta_at' => now(),
             ])->save();
 
             if ($def['token']) {
@@ -546,7 +546,7 @@ class DemoSeeder extends Seeder
                 'notes' => 'Renew soon',
             ],
         ] as $row) {
-            $keys = isset($row['check_id']) && $row['check_id'] !== null
+            $keys = array_key_exists('check_id', $row)
                 ? ['check_id' => $row['check_id'], 'kind' => $row['kind']]
                 : ['label' => $row['label']];
 

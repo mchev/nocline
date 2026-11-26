@@ -6,6 +6,8 @@ use App\Modules\Checks\Models\Check;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
+beforeEach(fn () => config(['nocline.eager_hub_check_on_create' => true]));
+
 it('queues an immediate hub check after a website is added', function () {
     Queue::fake();
 

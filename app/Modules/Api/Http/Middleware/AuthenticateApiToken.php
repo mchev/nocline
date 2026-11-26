@@ -27,7 +27,9 @@ class AuthenticateApiToken
     {
         $failureKey = 'api-token-failures:'.$request->ip();
 
-        if (RateLimiter::tooManyAttempts($failureKey, self::FAILURE_LIMIT)) {
+        $failureLimit = max(1, (int) config('nocline.api_token_failure_limit', self::FAILURE_LIMIT));
+
+        if (RateLimiter::tooManyAttempts($failureKey, $failureLimit)) {
             return $this->tooManyRequests(RateLimiter::availableIn($failureKey));
         }
 
@@ -41,7 +43,9 @@ class AuthenticateApiToken
 
         $limitKey = 'api-token:'.$token->id;
 
-        if (RateLimiter::tooManyAttempts($limitKey, self::RATE_LIMIT)) {
+        $rateLimit = max(1, (int) config('nocline.api_token_rate_limit', self::RATE_LIMIT));
+
+        if (RateLimiter::tooManyAttempts($limitKey, $rateLimit)) {
             return $this->tooManyRequests(RateLimiter::availableIn($limitKey));
         }
 
@@ -59,8 +63,8 @@ class AuthenticateApiToken
         $request->attributes->set('api_token', $token);
 
         $response = $next($request);
-        $response->headers->set('X-RateLimit-Limit', (string) self::RATE_LIMIT);
-        $response->headers->set('X-RateLimit-Remaining', (string) RateLimiter::remaining($limitKey, self::RATE_LIMIT));
+        $response->headers->set('X-RateLimit-Limit', (string) $rateLimit);
+        $response->headers->set('X-RateLimit-Remaining', (string) RateLimiter::remaining($limitKey, $rateLimit));
 
         return $response;
     }

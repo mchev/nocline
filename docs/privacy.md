@@ -4,12 +4,12 @@ Nocline is **self-hosted**: the instance you operate makes **you** the data cont
 
 ## Data processed
 
-| Data                        | Purpose                   | Typical retention                           |
-| --------------------------- | ------------------------- | ------------------------------------------- |
-| User accounts (email, name) | Console access            | While account is active                     |
-| Vault access logs           | Security audit            | 12–24 months (configurable)                 |
+| Data                        | Purpose                   | Typical retention                            |
+| --------------------------- | ------------------------- | -------------------------------------------- |
+| User accounts (email, name) | Console access            | While account is active                      |
+| Vault access logs           | Security audit            | 12–24 months (configurable)                  |
 | Metrics and checks          | Infrastructure monitoring | Rollups (state + events, not raw heartbeats) |
-| Vault secrets               | Operations (panels, SSH…) | Until manual deletion                       |
+| Vault secrets               | Operations (panels, SSH…) | Until manual deletion                        |
 
 ## Vault
 

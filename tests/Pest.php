@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Sleep;
 use Tests\TestCase;
 
 /*
@@ -17,6 +18,9 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    ->beforeEach(function (): void {
+        Sleep::fake(syncWithCarbon: true);
+    })
     ->afterEach(function (): void {
         // Setup wizard tests may switch default to nocline_setup; never leak to other tests.
         config(['database.default' => 'sqlite']);

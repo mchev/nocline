@@ -9,6 +9,10 @@ class RunHubCheckOnCreate
 {
     public function handle(CheckCreated $event): void
     {
+        if (! config('nocline.eager_hub_check_on_create')) {
+            return;
+        }
+
         if ($event->check->runsOnProbes()) {
             return;
         }
