@@ -272,11 +272,7 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                 :provider-label="providerLabel"
             />
 
-            <HostStackChips
-                v-if="stack"
-                class="px-0.5"
-                :stack="stack"
-            />
+            <HostStackChips v-if="stack" class="px-0.5" :stack="stack" />
 
             <p
                 v-if="resourceAlertActive && resourceAlertMessage"

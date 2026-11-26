@@ -14,7 +14,6 @@ import (
 	"github.com/nocline/nocline/agent/internal/collect"
 	"github.com/nocline/nocline/agent/internal/config"
 	"github.com/nocline/nocline/agent/internal/enroll"
-	"github.com/nocline/nocline/agent/internal/legacy"
 	"github.com/nocline/nocline/agent/internal/meta"
 	"github.com/nocline/nocline/agent/internal/probe"
 	"github.com/nocline/nocline/agent/internal/transport"
@@ -80,14 +79,7 @@ func runAgent(args []string) int {
 		return 0
 	}
 
-	if legacy.NeedsMigration() {
-		if err := legacy.Migrate(log.Printf); err != nil {
-			log.Println("migration:", err)
-		}
-	}
-
-	configPath := legacy.ResolveConfigPath(*configFlag, config.DefaultPath, config.LegacyDefaultPath)
-	cfg, err := config.Load(configPath)
+	cfg, err := config.Load(*configFlag)
 	if err == nil {
 		err = cfg.Validate()
 	}

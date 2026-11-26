@@ -38,7 +38,7 @@ return [
     /*
     | Marker file created once the first setup is done (keep storage/ persistent).
     */
-    'installed_marker' => env('NOCLINE_INSTALLED_MARKER', env('PHARE_INSTALLED_MARKER', storage_path('app/nocline-installed'))),
+    'installed_marker' => env('NOCLINE_INSTALLED_MARKER', storage_path('app/nocline-installed')),
 
     /*
     | Skip the setup wizard (CI, tests, pre-provisioned deployments).

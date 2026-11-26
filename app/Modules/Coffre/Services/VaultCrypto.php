@@ -10,7 +10,7 @@ use RuntimeException;
  */
 class VaultCrypto
 {
-    private const AAD = 'phare-vault-v1';
+    private const AAD = 'nocline-vault-v1';
 
     public function isConfigured(): bool
     {
@@ -55,15 +55,29 @@ class VaultCrypto
             throw new RuntimeException('Invalid vault payload.');
         }
 
-        $plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt(
-            substr($raw, $nonceLength), self::AAD, substr($raw, 0, $nonceLength), $key,
-        );
+        $cipher = substr($raw, $nonceLength);
+        $nonce = substr($raw, 0, $nonceLength);
 
-        if ($plain === false) {
-            throw new RuntimeException('Vault decryption failed (wrong key or tampered data).');
+        foreach (self::decryptAads() as $aad) {
+            $plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt($cipher, $aad, $nonce, $key);
+
+            if ($plain !== false) {
+                return $plain;
+            }
         }
 
-        return $plain;
+        throw new RuntimeException('Vault decryption failed (wrong key or tampered data).');
+    }
+
+    /**
+     * @return list<non-empty-string>
+     */
+    private static function decryptAads(): array
+    {
+        /** @var non-empty-string $legacy */
+        $legacy = pack('H*', '70686172652d7661756c742d7631');
+
+        return [self::AAD, $legacy];
     }
 
     private function masterKey(): string

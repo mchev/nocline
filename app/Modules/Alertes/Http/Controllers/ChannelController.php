@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Alertes\Http\Requests\ChannelRequest;
 use App\Modules\Alertes\Models\NotificationChannel;
 use App\Modules\Alertes\Services\AdapterRegistry;
+use App\Modules\Alertes\Services\NotificationPreferences;
 use App\Modules\Alertes\Support\AlertMessage;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -14,11 +15,12 @@ use Throwable;
 
 class ChannelController extends Controller
 {
-    public function index(AdapterRegistry $registry): Response
+    public function index(AdapterRegistry $registry, NotificationPreferences $preferences): Response
     {
         $this->authorize('viewAny', NotificationChannel::class);
 
         return Inertia::render('alertes/Index', [
+            'notification_preferences' => $preferences->all(),
             'channels' => NotificationChannel::query()->orderBy('name')->get()
                 ->map(fn (NotificationChannel $c) => [
                     'id' => $c->id,

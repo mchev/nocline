@@ -17,11 +17,16 @@ class AlertDispatcher
         private AdapterRegistry $adapters,
         private NotificationChannelResolver $channels,
         private SnoozedAlertGate $snooze,
+        private NotificationPreferences $preferences,
     ) {}
 
     public function dispatch(Incident $incident, string $kind): void
     {
         $incident->loadMissing('check');
+
+        if (! $this->preferences->incidentNotificationsEnabled($kind)) {
+            return;
+        }
 
         if ($incident->check === null || $this->snooze->isMuted($incident->check)) {
             return;

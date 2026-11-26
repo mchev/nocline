@@ -14,11 +14,6 @@ class InstallState
             return true;
         }
 
-        $defaultMarker = storage_path('app/nocline-installed');
-        if (config('nocline.installed_marker') === $defaultMarker && File::exists(storage_path('app/phare-installed'))) {
-            return true;
-        }
-
         // Instances created before the wizard existed: an existing user means "installed".
         try {
             return User::query()->exists();

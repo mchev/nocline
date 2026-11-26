@@ -6,14 +6,14 @@ Format : [Keep a Changelog](https://keepachangelog.com), versions [SemVer](https
 
 ### Changed
 
-- **Rebrand:** Phare → **Nocline** (product, docs, `nocline:*` Artisan commands, `NOCLINE_*` env vars, `nocline-agent` binaries, repo `mchev/nocline`).
+- **Rebrand:** product renamed **Nocline** (docs, `nocline:*` Artisan commands, `NOCLINE_*` env vars, `nocline-agent` binaries, repo `mchev/nocline`).
 - Agents self-migrate on first **0.2.0** start: `/usr/local/bin/nocline-agent`, `/etc/nocline-agent/`, `nocline-agent.service`.
 
-### Added
-
-- Legacy install detection: `storage/app/phare-installed` and `PHARE_*` env still honoured where documented.
-
 ## [Unreleased]
+
+### Removed
+
+- Agent auto-migration and PHP fallbacks for the pre-Nocline product name (paths, env vars, install markers).
 
 ### Added
 

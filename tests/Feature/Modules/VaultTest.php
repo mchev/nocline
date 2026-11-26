@@ -112,6 +112,17 @@ it('keeps the secret when editing without a new one and rotates the DEK payload 
     expect($entry->refresh()->reveal(app(VaultCrypto::class))['secret'])->toBe('New-Secret!');
 });
 
+it('decrypts payloads sealed with the pre-rebrand vault aad', function () {
+    $crypto = app(VaultCrypto::class);
+    $key = $crypto->newDek();
+    $aad = pack('H*', '70686172652d7661756c742d7631');
+    $nonce = random_bytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+    $cipher = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt('legacy', $aad, $nonce, $key);
+    $payload = base64_encode($nonce.$cipher);
+
+    expect($crypto->decrypt($payload, $key))->toBe('legacy');
+});
+
 it('fails closed without a valid master key or with tampered data', function () {
     $crypto = app(VaultCrypto::class);
     $key = $crypto->newDek();

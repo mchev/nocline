@@ -32,6 +32,9 @@ class Renewal extends Model
     /** Default reminder thresholds, in days before expiry. */
     public const DEFAULT_REMIND_DAYS = [30, 14, 7, 1];
 
+    /** @var list<string> */
+    public const NOTIFY_KINDS = ['ssl', 'domain', 'contract', 'other'];
+
     protected function casts(): array
     {
         return [

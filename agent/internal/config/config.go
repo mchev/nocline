@@ -13,7 +13,6 @@ import (
 
 const (
 	DefaultPath        = "/etc/nocline-agent/config.yaml"
-	LegacyDefaultPath  = "/etc/phare-agent/config.yaml"
 	DefaultIntervalSec = 30
 	// DefaultProbeIntervalSec : période de poll des probes.
 	DefaultProbeIntervalSec = 15

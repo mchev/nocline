@@ -9,7 +9,7 @@ description: >-
 
 # Nocline — guideline produit & technique
 
-**Nocline** : console + wallboard + agents (métaphore du phare — voir l'état de l'infra de loin).
+**Nocline** : console + wallboard + agents (voir l'essentiel de l'infra de loin).
 
 | Identité            | Valeur                                                                    |
 | ------------------- | ------------------------------------------------------------------------- |
@@ -215,7 +215,7 @@ Quand tu codes ce produit :
 2. **Toujours** séparer ingest agent (API haute fréquence) et UI (lecture rollups/cache).
 3. **Ne pas** ajouter de dépendance lourde (Elastic, full Prometheus stack) sans demande explicite.
 4. **Tests** : politique de rétention et transitions d'état des checks en priorité.
-5. **Nom de code** : **Nocline** (`nocline-agent`, `nocline:*`) — ne pas réintroduire d'anciens noms de code (Phare, `phare-agent`, etc.).
+5. **Nom de code** : **Nocline** (`nocline-agent`, `nocline:*`) uniquement.
 
 ## Documentation (obligatoire à chaque évolution produit)
 

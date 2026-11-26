@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { Bell, Pencil, Plus, Send, Trash2 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import ChannelController from '@/actions/App/Modules/Alertes/Http/Controllers/ChannelController';
+import NotificationPreferencesController from '@/actions/App/Modules/Alertes/Http/Controllers/NotificationPreferencesController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,7 +39,55 @@ type Channel = {
     config: Record<string, string | null>;
 };
 
-const props = defineProps<{ channels: Channel[]; adapters: Adapter[] }>();
+type RenewalNotifyMode = 'off' | 'expired_only' | 'thresholds';
+
+type NotificationPreferencesPayload = {
+    incidents: { opened: boolean; resolved: boolean };
+    renewals: Record<
+        'ssl' | 'domain' | 'contract' | 'other',
+        RenewalNotifyMode
+    >;
+};
+
+const props = defineProps<{
+    channels: Channel[];
+    adapters: Adapter[];
+    notification_preferences: NotificationPreferencesPayload;
+}>();
+
+const renewalKinds: {
+    key: keyof NotificationPreferencesPayload['renewals'];
+    label: string;
+}[] = [
+    { key: 'ssl', label: t('SSL certificates') },
+    { key: 'domain', label: t('Domain names') },
+    { key: 'contract', label: t('Contracts') },
+    { key: 'other', label: t('Other renewals') },
+];
+
+const renewalModeLabels: Record<RenewalNotifyMode, string> = {
+    off: t('Disabled'),
+    expired_only: t('Only when expired'),
+    thresholds: t('Before expiry (30, 14, 7, 1 days)'),
+};
+
+const prefsForm = useForm<NotificationPreferencesPayload>({
+    ...props.notification_preferences,
+});
+
+watch(
+    () => props.notification_preferences,
+    (value) => {
+        prefsForm.defaults({ ...value }).reset();
+    },
+    { deep: true },
+);
+
+function savePreferences() {
+    prefsForm.patch(NotificationPreferencesController.update.url(), {
+        preserveScroll: true,
+    });
+}
 
 const isAdmin = computed(() => usePage().props.auth.user.role === 'admin');
 const select =
@@ -127,7 +176,7 @@ function remove(c: Channel) {
             :title="t('Notification channels')"
             :description="
                 t(
-                    'Every enabled channel receives incident alerts and renewal reminders.',
+                    'Configure where alerts go and which events are sent to your channels.',
                 )
             "
         >
@@ -135,6 +184,96 @@ function remove(c: Channel) {
                 <Plus class="size-4" /> {{ t('Add a channel') }}
             </Button>
         </PageHeader>
+
+        <section
+            v-if="isAdmin"
+            class="reveal mb-6 space-y-4 overflow-hidden surface p-5"
+            aria-labelledby="alert-prefs-heading"
+        >
+            <header class="space-y-1">
+                <h2
+                    id="alert-prefs-heading"
+                    class="font-display text-sm font-semibold"
+                >
+                    {{ t('What we notify') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{
+                        t(
+                            'Applies to all enabled channels. Dashboard and status pages are not affected.',
+                        )
+                    }}
+                </p>
+            </header>
+
+            <form class="grid gap-6" @submit.prevent="savePreferences">
+                <fieldset class="space-y-3">
+                    <legend class="text-sm font-medium">
+                        {{ t('Incidents') }}
+                    </legend>
+                    <label class="flex items-center gap-2 text-sm">
+                        <input
+                            v-model="prefsForm.incidents.opened"
+                            type="checkbox"
+                            class="size-4 rounded border-input"
+                        />
+                        {{ t('Monitor goes down or has a problem') }}
+                    </label>
+                    <label class="flex items-center gap-2 text-sm">
+                        <input
+                            v-model="prefsForm.incidents.resolved"
+                            type="checkbox"
+                            class="size-4 rounded border-input"
+                        />
+                        {{ t('Monitor is back up') }}
+                    </label>
+                </fieldset>
+
+                <fieldset class="space-y-3">
+                    <legend class="text-sm font-medium">
+                        {{ t('Renewals') }}
+                    </legend>
+                    <div
+                        v-for="kind in renewalKinds"
+                        :key="kind.key"
+                        class="field-stack max-w-md"
+                    >
+                        <Label
+                            :for="`renewal-${kind.key}`"
+                            class="field-label"
+                            >{{ kind.label }}</Label
+                        >
+                        <select
+                            :id="`renewal-${kind.key}`"
+                            v-model="prefsForm.renewals[kind.key]"
+                            :class="select"
+                        >
+                            <option
+                                v-for="(label, mode) in renewalModeLabels"
+                                :key="mode"
+                                :value="mode"
+                            >
+                                {{ label }}
+                            </option>
+                        </select>
+                    </div>
+                </fieldset>
+
+                <div>
+                    <Button
+                        type="submit"
+                        :disabled="prefsForm.processing"
+                        size="sm"
+                    >
+                        {{ t('Save preferences') }}
+                    </Button>
+                </div>
+            </form>
+        </section>
+
+        <h2 class="mb-3 font-display text-sm font-semibold">
+            {{ t('Notification channels') }}
+        </h2>
 
         <EmptyState
             v-if="!channels.length"

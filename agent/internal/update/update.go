@@ -19,14 +19,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nocline/nocline/agent/internal/legacy"
 )
 
 const (
 	minBinaryBytes = 500_000
 	cooldown       = 6 * time.Hour
-	serviceName    = "nocline-agent"
-	legacyService  = "phare-agent"
+	serviceName = "nocline-agent"
 )
 
 // Offer is returned by the hub in POST /api/v1/ingest when a newer agent exists.
@@ -189,10 +187,6 @@ func apply(ctx context.Context, offer *Offer, st Settings) error {
 		st.Logf("agent %s installé, redémarrage du service…", offer.Version)
 	}
 
-	if err := legacy.Migrate(st.Logf); err != nil && st.Logf != nil {
-		st.Logf("migration nocline: %v", err)
-	}
-
 	restart := st.RestartCmd
 	if restart == nil {
 		restart = systemdRestart
@@ -248,22 +242,12 @@ func systemdRestart() error {
 	if _, err := exec.LookPath("systemctl"); err != nil {
 		return errors.New("update: systemctl introuvable — redémarrez l'agent à la main")
 	}
-	if out, err := exec.Command("systemctl", "restart", serviceName).CombinedOutput(); err == nil {
-		return nil
-	} else if unitEnabled(legacyService) {
-		return exec.Command("systemctl", "restart", legacyService).Run()
-	} else {
+	out, err := exec.Command("systemctl", "restart", serviceName).CombinedOutput()
+	if err != nil {
 		return fmt.Errorf("update: restart %s: %w (%s)", serviceName, err, out)
 	}
-}
 
-func unitEnabled(name string) bool {
-	out, err := exec.Command("systemctl", "is-enabled", name).CombinedOutput()
-	if err != nil {
-		return false
-	}
-	s := strings.TrimSpace(string(out))
-	return s == "enabled" || s == "static"
+	return nil
 }
 
 // versionOlder compares dotted numeric versions (ignores suffix after '-').

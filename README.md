@@ -18,10 +18,6 @@
 </p>
 
 <p align="center">
-  <sub>Formerly <strong>Phare</strong> (renamed in 0.2.0).</sub>
-</p>
-
-<p align="center">
   <a href="LICENSE">Elastic License 2.0</a>
   · <a href="https://github.com/mchev/nocline/releases">Releases</a>
   · <a href="https://mchev.github.io/nocline/">Documentation</a>
