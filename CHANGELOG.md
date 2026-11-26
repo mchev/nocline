@@ -2,18 +2,7 @@
 
 Format : [Keep a Changelog](https://keepachangelog.com), versions [SemVer](https://semver.org).
 
-## [0.2.0] - 2025-11-25
-
-### Changed
-
-- **Rebrand:** product renamed **Nocline** (docs, `nocline:*` Artisan commands, `NOCLINE_*` env vars, `nocline-agent` binaries, repo `mchev/nocline`).
-- Agents self-migrate on first **0.2.0** start: `/usr/local/bin/nocline-agent`, `/etc/nocline-agent/`, `nocline-agent.service`.
-
 ## [Unreleased]
-
-### Removed
-
-- Agent auto-migration and PHP fallbacks for the pre-Nocline product name (paths, env vars, install markers).
 
 ### Added
 
@@ -26,3 +15,25 @@ Format : [Keep a Changelog](https://keepachangelog.com), versions [SemVer](https
 ### Changed
 
 - Les clients sont remplacés par des groupes (migration automatique : chaque client devient un groupe).
+
+## [0.2.1] - 2026-11-26
+
+### Added
+
+- Notification preferences on the Alertes page (admin): incidents and renewals (`app_settings`).
+- Server software stack from the agent (`host_meta.stack`, UI chips on hosts and dashboard).
+
+### Fixed
+
+- Dashboard « Sites web » sort order (issues and maintenance surfaced first).
+
+### Removed
+
+- Agent auto-migration and PHP fallbacks for the pre-Nocline product name (paths, env vars, install markers).
+
+## [0.2.0] - 2025-11-25
+
+### Changed
+
+- **Rebrand:** product renamed **Nocline** (docs, `nocline:*` Artisan commands, `NOCLINE_*` env vars, `nocline-agent` binaries, repo `mchev/nocline`).
+- Agents self-migrate on first **0.2.0** start: `/usr/local/bin/nocline-agent`, `/etc/nocline-agent/`, `nocline-agent.service`.

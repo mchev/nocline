@@ -20,7 +20,7 @@ import (
 	"github.com/nocline/nocline/agent/internal/update"
 )
 
-var version = "0.2.0"
+var version = "0.2.1"
 
 const (
 	sampleEvery   = 5 * time.Second

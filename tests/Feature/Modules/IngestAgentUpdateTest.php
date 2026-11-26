@@ -9,7 +9,7 @@ it('includes agent_update in ingest when hub is newer and checksums are availabl
     file_put_contents("$dir/nocline-agent-linux-arm64", str_repeat('y', 600_000));
 
     config([
-        'nocline.version' => '0.2.0',
+        'nocline.version' => '0.2.1',
         'nocline.agent_auto_update' => true,
         'nocline.agent_binary_dir' => $dir,
         'nocline.agent_download_url' => null,
@@ -23,7 +23,7 @@ it('includes agent_update in ingest when hub is newer and checksums are availabl
     ])->assertAccepted();
 
     expect($response->json('accepted'))->toBe(1)
-        ->and($response->json('agent_update.version'))->toBe('0.2.0')
+        ->and($response->json('agent_update.version'))->toBe('0.2.1')
         ->and($response->json('agent_update.binaries.amd64.sha256'))->toHaveLength(64);
 });
 
@@ -40,7 +40,7 @@ it('omits agent_update when the agent is current', function () {
 });
 
 it('omits agent_update when disabled for the host', function () {
-    config(['nocline.version' => '0.2.0', 'nocline.agent_auto_update' => true]);
+    config(['nocline.version' => '0.2.1', 'nocline.agent_auto_update' => true]);
     Host::factory()->enrolled()->create(['agent_auto_update' => false]);
 
     $response = $this->withToken('pha_test')->postJson(route('api.ingest'), [
@@ -52,7 +52,7 @@ it('omits agent_update when disabled for the host', function () {
 });
 
 it('omits agent_update when disabled on the hub', function () {
-    config(['nocline.version' => '0.2.0', 'nocline.agent_auto_update' => false]);
+    config(['nocline.version' => '0.2.1', 'nocline.agent_auto_update' => false]);
     Host::factory()->enrolled()->create(['agent_auto_update' => true]);
 
     $response = $this->withToken('pha_test')->postJson(route('api.ingest'), [
