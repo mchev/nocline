@@ -15,7 +15,8 @@ final class HostMetaPresenter
      *     provider: ?string,
      *     provider_label: ?string,
      *     provider_region: ?string,
-     *     kernel: ?string
+     *     kernel: ?string,
+     *     stack: array<string, string>|null
      * }
      */
     public static function forHost(Host $host): array
@@ -37,6 +38,7 @@ final class HostMetaPresenter
             'provider_label' => $label,
             'provider_region' => $meta['provider_region'] ?? null,
             'kernel' => $meta['kernel'] ?? null,
+            'stack' => HostStackRules::normalize(is_array($meta['stack'] ?? null) ? $meta['stack'] : null),
         ];
     }
 }

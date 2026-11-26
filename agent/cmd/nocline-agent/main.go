@@ -181,6 +181,9 @@ func collectLoop(ctx context.Context, cfg config.Config, out chan<- transport.Ba
 			b := transport.Batch{AgentVersion: version, WindowSec: sec, Metrics: ms}
 			if lastMeta.IsZero() || now.Sub(lastMeta) >= hostMetaEvery {
 				snap := meta.Collect()
+				if cfg.StackProbe {
+					snap.Stack = meta.CollectStack()
+				}
 				b.HostMeta = &snap
 				lastMeta = now
 			}

@@ -30,11 +30,13 @@ type Config struct {
 	AutoUpdate bool
 	// Capabilities (probe) : types de checks exécutables (http, tcp, dns, icmp).
 	Capabilities []string
+	// StackProbe : versions runtime (php, node, …) dans host_meta (~1×/h, lecture seule).
+	StackProbe bool
 }
 
 // Parse lit un YAML plat « clé: valeur ». Les clés inconnues, listes et lignes indentées sont ignorées.
 func Parse(data []byte) (Config, error) {
-	c := Config{IntervalSec: DefaultIntervalSec, AutoUpdate: true}
+	c := Config{IntervalSec: DefaultIntervalSec, AutoUpdate: true, StackProbe: true}
 	sc := bufio.NewScanner(strings.NewReader(string(data)))
 	intervalSet, inCaps := false, false
 	for sc.Scan() {
@@ -74,6 +76,8 @@ func Parse(data []byte) (Config, error) {
 			intervalSet = true
 		case "auto_update":
 			c.AutoUpdate = val == "true" || val == "1" || val == "yes"
+		case "stack_probe":
+			c.StackProbe = val == "true" || val == "1" || val == "yes"
 		case "capabilities":
 			if strings.HasPrefix(val, "[") {
 				for _, p := range strings.Split(strings.Trim(val, "[] "), ",") {
@@ -143,6 +147,9 @@ func Save(path string, c Config) error {
 	body := fmt.Sprintf("hub_url: %s\nrole: %s\ntoken: \"%s\"\ninterval_sec: %d\n", c.HubURL, c.Role, c.Token, c.IntervalSec)
 	if c.AutoUpdate {
 		body += "auto_update: true\n"
+	}
+	if !c.StackProbe {
+		body += "stack_probe: false\n"
 	}
 	if len(c.Capabilities) > 0 {
 		body += "capabilities: [" + strings.Join(c.Capabilities, ", ") + "]\n"

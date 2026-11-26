@@ -14,7 +14,7 @@ final class HostMetadataRules
     {
         $key = fn (string $field): string => $prefix === '' ? $field : "{$prefix}.{$field}";
 
-        return [
+        return array_merge([
             $prefix => ['nullable', 'array'],
             $key('hostname') => ['nullable', 'string', 'max:255'],
             $key('public_ipv4') => ['nullable', 'ipv4'],
@@ -25,6 +25,6 @@ final class HostMetadataRules
             $key('provider') => ['nullable', 'string', 'max:32', Rule::in(CloudProvider::values())],
             $key('provider_region') => ['nullable', 'string', 'max:64'],
             $key('provider_source') => ['nullable', 'string', 'max:16', Rule::in(['agent', 'whois'])],
-        ];
+        ], HostStackRules::validationRules("{$prefix}.stack"));
     }
 }

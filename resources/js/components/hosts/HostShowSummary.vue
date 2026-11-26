@@ -9,6 +9,7 @@ import {
     hostMetricTone,
     metricThresholdsFromAlert,
 } from '@/lib/hostMetricTone';
+import HostStackChips from '@/components/HostStackChips.vue';
 import { t } from '@/lib/i18n';
 import { index as hostsIndex } from '@/routes/hosts';
 
@@ -28,6 +29,7 @@ const props = defineProps<{
     publicIpv4: string | null;
     providerLabel: string | null;
     providerRegion: string | null;
+    stack?: Record<string, string> | null;
     resourceAlertActive: boolean;
     resourceAlertMessage: string | null;
     canManage: boolean;
@@ -302,6 +304,12 @@ const loadStats = computed(() => [
                     </span>
                 </template>
             </div>
+
+            <HostStackChips
+                v-if="enrolled && stack"
+                class="pt-0.5"
+                :stack="stack"
+            />
 
             <p
                 v-if="resourceAlertActive && resourceAlertMessage"

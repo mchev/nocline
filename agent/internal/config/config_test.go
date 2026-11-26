@@ -9,7 +9,7 @@ import (
 
 func TestRoundTrip(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "sub", "config.yaml")
-	in := Config{HubURL: "https://ops.example.com", Role: "host", Token: "tok-en", IntervalSec: 15, AutoUpdate: true}
+	in := Config{HubURL: "https://ops.example.com", Role: "host", Token: "tok-en", IntervalSec: 15, AutoUpdate: true, StackProbe: true}
 	if err := Save(path, in); err != nil {
 		t.Fatal(err)
 	}
@@ -51,6 +51,17 @@ func TestValidate(t *testing.T) {
 	}
 	if (Config{Role: "host", IntervalSec: 30}).Validate() == nil {
 		t.Fatal("missing hub/token should fail")
+	}
+}
+
+func TestParseStackProbe(t *testing.T) {
+	c, err := Parse([]byte("hub_url: https://x\nrole: host\ntoken: a\n"))
+	if err != nil || !c.StackProbe {
+		t.Fatalf("default %+v err=%v", c, err)
+	}
+	c, err = Parse([]byte("hub_url: https://x\nrole: host\ntoken: a\nstack_probe: false\n"))
+	if err != nil || c.StackProbe {
+		t.Fatalf("%+v", c)
 	}
 }
 

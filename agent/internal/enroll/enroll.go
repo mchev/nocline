@@ -28,6 +28,7 @@ func Enroll(ctx context.Context, httpClient *http.Client, hubURL, enrollmentToke
 		httpClient = &http.Client{Timeout: 15 * time.Second}
 	}
 	snap := meta.Collect()
+	snap.Stack = meta.CollectStack()
 	payload := map[string]any{
 		"token":         enrollmentToken,
 		"agent_version": agentVersion,

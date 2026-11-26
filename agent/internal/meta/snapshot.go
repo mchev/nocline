@@ -10,4 +10,6 @@ type Snapshot struct {
 	Provider        string   `json:"provider,omitempty"`
 	ProviderRegion  string   `json:"provider_region,omitempty"`
 	ProviderSource  string   `json:"provider_source,omitempty"`
+	// Stack : versions détectées sur le serveur (php, node, …) — snapshot, pas de heartbeat.
+	Stack map[string]string `json:"stack,omitempty"`
 }

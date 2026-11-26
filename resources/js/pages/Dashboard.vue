@@ -77,6 +77,7 @@ type Overview = {
         metrics: HostMetrics;
         public_ipv4?: string | null;
         provider_label?: string | null;
+        stack?: Record<string, string> | null;
     }[];
     heartbeats: {
         id: number;
@@ -1149,6 +1150,7 @@ const starts = [
                         :detail-href="HostController.show.url(server.id)"
                         :public-ipv4="server.public_ipv4"
                         :provider-label="server.provider_label"
+                        :stack="server.stack"
                     />
                 </div>
             </section>

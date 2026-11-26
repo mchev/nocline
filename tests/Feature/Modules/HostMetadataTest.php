@@ -32,6 +32,36 @@ it('stores host metadata from agent ingest', function () {
         ->and($host->os)->toBe('Ubuntu 22.04.3 LTS');
 });
 
+it('stores stack versions from agent ingest', function () {
+    $host = Host::factory()->enrolled('pha_stack_test')->create();
+    $token = 'pha_stack_test';
+
+    $this->postJson('/api/v1/ingest', [
+        'agent_version' => '0.2.0',
+        'window_sec' => 60,
+        'metrics' => [
+            ['key' => 'cpu.usage_pct', 'avg' => 5],
+        ],
+        'host_meta' => [
+            'stack' => [
+                'php' => '8.3.12',
+                'node' => '22.11.0',
+                'postgresql' => '16.2',
+            ],
+        ],
+    ], [
+        'Authorization' => 'Bearer '.$token,
+    ])->assertAccepted();
+
+    $host->refresh();
+
+    expect($host->agent_meta['stack'])->toMatchArray([
+        'php' => '8.3.12',
+        'node' => '22.11.0',
+        'postgresql' => '16.2',
+    ]);
+});
+
 it('stores host metadata on enroll', function () {
     $host = Host::factory()->create();
     $enroll = $host->issueEnrollmentToken();

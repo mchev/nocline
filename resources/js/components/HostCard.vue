@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import AgentUpdateDialog from '@/components/AgentUpdateDialog.vue';
 import HostMetaChips from '@/components/HostMetaChips.vue';
+import HostStackChips from '@/components/HostStackChips.vue';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import { hostDiskParts } from '@/lib/hostDiskCaption';
@@ -48,6 +49,7 @@ const props = withDefaults(
         } | null;
         resourceAlertActive?: boolean;
         resourceAlertMessage?: string | null;
+        stack?: Record<string, string> | null;
     }>(),
     {
         compact: false,
@@ -268,6 +270,12 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                 class="px-0.5"
                 :public-ipv4="publicIpv4"
                 :provider-label="providerLabel"
+            />
+
+            <HostStackChips
+                v-if="stack"
+                class="px-0.5"
+                :stack="stack"
             />
 
             <p
