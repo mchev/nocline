@@ -16,7 +16,8 @@ final class HostMetaPresenter
      *     provider_label: ?string,
      *     provider_region: ?string,
      *     kernel: ?string,
-     *     stack: array<string, string>|null
+     *     stack: array<string, string>|null,
+     *     stack_warnings: array<string, string>
      * }
      */
     public static function forHost(Host $host): array
@@ -30,6 +31,8 @@ final class HostMetaPresenter
             $distro = $host->os;
         }
 
+        $stack = HostStackRules::normalize(is_array($meta['stack'] ?? null) ? $meta['stack'] : null);
+
         return [
             'hostname' => $meta['hostname'] ?? null,
             'public_ipv4' => $meta['public_ipv4'] ?? null,
@@ -38,7 +41,8 @@ final class HostMetaPresenter
             'provider_label' => $label,
             'provider_region' => $meta['provider_region'] ?? null,
             'kernel' => $meta['kernel'] ?? null,
-            'stack' => HostStackRules::normalize(is_array($meta['stack'] ?? null) ? $meta['stack'] : null),
+            'stack' => $stack,
+            'stack_warnings' => app(HostStackVersionAdvisor::class)->warnings($stack),
         ];
     }
 }

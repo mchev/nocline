@@ -78,6 +78,7 @@ type Overview = {
         public_ipv4?: string | null;
         provider_label?: string | null;
         stack?: Record<string, string> | null;
+        stack_warnings?: Record<string, string>;
     }[];
     heartbeats: {
         id: number;
@@ -1151,6 +1152,7 @@ const starts = [
                         :public-ipv4="server.public_ipv4"
                         :provider-label="server.provider_label"
                         :stack="server.stack"
+                        :stack-warnings="server.stack_warnings"
                     />
                 </div>
             </section>

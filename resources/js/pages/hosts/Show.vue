@@ -49,6 +49,7 @@ type HostPayload = {
     provider_label: string | null;
     provider_region: string | null;
     stack: Record<string, string> | null;
+    stack_warnings?: Record<string, string>;
     metric_alerts: MetricAlertsConfig;
     resource_alert: { active: boolean; message: string | null };
 };
@@ -223,6 +224,7 @@ const installHref = computed(() => `/monitor/install/${props.host.id}`);
             :provider-label="host.provider_label"
             :provider-region="host.provider_region"
             :stack="host.stack"
+            :stack-warnings="host.stack_warnings"
             :resource-alert-active="host.resource_alert.active"
             :resource-alert-message="host.resource_alert.message"
             :can-manage="canManage"

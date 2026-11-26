@@ -10,6 +10,7 @@ Schedule::command('nocline:renewals:scan-ssl')->dailyAt('02:30');
 Schedule::command('nocline:renewals:scan-domains')->dailyAt('03:00');
 Schedule::command('nocline:renewals:remind')->dailyAt('08:00');
 Schedule::command('nocline:update:check')->dailyAt('04:10');
+Schedule::command('nocline:stack-eol:refresh')->dailyAt('04:20');
 Schedule::command('nocline:checks:prune')->dailyAt('03:30');
 Schedule::command('nocline:checks:refresh-favicons')->dailyAt('05:20');
 Schedule::command('nocline:checks:refresh-frameworks')->weeklyOn(0, '05:40');

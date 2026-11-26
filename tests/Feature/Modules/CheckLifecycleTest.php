@@ -120,18 +120,22 @@ it('acknowledges an open incident as a tech but not as a viewer', function () {
     ]);
 
     $this->actingAs(User::factory()->create())
-        ->post(route('incidents.acknowledge', $incident))->assertForbidden();
+        ->post(route('incidents.acknowledge', $incident))
+        ->assertForbidden();
 
     $tech = User::factory()->tech()->create();
 
     $this->actingAs($tech)
+        ->from(route('incidents.index'))
         ->post(route('incidents.acknowledge', $incident))
-        ->assertRedirect();
+        ->assertRedirect(route('incidents.index'));
 
-    $incident->refresh();
+    $this->assertDatabaseHas('incidents', [
+        'id' => $incident->id,
+        'acknowledged_by' => $tech->id,
+    ]);
 
-    expect($incident->acknowledged_by)->toBe($tech->id)
-        ->and($incident->acknowledged_at)->not->toBeNull();
+    expect(Incident::query()->findOrFail($incident->id)->acknowledged_at)->not->toBeNull();
 });
 
 it('runs due http checks through the scheduler command', function () {

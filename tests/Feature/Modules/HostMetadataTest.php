@@ -1,6 +1,9 @@
 <?php
 
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Hosts\Support\HostMetaPresenter;
+use Illuminate\Support\Carbon;
+use Tests\Support\EndOfLifeCatalogFixture;
 
 it('stores host metadata from agent ingest', function () {
     $host = Host::factory()->enrolled('pha_meta_test')->create();
@@ -60,6 +63,28 @@ it('stores stack versions from agent ingest', function () {
         'node' => '22.11.0',
         'postgresql' => '16.2',
     ]);
+});
+
+it('exposes stack warnings from the presenter', function () {
+    Carbon::setTestNow('2026-11-26');
+    config(['nocline.stack_eol_check' => true]);
+    EndOfLifeCatalogFixture::seedMinimalCatalog();
+
+    $host = Host::factory()->enrolled()->create([
+        'agent_meta' => [
+            'stack' => [
+                'php' => '8.1.0',
+                'node' => '22.14.0',
+            ],
+        ],
+    ]);
+
+    $presentation = HostMetaPresenter::forHost($host);
+
+    expect($presentation['stack_warnings'])->toHaveKey('php')
+        ->and($presentation['stack_warnings'])->not->toHaveKey('node');
+
+    Carbon::setTestNow();
 });
 
 it('stores host metadata on enroll', function () {

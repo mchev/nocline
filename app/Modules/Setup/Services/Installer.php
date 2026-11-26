@@ -167,6 +167,7 @@ class Installer
     public function install(array $data): User
     {
         $useConfigured = (bool) ($data['use_configured_database'] ?? false);
+        $previousDefault = (string) config('database.default');
         $config = $useConfigured
             ? config('database.connections.'.config('database.default'))
             : $this->connectionConfig($data['db']);
@@ -176,21 +177,29 @@ class Installer
             DB::purge('nocline_setup');
         }
 
-        Artisan::call('migrate', ['--force' => true]);
+        try {
+            Artisan::call('migrate', ['--force' => true]);
 
-        $user = User::query()->where('email', $data['admin']['email'])->first() ?? new User;
-        $user->forceFill([
-            'name' => $data['admin']['name'],
-            'email' => $data['admin']['email'],
-            'password' => $data['admin']['password'],
-            'role' => UserRole::Admin,
-            'email_verified_at' => now(),
-        ])->save();
+            $user = User::query()->where('email', $data['admin']['email'])->first() ?? new User;
+            $user->forceFill([
+                'name' => $data['admin']['name'],
+                'email' => $data['admin']['email'],
+                'password' => $data['admin']['password'],
+                'role' => UserRole::Admin,
+                'email_verified_at' => now(),
+            ])->save();
 
-        $this->env->write($this->envValues($data, $config, $useConfigured));
-        $this->state->markInstalled();
+            $this->env->write($this->envValues($data, $config, $useConfigured));
+            $this->state->markInstalled();
 
-        return $user;
+            return $user;
+        } finally {
+            if (! $useConfigured && app()->environment('testing')) {
+                config(['database.default' => $previousDefault]);
+                DB::purge('nocline_setup');
+                DB::setDefaultConnection($previousDefault);
+            }
+        }
     }
 
     /**

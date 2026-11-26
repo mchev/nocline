@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /*
@@ -16,6 +17,12 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    ->afterEach(function (): void {
+        // Setup wizard tests may switch default to nocline_setup; never leak to other tests.
+        config(['database.default' => 'sqlite']);
+        DB::purge('nocline_setup');
+        DB::setDefaultConnection('sqlite');
+    })
     ->in('Feature');
 
 /*

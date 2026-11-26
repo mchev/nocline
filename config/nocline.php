@@ -23,6 +23,13 @@ return [
     */
     'official_repository' => env('NOCLINE_OFFICIAL_REPOSITORY', 'mchev/nocline'),
     'update_check' => (bool) env('NOCLINE_UPDATE_CHECK', true),
+
+    /*
+    | Daily fetch of endoflife.date release cycles for server stack version warnings.
+    | Web requests only read the cache (nocline:stack-eol:refresh).
+    */
+    'stack_eol_check' => (bool) env('NOCLINE_STACK_EOL_CHECK', true),
+    'stack_eol_api' => env('NOCLINE_STACK_EOL_API', 'https://endoflife.date/api/v1'),
     'backup_dir' => env('NOCLINE_BACKUP_DIR', storage_path('app/backups')),
 
     /*

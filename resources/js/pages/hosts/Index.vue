@@ -46,6 +46,7 @@ type Host = {
     public_ipv4: string | null;
     provider_label: string | null;
     stack: Record<string, string> | null;
+    stack_warnings?: Record<string, string>;
     metric_alerts?: {
         cpu_pct: number;
         mem_pct: number;
@@ -379,6 +380,7 @@ const emptyMetrics = (): HostMetrics => ({
                     :public-ipv4="h.public_ipv4"
                     :provider-label="h.provider_label"
                     :stack="h.stack"
+                    :stack-warnings="h.stack_warnings"
                     :metric-alerts="h.metric_alerts ?? null"
                     :resource-alert-active="h.resource_alert?.active ?? false"
                     :resource-alert-message="h.resource_alert?.message ?? null"

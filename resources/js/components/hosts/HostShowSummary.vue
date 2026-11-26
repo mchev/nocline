@@ -30,6 +30,7 @@ const props = defineProps<{
     providerLabel: string | null;
     providerRegion: string | null;
     stack?: Record<string, string> | null;
+    stackWarnings?: Record<string, string> | null;
     resourceAlertActive: boolean;
     resourceAlertMessage: string | null;
     canManage: boolean;
@@ -309,6 +310,7 @@ const loadStats = computed(() => [
                 v-if="enrolled && stack"
                 class="pt-0.5"
                 :stack="stack"
+                :stack-warnings="stackWarnings"
             />
 
             <p

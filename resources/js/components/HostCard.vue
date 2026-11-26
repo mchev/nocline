@@ -50,6 +50,7 @@ const props = withDefaults(
         resourceAlertActive?: boolean;
         resourceAlertMessage?: string | null;
         stack?: Record<string, string> | null;
+        stackWarnings?: Record<string, string> | null;
     }>(),
     {
         compact: false,
@@ -272,7 +273,12 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                 :provider-label="providerLabel"
             />
 
-            <HostStackChips v-if="stack" class="px-0.5" :stack="stack" />
+            <HostStackChips
+                v-if="stack"
+                class="px-0.5"
+                :stack="stack"
+                :stack-warnings="stackWarnings"
+            />
 
             <p
                 v-if="resourceAlertActive && resourceAlertMessage"

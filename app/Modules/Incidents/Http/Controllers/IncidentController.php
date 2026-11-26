@@ -39,12 +39,14 @@ class IncidentController extends Controller
     {
         $this->authorize('acknowledge', $incident);
 
-        if ($incident->isOpen() && ! $incident->isAcknowledged()) {
-            $incident->update([
+        Incident::query()
+            ->whereKey($incident->id)
+            ->open()
+            ->whereNull('acknowledged_at')
+            ->update([
                 'acknowledged_at' => now(),
                 'acknowledged_by' => $request->user()->id,
             ]);
-        }
 
         return back();
     }

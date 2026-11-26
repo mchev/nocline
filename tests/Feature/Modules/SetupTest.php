@@ -22,6 +22,7 @@ afterEach(function () {
     // Restore the default connection so RefreshDatabase rolls back the right one.
     config(['database.default' => 'sqlite']);
     DB::purge('nocline_setup');
+    DB::setDefaultConnection('sqlite');
     File::deleteDirectory($this->tmp);
 });
 

@@ -28,6 +28,7 @@ const LABELS: Record<StackKey, string> = {
 
 const props = defineProps<{
     stack?: Record<string, string> | null;
+    stackWarnings?: Record<string, string> | null;
 }>();
 
 const items = computed(() => {
@@ -44,12 +45,15 @@ const items = computed(() => {
             return [];
         }
 
+        const warning = props.stackWarnings?.[key] ?? null;
+
         return [
             {
                 key,
                 label: LABELS[key],
                 version,
-                title: `${LABELS[key]} ${version}`,
+                warning,
+                title: warning ?? `${LABELS[key]} ${version}`,
             },
         ];
     });
@@ -66,6 +70,7 @@ const items = computed(() => {
             v-for="item in items"
             :key="item.key"
             class="chip font-mono tabular-nums"
+            :class="{ 'chip-warning': item.warning }"
             :title="item.title"
         >
             {{ item.label }} {{ item.version }}
