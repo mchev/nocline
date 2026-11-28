@@ -208,8 +208,7 @@ const loadStats = computed(() => [
                             enrolled && online && !resourceAlertActive,
                         'chip-danger': enrolled && !online,
                         'chip-warning':
-                            online &&
-                            (resourceAlertActive || rebootRequired),
+                            online && (resourceAlertActive || rebootRequired),
                     }"
                 >
                     {{ statusLabel }}

@@ -90,16 +90,34 @@ const downSites = computed(() =>
     ),
 );
 
+const maintenanceSites = computed(() =>
+    (data.value?.sites ?? []).filter((s) => s.enabled && s.in_maintenance),
+);
+
 const offlineHosts = computed(() =>
     (data.value?.hosts ?? []).filter((h) => !h.online),
 );
 
-const allGood = computed(
+const criticalIncidents = computed(() => data.value?.active_incidents ?? []);
+
+const hasCritical = computed(
+    () =>
+        downSites.value.length > 0 ||
+        offlineHosts.value.length > 0 ||
+        criticalIncidents.value.length > 0,
+);
+
+const hasMaintenanceOnly = computed(
     () =>
         data.value !== null &&
-        downSites.value.length === 0 &&
-        offlineHosts.value.length === 0 &&
-        data.value.active_incidents.length === 0,
+        !hasCritical.value &&
+        (maintenanceSites.value.length > 0 ||
+            (data.value.summary?.maintenance ?? 0) > 0),
+);
+
+const allGood = computed(
+    () =>
+        data.value !== null && !hasCritical.value && !hasMaintenanceOnly.value,
 );
 
 const siteRank = (s: WallboardSite) => {
@@ -107,15 +125,15 @@ const siteRank = (s: WallboardSite) => {
         return 5;
     }
 
+    if (s.in_maintenance) {
+        return 1;
+    }
+
     if (s.status === 'down') {
         return 0;
     }
 
     if (s.status === 'degraded') {
-        return 1;
-    }
-
-    if (s.in_maintenance) {
         return 2;
     }
 
@@ -198,12 +216,16 @@ const problemLabels = computed(() => {
     for (const h of offlineHosts.value) {
         items.push(`${h.name} (${t('Offline')})`);
     }
-    for (const i of data.value?.active_incidents ?? []) {
+    for (const i of criticalIncidents.value) {
         items.push(i.title);
     }
 
     return [...new Set(items)];
 });
+
+const maintenanceLabels = computed(() =>
+    maintenanceSites.value.map((s) => s.name),
+);
 
 const problemCount = computed(() => problemLabels.value.length);
 
@@ -238,7 +260,13 @@ onBeforeUnmount(() => {
 <template>
     <Head :title="`${$t('Wallboard')} - ${name}`" />
 
-    <main class="wb-root dark">
+    <main
+        class="wb-root dark"
+        :class="{
+            'wb-root--critical': data !== null && hasCritical,
+            'wb-root--maint': data !== null && hasMaintenanceOnly,
+        }"
+    >
         <div class="wb-aurora" aria-hidden="true" />
 
         <div class="wb-shell">
@@ -259,11 +287,14 @@ onBeforeUnmount(() => {
 
             <header
                 class="wb-topbar"
-                :class="{ 'wb-topbar--alert': data !== null && !allGood }"
+                :class="{
+                    'wb-topbar--alert': data !== null && hasCritical,
+                    'wb-topbar--maint': data !== null && hasMaintenanceOnly,
+                }"
                 role="banner"
             >
                 <h1 class="wb-title">{{ name }}</h1>
-                <template v-if="data !== null && !allGood">
+                <template v-if="data !== null && hasCritical">
                     <div
                         class="wb-topbar-alerts"
                         role="alert"
@@ -274,6 +305,24 @@ onBeforeUnmount(() => {
                         }}</span>
                         <p class="wb-topbar-list">
                             {{ problemLabels.join(' · ') }}
+                        </p>
+                    </div>
+                </template>
+                <template v-else-if="data !== null && hasMaintenanceOnly">
+                    <div
+                        class="wb-topbar-maint"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <span class="wb-topbar-maint-badge">{{
+                            $t('Maintenance')
+                        }}</span>
+                        <p class="wb-topbar-list wb-topbar-list--maint">
+                            {{
+                                maintenanceLabels.length
+                                    ? maintenanceLabels.join(' · ')
+                                    : $t('Planned maintenance')
+                            }}
                         </p>
                     </div>
                 </template>
@@ -379,6 +428,42 @@ onBeforeUnmount(() => {
     container-name: wallboard;
 }
 
+.wb-root--critical {
+    animation: wb-halo-critical 2.2s ease-in-out infinite;
+    box-shadow:
+        inset 0 0 0 clamp(3px, 1vmin, 12px)
+            color-mix(in oklch, var(--danger) 75%, transparent),
+        inset 0 0 clamp(28px, 10vmin, 96px)
+            color-mix(in oklch, var(--danger) 28%, transparent);
+}
+
+.wb-root--maint {
+    box-shadow:
+        inset 0 0 0 clamp(2px, 0.85vmin, 10px)
+            color-mix(in oklch, var(--warning) 65%, transparent),
+        inset 0 0 clamp(18px, 6vmin, 64px)
+            color-mix(in oklch, var(--warning) 18%, transparent);
+}
+
+@keyframes wb-halo-critical {
+    0%,
+    100% {
+        box-shadow:
+            inset 0 0 0 clamp(3px, 1vmin, 12px)
+                color-mix(in oklch, var(--danger) 70%, transparent),
+            inset 0 0 clamp(24px, 8vmin, 80px)
+                color-mix(in oklch, var(--danger) 22%, transparent);
+    }
+
+    50% {
+        box-shadow:
+            inset 0 0 0 clamp(4px, 1.2vmin, 14px)
+                color-mix(in oklch, var(--danger) 90%, transparent),
+            inset 0 0 clamp(36px, 12vmin, 110px)
+                color-mix(in oklch, var(--danger) 38%, transparent);
+    }
+}
+
 .wb-aurora {
     position: absolute;
     inset: 0;
@@ -393,6 +478,40 @@ onBeforeUnmount(() => {
         radial-gradient(
             ellipse 50% 35% at 90% 20%,
             color-mix(in oklch, var(--success) 15%, transparent),
+            transparent 50%
+        );
+}
+
+.wb-root--critical .wb-aurora {
+    opacity: 0.9;
+    background:
+        radial-gradient(
+            ellipse 80% 55% at 50% 100%,
+            color-mix(in oklch, var(--danger) 32%, transparent),
+            transparent 62%
+        ),
+        radial-gradient(
+            ellipse 65% 40% at 0% 0%,
+            color-mix(in oklch, var(--danger) 18%, transparent),
+            transparent 55%
+        ),
+        radial-gradient(
+            ellipse 50% 35% at 100% 15%,
+            color-mix(in oklch, var(--danger) 14%, transparent),
+            transparent 50%
+        );
+}
+
+.wb-root--maint .wb-aurora {
+    background:
+        radial-gradient(
+            ellipse 70% 45% at 50% 0%,
+            color-mix(in oklch, var(--warning) 22%, transparent),
+            transparent 55%
+        ),
+        radial-gradient(
+            ellipse 50% 35% at 90% 20%,
+            color-mix(in oklch, var(--success) 12%, transparent),
             transparent 50%
         );
 }
@@ -432,6 +551,37 @@ onBeforeUnmount(() => {
 .wb-topbar--alert {
     border-color: var(--danger);
     background: color-mix(in oklch, var(--danger) 22%, var(--card));
+}
+
+.wb-topbar--maint {
+    border-color: color-mix(in oklch, var(--warning) 70%, var(--border));
+    background: color-mix(in oklch, var(--warning) 18%, var(--card));
+}
+
+.wb-topbar-maint {
+    display: flex;
+    flex: 1;
+    gap: 0.45em;
+    align-items: center;
+    min-width: 0;
+}
+
+.wb-topbar-maint-badge {
+    flex-shrink: 0;
+    padding: 0.15em 0.5em;
+    font-size: calc(var(--wb-topbar) * 0.95);
+    font-weight: 800;
+    line-height: 1.2;
+    color: color-mix(in oklch, var(--warning) 15%, #111);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--warning);
+    border-radius: 0.25rem;
+}
+
+.wb-topbar-list--maint {
+    font-weight: 600;
+    color: color-mix(in oklch, var(--warning) 70%, var(--foreground));
 }
 
 .wb-title {

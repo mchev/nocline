@@ -232,7 +232,8 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                                 !resourceAlertActive,
                             'chip-danger': enrolled !== false && !online,
                             'chip-warning':
-                                online && (resourceAlertActive || rebootRequired),
+                                online &&
+                                (resourceAlertActive || rebootRequired),
                         }"
                     >
                         {{

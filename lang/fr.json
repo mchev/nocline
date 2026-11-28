@@ -252,6 +252,7 @@
     "Reboot required: :host": "Redémarrage requis : :host",
     ":count server(s) need a reboot for pending updates": ":count serveur(s) doivent être redémarrés pour des mises à jour en attente",
     "Reboot pending": "Redémarrage requis",
+    "Planned maintenance": "Maintenance planifiée",
     "No dashboard blocks selected. Use the customize button above.": "Aucun bloc affiché. Utilisez le bouton de personnalisation ci-dessus.",
     "Kernel": "Noyau",
     "Hostname": "Nom d'hôte",

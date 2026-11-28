@@ -6,6 +6,7 @@ use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Services\CheckResultRecorder;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Maintenance\Models\MaintenanceWindow;
 use App\Modules\Metrics\Models\MetricRollup;
 use App\Modules\Wallboard\Models\Wallboard;
 use App\Modules\Wallboard\Services\WallboardAggregator;
@@ -132,6 +133,22 @@ it('aggregates summary, incidents, sites and host metrics', function () {
         ])
         ->and(collect($json['sites'])->pluck('name'))->toContain('Shop')
         ->and(collect($json['sites'])->firstWhere('name', 'Shop')['latency_ms'])->toBe(120);
+});
+
+it('excludes checks in maintenance from the failing summary and incidents', function () {
+    ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC']);
+    $quiet = Check::factory()->create(['category' => CheckCategory::Website, 'failure_threshold' => 1]);
+    app(CheckResultRecorder::class)->record($quiet, false, null, 'boom');
+    MaintenanceWindow::factory()->create(['check_id' => $quiet->id]);
+
+    $json = $this->getJson(route('api.wallboard', $token))->assertOk()->json();
+
+    expect($json['summary'])->toMatchArray(['down' => 0, 'maintenance' => 1])
+        ->and($json['active_incidents'])->toHaveCount(0);
+
+    $site = collect($json['sites'])->firstWhere('id', $quiet->id);
+    expect($site['in_maintenance'])->toBeTrue()
+        ->and($site['status'])->toBe('down');
 });
 
 it('filters by group, including sub-groups', function () {

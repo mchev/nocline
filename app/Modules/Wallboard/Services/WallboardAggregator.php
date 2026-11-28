@@ -121,6 +121,8 @@ class WallboardAggregator
             ],
             'active_incidents' => Incident::query()->open()->whereIn('check_id', $checkIds)
                 ->with('check:id,name')->latest('started_at')->limit(20)->get()
+                ->reject(fn (Incident $i) => isset($inMaintenance[$i->check_id]))
+                ->values()
                 ->map(fn (Incident $i) => [
                     'id' => $i->id,
                     'title' => $i->title,
