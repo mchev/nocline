@@ -8,10 +8,12 @@ use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Support\SiteHealthCompanion;
 use App\Modules\Checks\Support\WebsiteMonitorRows;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Hosts\Support\HostMetaPresenter;
 use App\Modules\Hosts\Support\HostMetricAlerts;
 use App\Modules\Incidents\Models\Incident;
 use App\Modules\Maintenance\Services\MaintenanceChecker;
 use App\Modules\Metrics\Services\HostMetricsReader;
+use App\Modules\Updates\Services\ReleaseChecker;
 use App\Modules\Wallboard\Models\Wallboard;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -30,6 +32,7 @@ class WallboardAggregator
         private MaintenanceChecker $maintenance,
         private WebsiteMonitorRows $websiteRows,
         private HostMetricsReader $hostMetrics,
+        private ReleaseChecker $releases,
     ) {}
 
     /**
@@ -134,6 +137,9 @@ class WallboardAggregator
                     'id' => $h->id,
                     'name' => $h->name,
                     'online' => $h->isOnline(),
+                    'agent_version' => $h->agent_version,
+                    'agent_outdated' => $this->releases->agentIsOutdated($h->agent_version),
+                    ...HostMetaPresenter::forHost($h),
                     ...HostMetricAlerts::presentation($h),
                     'metrics' => $metricSeries[$h->id] ?? [
                         'cpu' => [],

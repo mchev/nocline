@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import HostMetaChips from '@/components/HostMetaChips.vue';
+import HostStackChips from '@/components/HostStackChips.vue';
 import Sparkline from '@/components/ui-kit/Sparkline.vue';
 import StatusDot from '@/components/ui-kit/StatusDot.vue';
 import {
@@ -15,6 +17,14 @@ const props = defineProps<{
         id: number;
         name: string;
         online: boolean;
+        agent_version?: string | null;
+        agent_outdated?: boolean;
+        public_ipv4?: string | null;
+        provider_label?: string | null;
+        provider_region?: string | null;
+        stack?: Record<string, string> | null;
+        stack_warnings?: Record<string, string> | null;
+        reboot_required?: boolean;
         metrics: HostMetrics;
         metric_alerts?: {
             cpu_pct: number;
@@ -47,9 +57,52 @@ function rowTone(key: 'cpu' | 'mem', now: number | null) {
     return hostMetricTone(now, false, custom);
 }
 
-const status = computed(() =>
-    props.host.online ? ('up' as const) : ('down' as const),
+const resourceAlert = computed(
+    () => props.host.resource_alert?.active === true,
 );
+const rebootRequired = computed(() => props.host.reboot_required === true);
+
+const hostWarn = computed(
+    () => props.host.online && (resourceAlert.value || rebootRequired.value),
+);
+
+const statusDot = computed(() => {
+    if (!props.host.online) {
+        return 'down' as const;
+    }
+
+    if (resourceAlert.value) {
+        return 'degraded' as const;
+    }
+
+    if (rebootRequired.value) {
+        return 'maintenance' as const;
+    }
+
+    return 'up' as const;
+});
+
+const statusLabel = computed(() => {
+    if (!props.host.online) {
+        return t('Offline');
+    }
+
+    const parts: string[] = [];
+
+    if (resourceAlert.value) {
+        parts.push(t('High load'));
+    }
+
+    if (rebootRequired.value) {
+        parts.push(t('Reboot required'));
+    }
+
+    if (parts.length) {
+        return parts.join(' · ');
+    }
+
+    return t('Online');
+});
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v)}%`);
 
@@ -81,19 +134,53 @@ const diskTone = computed(() =>
     <li
         class="wb-host-card"
         :class="{
-            'wb-host-card--up': host.online && !host.resource_alert?.active,
+            'wb-host-card--up': host.online && !hostWarn,
             'wb-host-card--down': !host.online,
-            'wb-host-card--warn': host.online && host.resource_alert?.active,
+            'wb-host-card--warn': hostWarn,
         }"
     >
         <header class="wb-host-head">
             <StatusDot
-                :status="status"
+                :status="statusDot"
                 :pulse="!host.online"
                 class="shrink-0 scale-125"
             />
             <h3 class="wb-host-name">{{ host.name }}</h3>
+            <span
+                class="wb-host-chip"
+                :class="{
+                    'wb-host-chip--ok': host.online && !hostWarn,
+                    'wb-host-chip--down': !host.online,
+                    'wb-host-chip--warn': hostWarn,
+                }"
+            >
+                {{ statusLabel }}
+            </span>
         </header>
+
+        <HostMetaChips
+            v-if="host.public_ipv4 || host.provider_label"
+            compact
+            class="wb-host-meta"
+            :public-ipv4="host.public_ipv4"
+            :provider-label="host.provider_label"
+            :provider-region="host.provider_region"
+        />
+
+        <HostStackChips
+            v-if="host.stack && host.online"
+            class="wb-host-stack"
+            :stack="host.stack"
+            :stack-warnings="host.stack_warnings"
+        />
+
+        <p
+            v-if="host.agent_version && host.online"
+            class="wb-host-agent numeric"
+            :class="{ 'wb-host-agent--old': host.agent_outdated }"
+        >
+            {{ t('Agent') }} v{{ host.agent_version }}
+        </p>
 
         <ul v-if="host.online" class="wb-host-metrics" role="list">
             <li
@@ -137,7 +224,7 @@ const diskTone = computed(() =>
 .wb-host-card {
     display: flex;
     flex-direction: column;
-    gap: 0.35em;
+    gap: 0.3em;
     min-height: 100%;
     padding: 0.45em 0.55em;
     list-style: none;
@@ -165,12 +252,67 @@ const diskTone = computed(() =>
 }
 
 .wb-host-name {
+    flex: 1;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: var(--wb-host-name, 0.95rem);
     font-weight: 700;
     white-space: nowrap;
+}
+
+.wb-host-chip {
+    flex-shrink: 0;
+    padding: 0.1em 0.4em;
+    font-size: calc(var(--wb-host-name, 0.95rem) * 0.65);
+    font-weight: 800;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-radius: 0.2rem;
+}
+
+.wb-host-chip--ok {
+    color: color-mix(in oklch, var(--success) 25%, white);
+    background: color-mix(in oklch, var(--success) 55%, transparent);
+}
+
+.wb-host-chip--down {
+    color: white;
+    background: var(--danger);
+}
+
+.wb-host-chip--warn {
+    color: color-mix(in oklch, var(--warning) 15%, #111);
+    background: var(--warning);
+}
+
+.wb-host-meta {
+    font-size: calc(var(--wb-host-name, 0.95rem) * 0.68);
+}
+
+.wb-host-meta :deep(.chip) {
+    padding: 0.08em 0.35em;
+    font-size: inherit;
+}
+
+.wb-host-stack {
+    font-size: calc(var(--wb-host-name, 0.95rem) * 0.62);
+}
+
+.wb-host-stack :deep(.chip) {
+    padding: 0.06em 0.3em;
+}
+
+.wb-host-agent {
+    margin: 0;
+    font-size: calc(var(--wb-host-name, 0.95rem) * 0.65);
+    color: var(--muted-foreground);
+}
+
+.wb-host-agent--old {
+    font-weight: 700;
+    color: var(--warning);
 }
 
 .wb-host-metrics {

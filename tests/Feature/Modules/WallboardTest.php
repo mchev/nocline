@@ -6,6 +6,7 @@ use App\Modules\Checks\Models\Check;
 use App\Modules\Checks\Services\CheckResultRecorder;
 use App\Modules\Groups\Models\Group;
 use App\Modules\Hosts\Models\Host;
+use App\Modules\Hosts\Support\HostStackRules;
 use App\Modules\Maintenance\Models\MaintenanceWindow;
 use App\Modules\Metrics\Models\MetricRollup;
 use App\Modules\Wallboard\Models\Wallboard;
@@ -133,6 +134,30 @@ it('aggregates summary, incidents, sites and host metrics', function () {
         ])
         ->and(collect($json['sites'])->pluck('name'))->toContain('Shop')
         ->and(collect($json['sites'])->firstWhere('name', 'Shop')['latency_ms'])->toBe(120);
+});
+
+it('enriches host tiles with stack, agent and reboot metadata', function () {
+    ['token' => $token] = Wallboard::createWithToken(['name' => 'NOC']);
+    $host = Host::factory()->enrolled()->create([
+        'last_seen_at' => now(),
+        'agent_version' => '0.2.2',
+        'agent_meta' => [
+            'public_ipv4' => '203.0.113.42',
+            'provider' => 'hetzner',
+            'reboot_required' => true,
+            'reboot_required_since' => now()->subDay()->toIso8601String(),
+            'stack' => ['php' => '8.3.12', 'nginx' => '1.27.0'],
+        ],
+    ]);
+
+    $json = $this->getJson(route('api.wallboard', $token))->assertOk()->json();
+    $row = collect($json['hosts'])->firstWhere('id', $host->id);
+
+    expect($row['public_ipv4'])->toBe('203.0.113.42')
+        ->and($row['provider_label'])->not->toBeEmpty()
+        ->and($row['reboot_required'])->toBeTrue()
+        ->and($row['stack'])->toBe(HostStackRules::normalize(['php' => '8.3.12', 'nginx' => '1.27.0']))
+        ->and($row['agent_version'])->toBe('0.2.2');
 });
 
 it('excludes checks in maintenance from the failing summary and incidents', function () {
