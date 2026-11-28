@@ -25,6 +25,8 @@ final class HostMetadataRules
             $key('provider') => ['nullable', 'string', 'max:32', Rule::in(CloudProvider::values())],
             $key('provider_region') => ['nullable', 'string', 'max:64'],
             $key('provider_source') => ['nullable', 'string', 'max:16', Rule::in(['agent', 'whois'])],
+            $key('reboot_required') => ['nullable', 'boolean'],
+            $key('reboot_required_since') => ['nullable', 'date'],
         ], HostStackRules::validationRules("{$prefix}.stack"));
     }
 }

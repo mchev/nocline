@@ -33,6 +33,8 @@ const props = defineProps<{
     stackWarnings?: Record<string, string> | null;
     resourceAlertActive: boolean;
     resourceAlertMessage: string | null;
+    rebootRequired: boolean;
+    rebootRequiredMessage: string | null;
     canManage: boolean;
     isAdmin: boolean;
     installHref: string;
@@ -59,6 +61,10 @@ const statusLabel = computed(() => {
 
     if (props.resourceAlertActive && props.online) {
         return t('High load');
+    }
+
+    if (props.rebootRequired && props.online) {
+        return t('Reboot pending');
     }
 
     return props.online ? t('Online') : t('Offline');
@@ -201,7 +207,9 @@ const loadStats = computed(() => [
                         'chip-success':
                             enrolled && online && !resourceAlertActive,
                         'chip-danger': enrolled && !online,
-                        'chip-warning': resourceAlertActive && online,
+                        'chip-warning':
+                            online &&
+                            (resourceAlertActive || rebootRequired),
                     }"
                 >
                     {{ statusLabel }}
@@ -320,6 +328,13 @@ const loadStats = computed(() => [
                 :title="resourceAlertMessage"
             >
                 {{ resourceAlertMessage }}
+            </p>
+            <p
+                v-if="rebootRequired && rebootRequiredMessage"
+                class="text-xs text-pretty text-warning"
+                role="status"
+            >
+                {{ rebootRequiredMessage }}
             </p>
         </div>
     </header>

@@ -26,6 +26,10 @@ The agent accepts updates by default (`auto_update: false` in `/etc/nocline-agen
 
 On an **already enrolled** server, use the _update available_ badge command (or `curl -fsSL https://your-hub/install/agent-update.sh | sudo sh`). **Do not** re-run the full install line on production: it re-enrolls, invalidates the old token while the old process still runs → 401 and “offline” until you restart manually.
 
+## Reboot after kernel updates
+
+About **once per hour** the agent reports whether the OS wants a reboot (`/var/run/reboot-required` on Debian/Ubuntu, or `needs-restarting -r` on RHEL/Alma). The hub shows a **Reboot pending** banner on the server list and detail page; channels get an alert on first detection, plus a **daily digest at 08:05** while reboot is still pending (`nocline:hosts:reboot-remind`). Disable with `NOCLINE_REBOOT_REQUIRED_ALERTS=false` and/or `NOCLINE_REBOOT_REQUIRED_DAILY_REMIND=false`.
+
 ## Metrics
 
 The server page shows **CPU, RAM, disk** over **24h**, **7 days**, or **30 days** (1 min, 5 min, or 1h rollups).

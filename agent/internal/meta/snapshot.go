@@ -12,4 +12,8 @@ type Snapshot struct {
 	ProviderSource  string   `json:"provider_source,omitempty"`
 	// Stack : versions détectées sur le serveur (php, node, …) — snapshot, pas de heartbeat.
 	Stack map[string]string `json:"stack,omitempty"`
+	// RebootRequired : noyau ou paquets critiques installés mais pas actifs (lecture seule, Linux).
+	RebootRequired bool `json:"reboot_required"`
+	// RebootRequiredSince : horodatage RFC3339 (souvent mtime de /var/run/reboot-required).
+	RebootRequiredSince string `json:"reboot_required_since,omitempty"`
 }

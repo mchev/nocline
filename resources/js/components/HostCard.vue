@@ -49,6 +49,8 @@ const props = withDefaults(
         } | null;
         resourceAlertActive?: boolean;
         resourceAlertMessage?: string | null;
+        rebootRequired?: boolean;
+        rebootRequiredMessage?: string | null;
         stack?: Record<string, string> | null;
         stackWarnings?: Record<string, string> | null;
     }>(),
@@ -64,6 +66,8 @@ const props = withDefaults(
         metricAlerts: null,
         resourceAlertActive: false,
         resourceAlertMessage: null,
+        rebootRequired: false,
+        rebootRequiredMessage: null,
     },
 );
 
@@ -181,7 +185,8 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                 'gap-3 p-4': !compact,
                 'gap-2 p-3': compact,
                 'border-danger/40': enrolled !== false && !online,
-                'border-warning/50': resourceAlertActive && online,
+                'border-warning/50':
+                    online && (resourceAlertActive || rebootRequired),
                 'opacity-70': enrolled === false,
             }"
             :style="
@@ -226,13 +231,16 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                                 online &&
                                 !resourceAlertActive,
                             'chip-danger': enrolled !== false && !online,
-                            'chip-warning': resourceAlertActive && online,
+                            'chip-warning':
+                                online && (resourceAlertActive || rebootRequired),
                         }"
                     >
                         {{
                             resourceAlertActive && online
                                 ? t('High load')
-                                : statusLabel
+                                : rebootRequired && online
+                                  ? t('Reboot pending')
+                                  : statusLabel
                         }}
                     </span>
                     <button
@@ -286,6 +294,13 @@ function rowValueClass(now: number | null, key: 'cpu' | 'mem') {
                 role="status"
             >
                 {{ resourceAlertMessage }}
+            </p>
+            <p
+                v-if="rebootRequired && rebootRequiredMessage"
+                class="text-xs text-pretty text-warning"
+                role="status"
+            >
+                {{ rebootRequiredMessage }}
             </p>
 
             <div

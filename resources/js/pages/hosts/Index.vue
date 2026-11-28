@@ -53,6 +53,8 @@ type Host = {
         disk_pct: number;
     };
     resource_alert?: { active: boolean; message: string | null };
+    reboot_required?: boolean;
+    reboot_required_message?: string | null;
 };
 
 const props = defineProps<{
@@ -384,6 +386,8 @@ const emptyMetrics = (): HostMetrics => ({
                     :metric-alerts="h.metric_alerts ?? null"
                     :resource-alert-active="h.resource_alert?.active ?? false"
                     :resource-alert-message="h.resource_alert?.message ?? null"
+                    :reboot-required="h.reboot_required ?? false"
+                    :reboot-required-message="h.reboot_required_message ?? null"
                 >
                     <template v-if="canManage" #actions>
                         <Button

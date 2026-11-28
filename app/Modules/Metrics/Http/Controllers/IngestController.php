@@ -5,6 +5,7 @@ namespace App\Modules\Metrics\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Hosts\Services\AgentUpdateOffer;
 use App\Modules\Hosts\Services\HostMetadataApplier;
+use App\Modules\Hosts\Services\HostRebootAlertEvaluator;
 use App\Modules\Metrics\Http\Requests\IngestRequest;
 use App\Modules\Metrics\Services\HostMetricAlertEvaluator;
 use App\Modules\Metrics\Services\MetricIngestor;
@@ -19,6 +20,7 @@ class IngestController extends Controller
         HostMetadataApplier $metadata,
         AgentUpdateOffer $agentUpdate,
         HostMetricAlertEvaluator $metricAlerts,
+        HostRebootAlertEvaluator $rebootAlerts,
     ): JsonResponse {
         $host = $request->attributes->get('host');
         $data = $request->validated();
@@ -27,7 +29,9 @@ class IngestController extends Controller
         $metricAlerts->evaluate($host);
 
         if (! empty($data['host_meta']) && is_array($data['host_meta'])) {
+            $previousMeta = $host->agent_meta;
             $metadata->apply($host, $data['host_meta']);
+            $rebootAlerts->afterMetadata($host, $previousMeta);
         }
 
         $host->forceFill(array_filter([

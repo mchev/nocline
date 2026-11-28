@@ -79,6 +79,13 @@ return [
     'agent_auto_update' => (bool) env('NOCLINE_AGENT_AUTO_UPDATE', true),
 
     /*
+    | Notify when the agent reports reboot_required (kernel update pending). Immediate alert on transition
+    | plus optional daily digest (nocline:hosts:reboot-remind).
+    */
+    'reboot_required_alerts' => (bool) env('NOCLINE_REBOOT_REQUIRED_ALERTS', true),
+    'reboot_required_daily_remind' => (bool) env('NOCLINE_REBOOT_REQUIRED_DAILY_REMIND', true),
+
+    /*
     | Per-host metric alerts (CPU/RAM/disk %, optional load 1m). Evaluated on agent ingest rollups.
     */
     'metric_alerts' => [

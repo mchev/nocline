@@ -27,6 +27,11 @@ class HostMetadataApplier
             $merged['provider_source'] = $incoming['provider_source'] ?? 'agent';
         }
 
+        if (array_key_exists('reboot_required', $incoming) && ! $incoming['reboot_required']) {
+            unset($merged['reboot_required_since']);
+            $merged['reboot_required'] = false;
+        }
+
         $host->forceFill([
             'agent_meta' => $merged,
             'agent_meta_at' => now(),

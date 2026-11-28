@@ -79,6 +79,8 @@ type Overview = {
         provider_label?: string | null;
         stack?: Record<string, string> | null;
         stack_warnings?: Record<string, string>;
+        reboot_required?: boolean;
+        reboot_required_message?: string | null;
     }[];
     heartbeats: {
         id: number;
@@ -1153,6 +1155,10 @@ const starts = [
                         :provider-label="server.provider_label"
                         :stack="server.stack"
                         :stack-warnings="server.stack_warnings"
+                        :reboot-required="server.reboot_required ?? false"
+                        :reboot-required-message="
+                            server.reboot_required_message ?? null
+                        "
                     />
                 </div>
             </section>

@@ -25,6 +25,11 @@ func Collect() Snapshot {
 	if s.PublicIPv4 == "" && len(s.IPv4s) > 0 {
 		s.PublicIPv4 = pickLikelyPublic(s.IPv4s)
 	}
+	required, since := RebootRequired()
+	s.RebootRequired = required
+	if required {
+		s.RebootRequiredSince = since
+	}
 	return s
 }
 

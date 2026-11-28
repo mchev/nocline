@@ -47,6 +47,7 @@ Sur chaque push accepté (202), le hub peut renvoyer `agent_update` lorsque le s
 
 - Collecte Linux (`/proc/stat`, `/proc/meminfo`, `/proc/loadavg`, `statfs /`) toutes les 5 s : `cpu.usage_pct`, `mem.used_bytes`, `mem.used_pct`, `disk.used_pct`, `disk.used_bytes`, `disk.total_bytes`, `load.1m`. Hors Linux : stub (aucune métrique).
 - **Inventaire logiciel** (dans `host_meta.stack`, ~1×/h + à l'enrôlement) : exécution de binaires connus en lecture seule (`php`, `node`, `mysql`, …) — pas de shell, pas de connexion aux bases. Désactiver : `stack_probe: false` dans la config.
+- **Redémarrage requis** (dans `host_meta`, ~1×/h) : lecture de `/var/run/reboot-required` (Debian/Ubuntu) ou `needs-restarting -r` (RHEL/Alma). Aucune commande d'installation ou de reboot depuis l'agent.
 - Chaque `interval_sec`, réduction en `{key,min,max,avg,p95}` puis `POST /api/v1/ingest` (`Bearer`, attend 202). Aucun port entrant.
 - Échec : retry exponentiel (1 s → 30 s, 4 essais) ; lots gardés en mémoire (≤ 10 Mo / 120 lots, les plus anciens abandonnés). 401 : log + nouvel essai toutes les 5 min. 4xx (autres) : lot abandonné.
 

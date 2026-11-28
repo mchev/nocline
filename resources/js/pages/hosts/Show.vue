@@ -52,6 +52,9 @@ type HostPayload = {
     stack_warnings?: Record<string, string>;
     metric_alerts: MetricAlertsConfig;
     resource_alert: { active: boolean; message: string | null };
+    reboot_required: boolean;
+    reboot_required_since: string | null;
+    reboot_required_message: string | null;
 };
 
 type MetricsChartPayload = {
@@ -227,6 +230,8 @@ const installHref = computed(() => `/monitor/install/${props.host.id}`);
             :stack-warnings="host.stack_warnings"
             :resource-alert-active="host.resource_alert.active"
             :resource-alert-message="host.resource_alert.message"
+            :reboot-required="host.reboot_required"
+            :reboot-required-message="host.reboot_required_message"
             :can-manage="canManage"
             :is-admin="isAdmin"
             :install-href="installHref"

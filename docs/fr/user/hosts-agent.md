@@ -26,6 +26,10 @@ L’agent accepte ces mises à jour par défaut (opt-out serveur possible : `aut
 
 Sur un serveur **déjà enrôlé**, utilisez la commande du badge _mise à jour disponible_ (ou `curl -fsSL https://votre-hub/install/agent-update.sh | sudo sh`) : téléchargement du binaire + `systemctl restart` + `auto_update: true` si absent. **Ne relancez pas** la ligne d'installation complète sur un serveur en prod : elle ré-enrôle, invalide l'ancien jeton pendant que l'ancien processus tourne encore → 401 et host « hors ligne » jusqu'à un restart manuel.
 
+## Redémarrage après mise à jour (noyau)
+
+Environ **une fois par heure**, l’agent signale si le système demande un reboot (fichier `/var/run/reboot-required` sur Debian/Ubuntu, ou `needs-restarting -r` sur RHEL/Alma). Le hub affiche un bandeau **Redémarrage requis** sur la fiche et la liste des serveurs ; une **alerte** part sur vos canaux à la première détection, puis un **rappel quotidien** à 08:05 tant que le reboot n’a pas été fait (`nocline:hosts:reboot-remind`). Désactiver : `NOCLINE_REBOOT_REQUIRED_ALERTS=false` et/ou `NOCLINE_REBOOT_REQUIRED_DAILY_REMIND=false`.
+
 ## Métriques
 
 Sur la **fiche serveur**, le graphique **Charge serveur (CPU, RAM, disque)** affiche l’évolution sur **24 h**, **7 jours** ou **30 jours** (rollups 1 min, 5 min ou 1 h selon la période). Utile pour remonter un pic ou une saturation autour d’un incident.
